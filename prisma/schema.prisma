@@ -1,0 +1,235 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum CourseStatus {
+  GENERATING_METADATA
+  GENERATING_MODULES_METADATA
+  METADATA_READY
+  GENERATING_MODULE_1
+  READY
+  GENERATING_REMAINING
+  COMPLETE
+  FAILED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  passwordHash  String
+  interests     String    @default("[]") // JSON string for SQLite compatibility
+  level         UserLevel @default(BEGINNER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  courses       Course[]
+  userProgress  UserProgress[]
+
+  @@map("users")
+}
+
+model Course {
+  id                String       @id @default(cuid())
+  courseId          String       @unique // "course-{uuid}"
+  userId            String
+  userPrompt        String
+  userLevel         UserLevel
+  userInterests     String       @default("[]") // JSON string
+  status            CourseStatus @default(GENERATING_METADATA)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  completedAt       DateTime?
+  deletedAt         DateTime?
+  publishedAt       DateTime?
+  
+  // Metadata
+  title             String?
+  description       String?
+  prerequisites     String       @default("[]") // JSON string
+  totalModules      Int          @default(4)
+  moduleList        String       @default("[]") // JSON string
+  topics            String       @default("[]") // JSON string
+  introduction      String?
+  finalProjectData  String?      // JSON string
+  totalSizeEstimate String?
+  language          String       @default("es")
+  
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  modules           Module[]
+  generationLogs    GenerationLog[]
+  userProgress      UserProgress[]
+
+  @@map("courses")
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  courseId    String
+  moduleOrder Int
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  chunks      Chunk[]
+  videos      Video[]
+  quizzes     Quiz[]
+
+  @@unique([courseId, moduleOrder])
+  @@map("modules")
+}
+
+model Chunk {
+  id        String   @id @default(cuid())
+  moduleId  String
+  chunkOrder Int
+  title     String
+  content   String
+  videoData String?  // JSON string with video information
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  module    Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([moduleId, chunkOrder])
+  @@map("chunks")
+}
+
+model Video {
+  id          String   @id @default(cuid())
+  moduleId    String
+  videoOrder  Int
+  title       String
+  description String?
+  duration    Int?     // in seconds
+  url         String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([moduleId, videoOrder])
+  @@map("videos")
+}
+
+model Quiz {
+  id          String   @id @default(cuid())
+  moduleId    String
+  quizOrder   Int
+  title       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  questions   QuizQuestion[]
+
+  @@unique([moduleId, quizOrder])
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id            String   @id @default(cuid())
+  quizId        String
+  questionOrder Int
+  question      String
+  options       String   // JSON string
+  correctAnswer Int      // 0-3 index
+  explanation   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, questionOrder])
+  @@map("quiz_questions")
+}
+
+model GenerationLog {
+  id              String   @id @default(cuid())
+  courseId        String
+  action          String
+  message         String
+  durationSeconds Int?
+  details         String?  // JSON string
+  createdAt       DateTime @default(now())
+  
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("generation_logs")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model UserProgress {
+  id                String    @id @default(cuid())
+  userId            String
+  courseId          String
+  currentModuleId   String?
+  currentChunkId    String?
+  completedChunks   String    @default("[]") // JSON array of chunk IDs
+  completedModules  String    @default("[]") // JSON array of module IDs
+  quizAttempts      String    @default("[]") // JSON array of quiz attempt data
+  completedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course            Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("user_progress")
+}

@@ -1,0 +1,87 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="720" fill="#f8fafc"/>
+  
+  <!-- Header -->
+  <rect width="1200" height="80" fill="#ffffff"/>
+  <rect x="0" y="80" width="1200" height="1" fill="#e2e8f0"/>
+  
+  <!-- Logo/Title area -->
+  <rect x="40" y="20" width="200" height="40" rx="8" fill="#059669"/>
+  <text x="140" y="45" text-anchor="middle" fill="white" font-family="Inter, sans-serif" font-size="16" font-weight="600">Cursia Course</text>
+  
+  <!-- Navigation -->
+  <rect x="300" y="30" width="80" height="20" rx="4" fill="#e2e8f0"/>
+  <rect x="400" y="30" width="100" height="20" rx="4" fill="#059669"/>
+  <rect x="520" y="30" width="90" height="20" rx="4" fill="#e2e8f0"/>
+  
+  <!-- Main content area -->
+  <rect x="40" y="100" width="720" height="580" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <!-- Course title -->
+  <rect x="60" y="130" width="500" height="32" rx="4" fill="#1e293b"/>
+  <text x="70" y="150" fill="white" font-family="Inter, sans-serif" font-size="20" font-weight="700">Fundamentos de Kubernetes para backend</text>
+  
+  <!-- Progress bar -->
+  <rect x="60" y="180" width="500" height="8" rx="4" fill="#e2e8f0"/>
+  <rect x="60" y="180" width="300" height="8" rx="4" fill="#059669"/>
+  <text x="580" y="190" fill="#64748b" font-family="Inter, sans-serif" font-size="12">60% completado</text>
+  
+  <!-- Module list -->
+  <rect x="60" y="220" width="20" height="20" rx="4" fill="#10b981"/>
+  <text x="90" y="235" fill="#1e293b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Módulo 1: Introducción a Kubernetes</text>
+  <text x="90" y="250" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Conceptos básicos y arquitectura de clusters</text>
+  
+  <rect x="60" y="270" width="20" height="20" rx="4" fill="#10b981"/>
+  <text x="90" y="285" fill="#1e293b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Módulo 2: Pods y Deployments</text>
+  <text x="90" y="300" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Gestión de contenedores y escalado</text>
+  
+  <rect x="60" y="320" width="20" height="20" rx="4" fill="#059669"/>
+  <text x="90" y="335" fill="#1e293b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Módulo 3: Services y Networking</text>
+  <text x="90" y="350" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Comunicación entre servicios</text>
+  
+  <rect x="60" y="370" width="20" height="20" rx="4" fill="#e2e8f0"/>
+  <text x="90" y="385" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Módulo 4: ConfigMaps y Secrets</text>
+  <text x="90" y="400" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Gestión de configuración y datos sensibles</text>
+  
+  <rect x="60" y="420" width="20" height="20" rx="4" fill="#e2e8f0"/>
+  <text x="90" y="435" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Módulo 5: Monitoreo y Logs</text>
+  <text x="90" y="450" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Observabilidad en producción</text>
+  
+  <!-- Quiz section -->
+  <rect x="60" y="480" width="500" height="120" rx="8" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="80" y="505" fill="#1e293b" font-family="Inter, sans-serif" font-size="16" font-weight="600">Quiz: Kubernetes Básico</text>
+  <text x="80" y="525" fill="#64748b" font-family="Inter, sans-serif" font-size="12">7 preguntas • 6/10 puntos</text>
+  
+  <rect x="80" y="540" width="20" height="20" rx="4" fill="#10b981"/>
+  <text x="110" y="555" fill="#1e293b" font-family="Inter, sans-serif" font-size="12">¿Qué es un Pod en Kubernetes?</text>
+  
+  <rect x="80" y="570" width="20" height="20" rx="4" fill="#ef4444"/>
+  <text x="110" y="585" fill="#1e293b" font-family="Inter, sans-serif" font-size="12">¿Cuál es la diferencia entre Deployment y ReplicaSet?</text>
+  
+  <!-- Sidebar -->
+  <rect x="800" y="100" width="360" height="580" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <!-- Certificate preview -->
+  <rect x="820" y="130" width="320" height="200" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="980" y="160" text-anchor="middle" fill="#1e293b" font-family="Inter, sans-serif" font-size="18" font-weight="700">Certificado de Completación</text>
+  <text x="980" y="185" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="14">Fundamentos de Kubernetes para backend</text>
+  <text x="980" y="210" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Completado el 18 de Diciembre, 2024</text>
+  
+  <!-- Stats -->
+  <rect x="820" y="360" width="320" height="120" rx="8" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="980" y="385" text-anchor="middle" fill="#1e293b" font-family="Inter, sans-serif" font-size="16" font-weight="600">Estadísticas del Curso</text>
+  
+  <text x="840" y="410" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Duración: 10 horas</text>
+  <text x="840" y="430" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Módulos: 5 completados</text>
+  <text x="840" y="450" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Quizzes: 2 aprobados</text>
+  <text x="840" y="470" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Progreso: 60%</text>
+  
+  <!-- Action buttons -->
+  <rect x="820" y="520" width="150" height="40" rx="8" fill="#059669"/>
+  <text x="895" y="545" text-anchor="middle" fill="white" font-family="Inter, sans-serif" font-size="14" font-weight="500">Continuar Curso</text>
+  
+  <rect x="990" y="520" width="150" height="40" rx="8" fill="#10b981"/>
+  <text x="1065" y="545" text-anchor="middle" fill="white" font-family="Inter, sans-serif" font-size="14" font-weight="500">Descargar Certificado</text>
+</svg>
+

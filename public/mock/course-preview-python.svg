@@ -1,0 +1,83 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="720" fill="#f8fafc"/>
+  
+  <!-- Header -->
+  <rect width="1200" height="80" fill="#ffffff"/>
+  <rect x="0" y="80" width="1200" height="1" fill="#e2e8f0"/>
+  
+  <!-- Logo/Title area -->
+  <rect x="40" y="20" width="200" height="40" rx="8" fill="#3b82f6"/>
+  <text x="140" y="45" text-anchor="middle" fill="white" font-family="Inter, sans-serif" font-size="16" font-weight="600">Cursia Course</text>
+  
+  <!-- Navigation -->
+  <rect x="300" y="30" width="80" height="20" rx="4" fill="#e2e8f0"/>
+  <rect x="400" y="30" width="100" height="20" rx="4" fill="#3b82f6"/>
+  <rect x="520" y="30" width="90" height="20" rx="4" fill="#e2e8f0"/>
+  
+  <!-- Main content area -->
+  <rect x="40" y="100" width="720" height="580" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <!-- Course title -->
+  <rect x="60" y="130" width="400" height="32" rx="4" fill="#1e293b"/>
+  <text x="70" y="150" fill="white" font-family="Inter, sans-serif" font-size="20" font-weight="700">Python desde cero en 7 días</text>
+  
+  <!-- Progress bar -->
+  <rect x="60" y="180" width="400" height="8" rx="4" fill="#e2e8f0"/>
+  <rect x="60" y="180" width="280" height="8" rx="4" fill="#10b981"/>
+  <text x="480" y="190" fill="#64748b" font-family="Inter, sans-serif" font-size="12">70% completado</text>
+  
+  <!-- Module list -->
+  <rect x="60" y="220" width="20" height="20" rx="4" fill="#10b981"/>
+  <text x="90" y="235" fill="#1e293b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Módulo 1: Introducción a Python</text>
+  <text x="90" y="250" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Variables, tipos de datos y operadores básicos</text>
+  
+  <rect x="60" y="270" width="20" height="20" rx="4" fill="#10b981"/>
+  <text x="90" y="285" fill="#1e293b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Módulo 2: Estructuras de control</text>
+  <text x="90" y="300" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Condicionales, bucles y funciones</text>
+  
+  <rect x="60" y="320" width="20" height="20" rx="4" fill="#3b82f6"/>
+  <text x="90" y="335" fill="#1e293b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Módulo 3: Programación orientada a objetos</text>
+  <text x="90" y="350" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Clases, objetos y herencia</text>
+  
+  <rect x="60" y="370" width="20" height="20" rx="4" fill="#e2e8f0"/>
+  <text x="90" y="385" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Módulo 4: Manejo de archivos</text>
+  <text x="90" y="400" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Lectura, escritura y procesamiento de datos</text>
+  
+  <!-- Quiz section -->
+  <rect x="60" y="450" width="400" height="120" rx="8" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="80" y="475" fill="#1e293b" font-family="Inter, sans-serif" font-size="16" font-weight="600">Quiz: Fundamentos de Python</text>
+  <text x="80" y="495" fill="#64748b" font-family="Inter, sans-serif" font-size="12">5 preguntas • 8/10 puntos</text>
+  
+  <rect x="80" y="510" width="20" height="20" rx="4" fill="#10b981"/>
+  <text x="110" y="525" fill="#1e293b" font-family="Inter, sans-serif" font-size="12">¿Qué es una variable en Python?</text>
+  
+  <rect x="80" y="540" width="20" height="20" rx="4" fill="#ef4444"/>
+  <text x="110" y="555" fill="#1e293b" font-family="Inter, sans-serif" font-size="12">¿Cuál es la sintaxis correcta para un bucle for?</text>
+  
+  <!-- Sidebar -->
+  <rect x="800" y="100" width="360" height="580" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <!-- Certificate preview -->
+  <rect x="820" y="130" width="320" height="200" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="980" y="160" text-anchor="middle" fill="#1e293b" font-family="Inter, sans-serif" font-size="18" font-weight="700">Certificado de Completación</text>
+  <text x="980" y="185" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="14">Python desde cero en 7 días</text>
+  <text x="980" y="210" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Completado el 15 de Diciembre, 2024</text>
+  
+  <!-- Stats -->
+  <rect x="820" y="360" width="320" height="120" rx="8" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="980" y="385" text-anchor="middle" fill="#1e293b" font-family="Inter, sans-serif" font-size="16" font-weight="600">Estadísticas del Curso</text>
+  
+  <text x="840" y="410" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Duración: 7 horas</text>
+  <text x="840" y="430" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Módulos: 4 completados</text>
+  <text x="840" y="450" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Quizzes: 3 aprobados</text>
+  <text x="840" y="470" fill="#64748b" font-family="Inter, sans-serif" font-size="12">Progreso: 70%</text>
+  
+  <!-- Action buttons -->
+  <rect x="820" y="520" width="150" height="40" rx="8" fill="#3b82f6"/>
+  <text x="895" y="545" text-anchor="middle" fill="white" font-family="Inter, sans-serif" font-size="14" font-weight="500">Continuar Curso</text>
+  
+  <rect x="990" y="520" width="150" height="40" rx="8" fill="#10b981"/>
+  <text x="1065" y="545" text-anchor="middle" fill="white" font-family="Inter, sans-serif" font-size="14" font-weight="500">Descargar Certificado</text>
+</svg>
+

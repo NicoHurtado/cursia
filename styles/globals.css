@@ -1,0 +1,274 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Landing page animations */
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s infinite;
+}
+
+/* Halo utilities */
+.halo-gradient {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(59, 130, 246, 0.1) 0%,
+    transparent 70%
+  );
+}
+
+/* Dotted grid utility */
+.dotted-grid {
+  background-image: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0.1) 1px,
+    transparent 1px
+  );
+  background-size: 20px 20px;
+}
+
+.dark .dotted-grid {
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 1px,
+    transparent 1px
+  );
+}
+
+/* Smooth transitions for interactive elements */
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus visible improvements */
+.focus-visible-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+}
+
+/* Generation demo animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Markdown Content Styles */
+.markdown-content {
+  @apply text-foreground leading-relaxed;
+}
+
+.markdown-content h1 {
+  @apply text-3xl font-bold text-foreground mb-6 mt-8 first:mt-0 border-b border-border pb-3;
+}
+
+.markdown-content h2 {
+  @apply text-2xl font-bold text-foreground mb-4 mt-8 first:mt-0 border-b border-border pb-2;
+}
+
+.markdown-content h3 {
+  @apply text-xl font-semibold text-foreground mb-3 mt-6;
+}
+
+.markdown-content h4 {
+  @apply text-lg font-medium text-foreground mb-2 mt-4;
+}
+
+.markdown-content h5 {
+  @apply text-base font-medium text-foreground mb-2 mt-3;
+}
+
+.markdown-content h6 {
+  @apply text-sm font-medium text-foreground mb-2 mt-3;
+}
+
+.markdown-content p {
+  @apply text-foreground leading-relaxed mb-4;
+}
+
+.markdown-content ul {
+  @apply my-4 space-y-2;
+}
+
+.markdown-content ol {
+  @apply my-4 space-y-2 list-decimal list-inside;
+}
+
+.markdown-content li {
+  @apply text-foreground;
+}
+
+.markdown-content ul li {
+  @apply flex items-start gap-3;
+}
+
+.markdown-content ul li::before {
+  @apply w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0 content-[''];
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-950/20 my-4 p-4 rounded-r-lg;
+}
+
+.markdown-content blockquote p {
+  @apply text-blue-900 dark:text-blue-100 italic mb-0;
+}
+
+.markdown-content code {
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground;
+}
+
+.markdown-content pre {
+  @apply bg-gray-900 dark:bg-gray-800 rounded-lg p-4 overflow-x-auto my-4;
+}
+
+.markdown-content pre code {
+  @apply bg-transparent p-0 text-gray-100 text-sm;
+}
+
+.markdown-content strong {
+  @apply font-semibold text-foreground;
+}
+
+.markdown-content em {
+  @apply italic text-foreground;
+}
+
+.markdown-content a {
+  @apply text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline;
+}
+
+.markdown-content table {
+  @apply w-full border-collapse border border-border my-4;
+}
+
+.markdown-content th {
+  @apply border border-border bg-muted px-4 py-2 text-left font-semibold;
+}
+
+.markdown-content td {
+  @apply border border-border px-4 py-2;
+}
+
+.markdown-content hr {
+  @apply border-border my-8;
+}
+
+/* Callout boxes */
+.markdown-content .callout {
+  @apply border-l-4 my-4 p-4 rounded-r-lg;
+}
+
+.markdown-content .callout-note {
+  @apply border-l-blue-500 bg-blue-50 dark:bg-blue-950/20;
+}
+
+.markdown-content .callout-tip {
+  @apply border-l-green-500 bg-green-50 dark:bg-green-950/20;
+}
+
+.markdown-content .callout-warning {
+  @apply border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/20;
+}
+
+.markdown-content .callout-info {
+  @apply border-l-purple-500 bg-purple-50 dark:bg-purple-950/20;
+}

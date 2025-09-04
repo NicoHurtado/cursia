@@ -1,0 +1,10 @@
+{
+  "extends": ["next/core-web-vitals", "prettier"],
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": "error",
+    "prefer-const": "error",
+    "no-var": "error"
+  },
+  "ignorePatterns": ["node_modules/", ".next/", "out/"]
+}
