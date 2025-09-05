@@ -11,6 +11,7 @@ import {
 } from '@/lib/dto/course';
 import { simpleAI } from '@/lib/ai/simple';
 import { v4 as uuidv4 } from 'uuid';
+import { UserPlan, canCreateCourse } from '@/lib/plans';
 
 // Enhanced rate limiting
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all courses for the user (excluding deleted ones)
+    // Get all courses for the user (excluding deleted ones) - Optimized query
     const courses = await db.course.findMany({
       where: {
         userId: session.user.id,
@@ -47,8 +48,9 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        updatedAt: 'desc', // Use updatedAt for better performance
       },
+      take: 50, // Limit to 50 courses for better performance
     });
 
     // Map courses to response format
@@ -82,6 +84,44 @@ export async function POST(request: NextRequest) {
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user plan and check course creation limits
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { plan: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Count courses created this month
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const coursesThisMonth = await db.course.count({
+      where: {
+        userId: session.user.id,
+        createdAt: {
+          gte: startOfMonth,
+        },
+        deletedAt: null,
+      },
+    });
+
+    // Check if user can create more courses based on their plan
+    if (!canCreateCourse(user.plan as UserPlan, coursesThisMonth)) {
+      return NextResponse.json(
+        {
+          error: 'Límite de cursos alcanzado para tu plan actual.',
+          plan: user.plan,
+          coursesCreated: coursesThisMonth,
+          upgradeRequired: true,
+        },
+        { status: 403 }
+      );
     }
 
     // Check rate limit

@@ -10,7 +10,8 @@ import {
   BookOpen, 
   Award, 
   LogOut,
-  Home
+  Home,
+  CreditCard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +19,7 @@ const navigation = [
   { name: 'Mi Perfil', href: '/dashboard/profile', icon: User },
   { name: 'Crear Curso', href: '/create-course', icon: Plus },
   { name: 'Mis Cursos', href: '/dashboard/courses', icon: BookOpen },
+  { name: 'Planes', href: '/dashboard/plans', icon: CreditCard },
   { name: 'Certificaciones', href: '/dashboard/certificates', icon: Award },
 ];
 

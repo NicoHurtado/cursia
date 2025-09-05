@@ -79,11 +79,28 @@ export default function CreateCoursePage() {
       const result = await response.json();
 
       if (!response.ok) {
-        toast({
-          title: 'Error',
-          description: result.error || 'No se pudo crear el curso',
-          variant: 'destructive',
-        });
+        if (result.upgradeRequired) {
+          toast({
+            title: 'Límite de cursos alcanzado',
+            description: result.error + ' Actualiza tu plan para crear más cursos.',
+            variant: 'destructive',
+            action: (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => router.push('/dashboard/plans')}
+              >
+                Ver Planes
+              </Button>
+            ),
+          });
+        } else {
+          toast({
+            title: 'Error',
+            description: result.error || 'No se pudo crear el curso',
+            variant: 'destructive',
+          });
+        }
         return;
       }
 

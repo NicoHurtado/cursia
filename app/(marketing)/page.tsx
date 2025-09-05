@@ -2,6 +2,7 @@ import { Halo } from '@/components/landing/Halo';
 import { Hero } from '@/components/landing/Hero';
 import { PromptInput } from '@/components/landing/PromptInput';
 import { Roadmap } from '@/components/landing/Roadmap';
+import { ReviewsCarousel } from '@/components/landing/ReviewsCarousel';
 
 export default function HomePage() {
   return (
@@ -32,6 +33,9 @@ export default function HomePage() {
 
       {/* Roadmap section */}
       <Roadmap />
+
+      {/* Reviews Carousel */}
+      <ReviewsCarousel />
     </>
   );
 }

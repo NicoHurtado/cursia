@@ -16,6 +16,13 @@ enum UserLevel {
   ADVANCED
 }
 
+enum UserPlan {
+  FREE
+  APRENDIZ
+  EXPERTO
+  MAESTRO
+}
+
 enum CourseStatus {
   GENERATING_METADATA
   GENERATING_MODULES_METADATA
@@ -34,6 +41,7 @@ model User {
   passwordHash  String
   interests     String    @default("[]") // JSON string for SQLite compatibility
   level         UserLevel @default(BEGINNER)
+  plan          UserPlan  @default(FREE)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus, BookOpen } from 'lucide-react';
 import { CourseCard } from '@/components/dashboard/CourseCard';
+import { PlanStatus } from '@/components/dashboard/PlanStatus';
 import { useToast } from '@/components/ui/use-toast';
 
 interface Course {
@@ -31,13 +32,25 @@ export default function CoursesPage() {
   const fetchCourses = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/courses');
+      const response = await fetch('/api/courses', {
+        cache: 'no-store', // Ensure fresh data
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setCourses(data);
+      } else {
+        throw new Error('Failed to fetch courses');
       }
     } catch (error) {
       console.error('Error fetching courses:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar los cursos. Inténtalo de nuevo.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -104,6 +117,9 @@ export default function CoursesPage() {
           Crear Nuevo Curso
         </Button>
       </div>
+
+      {/* Plan Status */}
+      <PlanStatus />
 
       {/* Courses Grid */}
       {courses.length === 0 ? (

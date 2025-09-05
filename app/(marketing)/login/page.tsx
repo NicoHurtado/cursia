@@ -29,7 +29,6 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -40,24 +39,6 @@ export default function LoginPage() {
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   });
-
-  // Check if user is already authenticated
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const session = await getSession();
-        if (session) {
-          router.push('/dashboard');
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      } finally {
-        setIsCheckingSession(false);
-      }
-    };
-
-    checkSession();
-  }, [router]);
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
@@ -93,16 +74,6 @@ export default function LoginPage() {
     }
   };
 
-  if (isCheckingSession) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Verificando sesión...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">

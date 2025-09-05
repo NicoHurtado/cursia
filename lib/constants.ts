@@ -9,8 +9,6 @@ export const NAVIGATION = {
   marketing: [
     { name: 'Inicio', href: '/#inicio' },
     { name: 'Cómo funciona', href: '/#roadmap' },
-    { name: 'Pricing', href: '/#pricing' },
-    { name: 'About', href: '/about' },
   ],
   app: [
     { name: 'Dashboard', href: '/dashboard' },

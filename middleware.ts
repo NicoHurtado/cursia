@@ -2,27 +2,25 @@ import { withAuth } from 'next-auth/middleware';
 
 export default withAuth(
   function middleware(req) {
-    // Add your middleware logic here
+    // Minimal middleware logic for better performance
   },
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        // Allow access to public routes
-        if (
-          req.nextUrl.pathname === '/' ||
-          req.nextUrl.pathname.startsWith('/login') ||
-          req.nextUrl.pathname.startsWith('/signup') ||
-          req.nextUrl.pathname.startsWith('/api/auth')
-        ) {
+        // Fast path for public routes
+        const publicPaths = ['/', '/login', '/signup'];
+        const isPublicPath = publicPaths.includes(req.nextUrl.pathname) || 
+                           req.nextUrl.pathname.startsWith('/api/auth');
+        
+        if (isPublicPath) {
           return true;
         }
 
-        // Require authentication for protected routes
+        // Require authentication for dashboard routes only
         if (req.nextUrl.pathname.startsWith('/dashboard')) {
           return !!token;
         }
 
-        // Allow all other routes
         return true;
       },
     },
