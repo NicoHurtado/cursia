@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -14,7 +14,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const courseId = params.id;
+    const { id: courseId } = await params;
 
     // Verify the course belongs to the user
     const course = await db.course.findFirst({

@@ -147,6 +147,34 @@ export function CourseShell({ course }: CourseShellProps) {
     setCurrentChunkOrder(chunkOrder);
   };
 
+  const handlePreviousChunk = () => {
+    if (currentModule) {
+      const currentChunkIndex = currentModule.chunks.findIndex(chunk => chunk.chunkOrder === currentChunkOrder);
+      if (currentChunkIndex > 0) {
+        const previousChunk = currentModule.chunks[currentChunkIndex - 1];
+        setCurrentChunkOrder(previousChunk.chunkOrder);
+      }
+    }
+  };
+
+  const handleNextChunk = async () => {
+    if (currentModule) {
+      const currentChunk = currentModule.chunks.find(chunk => chunk.chunkOrder === currentChunkOrder);
+      const currentChunkIndex = currentModule.chunks.findIndex(chunk => chunk.chunkOrder === currentChunkOrder);
+      
+      // Mark current chunk as complete if not already completed
+      if (currentChunk && !userProgress?.completedChunks.includes(currentChunk.id)) {
+        await handleMarkChunkComplete(currentChunk.id);
+      }
+      
+      // Move to next chunk if available
+      if (currentChunkIndex < currentModule.chunks.length - 1) {
+        const nextChunk = currentModule.chunks[currentChunkIndex + 1];
+        setCurrentChunkOrder(nextChunk.chunkOrder);
+      }
+    }
+  };
+
   useEffect(() => {
     if (!isLoadingProgress && currentModule) {
       const currentChunk = currentModule.chunks.find(chunk => chunk.chunkOrder === currentChunkOrder);
@@ -424,6 +452,10 @@ export function CourseShell({ course }: CourseShellProps) {
                   isCompleted={userProgress.completedChunks.includes(currentChunk.id)}
                   isMarkingComplete={isMarkingComplete}
                   onMarkComplete={handleMarkChunkComplete}
+                  onPrevious={handlePreviousChunk}
+                  onNext={handleNextChunk}
+                  canGoPrevious={currentChunkOrder > 1}
+                  canGoNext={currentChunkOrder < currentModule.chunks.length}
                   courseTopic={course.title || ''}
                 />
               ) : (

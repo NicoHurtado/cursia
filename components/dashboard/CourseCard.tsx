@@ -13,9 +13,12 @@ import {
   AlertCircle, 
   Loader2,
   ExternalLink,
-  Trash2
+  Trash2,
+  Upload,
+  Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { UserPlan } from '@/lib/plans';
 
 interface Course {
   id: string;
@@ -29,16 +32,21 @@ interface Course {
   completedAt: string | null;
   totalModules: number;
   completedModules: number;
+  isPublic?: boolean;
 }
 
 interface CourseCardProps {
   course: Course;
   onDelete?: (courseId: string) => void;
+  onPublish?: (courseId: string) => void;
+  userPlan?: UserPlan | null;
 }
 
-export function CourseCard({ course, onDelete }: CourseCardProps) {
+export function CourseCard({ course, onDelete, onPublish, userPlan }: CourseCardProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -47,7 +55,7 @@ export function CourseCard({ course, onDelete }: CourseCardProps) {
       case 'failed':
         return <AlertCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
+        return <BookOpen className="h-4 w-4 text-blue-500" />;
     }
   };
 
@@ -88,6 +96,19 @@ export function CourseCard({ course, onDelete }: CourseCardProps) {
       console.error('Error deleting course:', error);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!onPublish) return;
+    
+    setIsPublishing(true);
+    try {
+      await onPublish(course.id);
+    } catch (error) {
+      console.error('Error publishing course:', error);
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -154,14 +175,55 @@ export function CourseCard({ course, onDelete }: CourseCardProps) {
         </div>
 
         {/* CTA */}
-        <Button 
-          onClick={handleOpenCourse}
-          className="w-full"
-          variant={course.status === 'complete' ? 'default' : 'outline'}
-        >
-          <ExternalLink className="h-4 w-4 mr-2" />
-          {course.status === 'complete' ? 'Ver Curso' : 'Abrir Curso'}
-        </Button>
+        <div className="space-y-2">
+          {/* Open Course Button - Blue */}
+          <Button 
+            onClick={handleOpenCourse}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            {course.status === 'complete' ? 'Ver Curso' : 'Abrir Curso'}
+          </Button>
+          
+          {/* Publish Button - Green if MAESTRO and not published, Gray if not MAESTRO or already published */}
+          {onPublish && (
+            <Button 
+              onClick={handlePublish}
+              className={cn(
+                "w-full",
+                userPlan === UserPlan.MAESTRO && !course.isPublic
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : "bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed"
+              )}
+              disabled={isPublishing || userPlan !== UserPlan.MAESTRO || course.isPublic}
+            >
+              {isPublishing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Publicando...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  {course.isPublic 
+                    ? 'Ya Publicado' 
+                    : userPlan === UserPlan.MAESTRO
+                      ? 'Publicar en Comunidad' 
+                      : 'Plan MAESTRO Requerido'
+                  }
+                </>
+              )}
+            </Button>
+          )}
+          
+          {/* Public Status Badge */}
+          {course.isPublic && (
+            <div className="flex items-center justify-center gap-2 text-sm text-green-600 dark:text-green-400">
+              <Eye className="h-4 w-4" />
+              <span>Publicado en Comunidad</span>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

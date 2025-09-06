@@ -6,13 +6,11 @@ export function FooterMinimal() {
       <div className="container py-12">
         <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">
-                C
-              </span>
-            </div>
-            <span className="text-lg font-semibold">Cursia</span>
+          <div className="flex items-center">
+            <span className="text-lg font-semibold">
+              <span className="text-foreground">Curs</span>
+              <span className="text-blue-600">ia</span>
+            </span>
           </div>
 
           {/* Links */}
@@ -39,7 +37,7 @@ export function FooterMinimal() {
 
           {/* Copyright */}
           <div className="text-sm text-muted-foreground">
-            © 2024 Cursia. Todos los derechos reservados.
+            © 2024 <span className="text-foreground">Curs</span><span className="text-blue-600">ia</span>. Todos los derechos reservados.
           </div>
         </div>
       </div>

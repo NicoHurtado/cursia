@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus, BookOpen } from 'lucide-react';
 import { CourseCard } from '@/components/dashboard/CourseCard';
 import { PlanStatus } from '@/components/dashboard/PlanStatus';
 import { useToast } from '@/components/ui/use-toast';
+import { UserPlan } from '@/lib/plans';
 
 interface Course {
   id: string;
@@ -26,8 +28,22 @@ interface Course {
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const router = useRouter();
   const { toast } = useToast();
+  const { data: session } = useSession();
+
+  const fetchUserPlan = async () => {
+    try {
+      const response = await fetch('/api/user/plan');
+      if (response.ok) {
+        const data = await response.json();
+        setUserPlan(data.currentPlan);
+      }
+    } catch (error) {
+      console.error('Error fetching user plan:', error);
+    }
+  };
 
   const fetchCourses = async () => {
     setIsLoading(true);
@@ -58,6 +74,7 @@ export default function CoursesPage() {
 
   useEffect(() => {
     fetchCourses();
+    fetchUserPlan();
   }, []);
 
   const handleCreateCourse = () => {
@@ -86,6 +103,42 @@ export default function CoursesPage() {
       toast({
         title: 'Error',
         description: 'No se pudo eliminar el curso. Inténtalo de nuevo.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handlePublishCourse = async (courseId: string) => {
+    try {
+      const response = await fetch('/api/community/publish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ courseId }),
+      });
+
+      if (response.ok) {
+        // Update the course in local state to mark it as public
+        setCourses(prev => prev.map(course => 
+          course.id === courseId 
+            ? { ...course, isPublic: true }
+            : course
+        ));
+        
+        toast({
+          title: 'Curso publicado',
+          description: 'El curso se ha publicado exitosamente en la comunidad.',
+        });
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to publish course');
+      }
+    } catch (error) {
+      console.error('Error publishing course:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo publicar el curso. Inténtalo de nuevo.',
         variant: 'destructive',
       });
     }
@@ -145,6 +198,8 @@ export default function CoursesPage() {
               key={course.id} 
               course={course} 
               onDelete={handleDeleteCourse}
+              onPublish={handlePublishCourse}
+              userPlan={userPlan}
             />
           ))}
         </div>

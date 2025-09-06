@@ -21,7 +21,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -45,7 +45,7 @@ export default function LoginPage() {
 
     try {
       const result = await signIn('credentials', {
-        email: data.email,
+        username: data.username,
         password: data.password,
         redirect: false,
       });
@@ -53,7 +53,7 @@ export default function LoginPage() {
       if (result?.error) {
         toast({
           title: 'Error',
-          description: 'Invalid email or password',
+          description: 'Invalid username or password',
           variant: 'destructive',
         });
       } else {
@@ -89,18 +89,18 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                {...register('email')}
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                {...register('username')}
                 disabled={isLoading}
                 className="h-12"
               />
-              {errors.email && (
+              {errors.username && (
                 <p className="text-sm text-destructive">
-                  {errors.email.message}
+                  {errors.username.message}
                 </p>
               )}
             </div>

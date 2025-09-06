@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Menu, X, Home } from 'lucide-react';
+import { Menu, X, Home, Users } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -23,11 +23,13 @@ export function Navbar({ variant = 'marketing' }: NavbarProps) {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-20 items-center justify-between">
         <div className="flex items-center space-x-8">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-2xl bg-primary" />
-            <span className="text-xl font-bold">{APP_CONFIG.name}</span>
+          <Link href={variant === 'app' && session ? "/dashboard" : "/"} className="flex items-center">
+            <span className="text-2xl font-bold">
+              <span className="text-foreground">Curs</span>
+              <span className="text-blue-600">ia</span>
+            </span>
           </Link>
 
           {variant === 'marketing' && (

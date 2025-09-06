@@ -5,12 +5,12 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
+  username: z.string().min(3, 'Username must be at least 3 characters').max(20, 'Username must be at most 20 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
@@ -21,11 +21,11 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' },
+        username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.username || !credentials?.password) {
           return null;
         }
 
@@ -36,10 +36,10 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          const { email, password } = validatedFields.data;
+          const { username, password } = validatedFields.data;
 
           const user = await db.user.findUnique({
-            where: { email },
+            where: { username },
           });
 
           if (!user || !user.passwordHash) {
@@ -59,6 +59,7 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
+            username: user.username,
           };
         } catch (error) {
           console.error('Auth error:', error);
@@ -81,12 +82,14 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.username = user.username;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string;
+        session.user.username = token.username as string;
       }
       return session;
     },
@@ -97,7 +100,7 @@ export const authOptions: NextAuthOptions = {
 };
 
 export async function registerUser(data: {
-  name: string;
+  username: string;
   email: string;
   password: string;
 }) {
@@ -111,16 +114,26 @@ export async function registerUser(data: {
       };
     }
 
-    const { name, email, password } = validatedFields.data;
+    const { username, email, password } = validatedFields.data;
 
-    // Check if user already exists
-    const existingUser = await db.user.findUnique({
+    // Check if user already exists by email or username
+    const existingUserByEmail = await db.user.findUnique({
       where: { email },
     });
 
-    if (existingUser) {
+    if (existingUserByEmail) {
       return {
         error: 'User with this email already exists',
+      };
+    }
+
+    const existingUserByUsername = await db.user.findUnique({
+      where: { username },
+    });
+
+    if (existingUserByUsername) {
+      return {
+        error: 'Username is already taken',
       };
     }
 
@@ -130,7 +143,8 @@ export async function registerUser(data: {
     // Create user
     const user = await db.user.create({
       data: {
-        name,
+        username,
+        name: username, // Use username as name
         email,
         passwordHash,
       },

@@ -18,7 +18,7 @@ const reviews: Review[] = [
     id: 1,
     name: 'María Fernanda Rodríguez',
     role: 'Desarrolladora Frontend',
-    content: 'Cursia ha revolucionado mi forma de aprender. Los cursos generados con IA son increíblemente detallados y personalizados. En solo 2 semanas aprendí React desde cero.',
+    content: '<span className="text-foreground">Curs</span><span className="text-blue-600">ia</span> ha revolucionado mi forma de aprender. Los cursos generados con IA son increíblemente detallados y personalizados. En solo 2 semanas aprendí React desde cero.',
     rating: 5
   },
   {
@@ -32,7 +32,7 @@ const reviews: Review[] = [
     id: 3,
     name: 'Ana Lucía Herrera',
     role: 'Diseñadora UX/UI',
-    content: 'Como diseñadora, necesitaba actualizar mis conocimientos en Figma y diseño de interfaces. Cursia me dio exactamente lo que necesitaba, con ejemplos reales.',
+    content: 'Como diseñadora, necesitaba actualizar mis conocimientos en Figma y diseño de interfaces. <span className="text-foreground">Curs</span><span className="text-blue-600">ia</span> me dio exactamente lo que necesitaba, con ejemplos reales.',
     rating: 5
   },
   {
@@ -60,7 +60,7 @@ const reviews: Review[] = [
     id: 7,
     name: 'Isabella Morales',
     role: 'Emprendedora',
-    content: 'Como emprendedora, necesitaba conocimientos en múltiples áreas. Cursia me permitió aprender sobre finanzas, marketing y gestión de equipos de forma eficiente.',
+    content: 'Como emprendedora, necesitaba conocimientos en múltiples áreas. <span className="text-foreground">Curs</span><span className="text-blue-600">ia</span> me permitió aprender sobre finanzas, marketing y gestión de equipos de forma eficiente.',
     rating: 5
   },
   {
@@ -107,7 +107,7 @@ export function ReviewsCarousel() {
             Lo que dicen nuestros estudiantes
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Miles de profesionales en Colombia ya están transformando sus carreras con Cursia
+            Miles de profesionales en Colombia ya están transformando sus carreras con <span className="text-foreground">Curs</span><span className="text-blue-600">ia</span>
           </p>
         </div>
 

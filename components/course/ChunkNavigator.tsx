@@ -120,42 +120,15 @@ export function ChunkNavigator({
         </CardContent>
       </Card>
 
-      {/* Navigation Controls */}
+      {/* Current Chunk Info */}
       <Card>
         <CardContent className="p-4">
-          <div className="space-y-4">
-            {/* Current Chunk Info */}
-            <div className="text-center">
-              <div className="text-sm font-medium text-foreground">
-                Lección {currentChunkOrder} de {chunks.length}
-              </div>
+          <div className="text-center">
+            <div className="text-sm font-medium text-foreground">
+              Lección {currentChunkOrder} de {chunks.length}
             </div>
-
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-between gap-3">
-              {/* Previous Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrevious}
-                disabled={currentChunkIndex === 0}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-blue-50 hover:border-blue-200 transition-colors flex-1"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Anterior
-              </Button>
-
-              {/* Next Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNext}
-                disabled={currentChunkIndex === chunks.length - 1}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-blue-50 hover:border-blue-200 transition-colors flex-1"
-              >
-                Siguiente
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+            <div className="text-xs text-muted-foreground mt-1">
+              {isCurrentChunkCompleted ? 'Completada' : 'En progreso'}
             </div>
           </div>
         </CardContent>

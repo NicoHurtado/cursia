@@ -22,7 +22,7 @@ import { Loader2 } from 'lucide-react';
 
 const signupSchema = z
   .object({
-    name: z.string().min(2, 'Name must be at least 2 characters'),
+    username: z.string().min(3, 'Username must be at least 3 characters').max(20, 'Username must be at most 20 characters'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
@@ -76,7 +76,7 @@ export default function SignupPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: data.name,
+          username: data.username,
           email: data.email,
           password: data.password,
         }),
@@ -93,11 +93,26 @@ export default function SignupPage() {
         return;
       }
 
-      toast({
-        title: 'Success',
-        description: 'Account created successfully! Please sign in.',
+      // Auto sign in after successful registration
+      const signInResult = await signIn('credentials', {
+        username: data.username,
+        password: data.password,
+        redirect: false,
       });
-      router.push('/login');
+
+      if (signInResult?.error) {
+        toast({
+          title: 'Success',
+          description: 'Account created successfully! Please sign in.',
+        });
+        router.push('/login');
+      } else {
+        toast({
+          title: 'Success',
+          description: 'Account created and signed in successfully!',
+        });
+        router.push('/dashboard');
+      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -134,18 +149,18 @@ export default function SignupPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="name"
+                id="username"
                 type="text"
-                placeholder="Enter your name"
-                {...register('name')}
+                placeholder="Enter your username"
+                {...register('username')}
                 disabled={isLoading}
                 className="h-12"
               />
-              {errors.name && (
+              {errors.username && (
                 <p className="text-sm text-destructive">
-                  {errors.name.message}
+                  {errors.username.message}
                 </p>
               )}
             </div>

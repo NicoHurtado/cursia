@@ -11,7 +11,8 @@ import {
   Award, 
   LogOut,
   Home,
-  CreditCard
+  CreditCard,
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -56,6 +57,22 @@ export function Sidebar() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Community Button - Special */}
+      <div className="mb-6">
+        <Button
+          variant="default"
+          className={cn(
+            "w-full justify-start h-14 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg",
+            pathname === '/dashboard/community' && "bg-blue-700 shadow-xl"
+          )}
+          onClick={() => handleNavigation('/dashboard/community')}
+          aria-current={pathname === '/dashboard/community' ? "page" : undefined}
+        >
+          <Users className="h-6 w-6 mr-3" />
+          <span className="font-semibold text-base">Comunidad</span>
+        </Button>
+      </div>
 
       {/* Navigation */}
       <nav className="flex-1 space-y-2">

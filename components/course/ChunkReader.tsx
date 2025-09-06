@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Clock, User, CheckCircle2, Play, Loader2 } from 'lucide-react';
+import { BookOpen, Clock, User, CheckCircle2, Play, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { VideoPlayer } from './VideoPlayer';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
@@ -33,6 +33,10 @@ interface ChunkReaderProps {
   isCompleted?: boolean;
   isMarkingComplete?: boolean;
   onMarkComplete?: (chunkId: string) => void;
+  onPrevious?: () => void;
+  onNext?: () => void;
+  canGoPrevious?: boolean;
+  canGoNext?: boolean;
   courseTopic?: string;
   className?: string;
 }
@@ -42,6 +46,10 @@ export function ChunkReader({
   isCompleted = false, 
   isMarkingComplete = false, 
   onMarkComplete,
+  onPrevious,
+  onNext,
+  canGoPrevious = false,
+  canGoNext = false,
   courseTopic = '',
   className 
 }: ChunkReaderProps) {
@@ -103,48 +111,75 @@ export function ChunkReader({
         </CardContent>
       </Card>
 
-      {/* Reading Progress Indicator */}
-      <Card className="bg-muted/30">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <User className="h-4 w-4" />
-            <span>Has completado esta lección cuando marques el botón "Completado"</span>
+      {/* Navigation Buttons - Large Center Buttons */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
+        <CardContent className="p-8">
+          <div className="flex items-center justify-center gap-6">
+            {/* Previous Button */}
+            {canGoPrevious && onPrevious && (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={onPrevious}
+                className="flex items-center gap-3 px-8 py-4 text-lg font-medium hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 min-w-[160px]"
+              >
+                <ChevronLeft className="h-5 w-5" />
+                Anterior
+              </Button>
+            )}
+
+            {/* Next Button */}
+            {canGoNext && onNext && (
+              <Button
+                onClick={onNext}
+                disabled={isMarkingComplete}
+                className="flex items-center gap-3 px-8 py-4 text-lg font-medium bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 min-w-[160px] shadow-lg hover:shadow-xl"
+              >
+                {isMarkingComplete ? (
+                  <>
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Completando...
+                  </>
+                ) : (
+                  <>
+                    Siguiente
+                    <ChevronRight className="h-5 w-5" />
+                  </>
+                )}
+              </Button>
+            )}
+
+            {/* Mark Complete Button (only if no next button) */}
+            {!canGoNext && !isCompleted && onMarkComplete && (
+              <Button
+                onClick={() => onMarkComplete(chunk.id)}
+                disabled={isMarkingComplete}
+                className="flex items-center gap-3 px-8 py-4 text-lg font-medium bg-green-600 hover:bg-green-700 text-white transition-all duration-200 min-w-[160px] shadow-lg hover:shadow-xl"
+              >
+                {isMarkingComplete ? (
+                  <>
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Completando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-5 w-5" />
+                    Completar Lección
+                  </>
+                )}
+              </Button>
+            )}
+
+            {/* Completion Status */}
+            {isCompleted && (
+              <div className="flex items-center gap-3 px-8 py-4 text-lg font-medium bg-green-600 text-white rounded-lg shadow-lg min-w-[160px] justify-center">
+                <CheckCircle2 className="h-5 w-5" />
+                ¡Completada!
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
-
-      {/* Mark Complete Button - Fixed Position */}
-      {!isCompleted && onMarkComplete && (
-        <div className="fixed bottom-6 right-6 z-10">
-          <Button
-            onClick={() => onMarkComplete(chunk.id)}
-            disabled={isMarkingComplete}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            {isMarkingComplete ? (
-              <>
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-                Marcando...
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Marcar como Completado
-              </>
-            )}
-          </Button>
-        </div>
-      )}
-
-      {/* Completion Status - Fixed Position */}
-      {isCompleted && (
-        <div className="fixed bottom-6 right-6 z-10">
-          <div className="bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            <span className="font-medium">¡Lección Completada!</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
