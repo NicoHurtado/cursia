@@ -1,3 +1,5 @@
+import { MARKDOWN_RENDERING_POLICIES } from '@/lib/markdown-guidelines';
+
 interface AnthropicMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -82,6 +84,8 @@ export async function generateCourseMetadata(
   interests: string[]
 ): Promise<string> {
   const systemPrompt = `Eres un experto pedagogo y diseñador de currículos educativos. Tu tarea es crear un curso que siga principios de aprendizaje humano real.
+
+${MARKDOWN_RENDERING_POLICIES}
 
 Genera metadata de curso en JSON. Responde SOLO con JSON válido:
 
@@ -169,6 +173,8 @@ export async function generateModuleContent(
   courseDescription: string
 ): Promise<string> {
   const systemPrompt = `Eres un maestro experto que crea contenido educativo verdaderamente humano y efectivo. Tu objetivo es enseñar de manera que los estudiantes realmente aprendan y comprendan.
+
+${MARKDOWN_RENDERING_POLICIES}
 
 Genera contenido de módulo en JSON. Responde SOLO con JSON válido:
 
@@ -303,7 +309,16 @@ El contenido debe:
 - Conectar con situaciones reales
 - Progresar naturalmente de lo simple a lo complejo
 
-Genera 6 chunks educativos que formen una historia de aprendizaje completa y un quiz de 7 preguntas que evalúen comprensión real.`;
+Genera 6 chunks educativos que formen una historia de aprendizaje completa y un quiz de 7 preguntas que evalúen comprensión real.
+
+FORMATO DE CADA CHUNK (OBLIGATORIO):
+- Debe comenzar con un título de nivel 2 (## ...)
+- Usar subtítulos de nivel 3 (### ...) cuando corresponda
+- Separar párrafos por una línea en blanco
+- Usar listas cuando enumeres ideas o pasos
+- Usar bloque de código con lenguaje si incluyes código
+- Incluir citas > para notas o tips cuando aporte valor
+`;
 
   return askClaude({ system: systemPrompt, user: userPrompt });
 }
