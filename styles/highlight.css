@@ -1,0 +1,139 @@
+/* Syntax highlighting styles for code blocks */
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0;
+  color: #f8f8f2;
+  background: transparent;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #75715e;
+  font-style: italic;
+}
+
+.hljs-doctag,
+.hljs-keyword,
+.hljs-formula {
+  color: #f92672;
+}
+
+.hljs-section,
+.hljs-name,
+.hljs-selector-tag,
+.hljs-deletion,
+.hljs-subst {
+  color: #f92672;
+}
+
+.hljs-literal {
+  color: #ae81ff;
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta-string {
+  color: #e6db74;
+}
+
+.hljs-built_in,
+.hljs-class .hljs-title {
+  color: #e6db74;
+}
+
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-type,
+.hljs-selector-class,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-number {
+  color: #fd971f;
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-meta,
+.hljs-selector-id,
+.hljs-title {
+  color: #66d9ef;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+
+.hljs-link {
+  text-decoration: underline;
+}
+
+/* Light theme adjustments */
+.light .hljs {
+  color: #24292e;
+}
+
+.light .hljs-comment,
+.light .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
+}
+
+.light .hljs-doctag,
+.light .hljs-keyword,
+.light .hljs-formula {
+  color: #d73a49;
+}
+
+.light .hljs-section,
+.light .hljs-name,
+.light .hljs-selector-tag,
+.light .hljs-deletion,
+.light .hljs-subst {
+  color: #d73a49;
+}
+
+.light .hljs-literal {
+  color: #032f62;
+}
+
+.light .hljs-string,
+.light .hljs-regexp,
+.light .hljs-addition,
+.light .hljs-attribute,
+.light .hljs-meta-string {
+  color: #032f62;
+}
+
+.light .hljs-built_in,
+.light .hljs-class .hljs-title {
+  color: #6f42c1;
+}
+
+.light .hljs-attr,
+.light .hljs-variable,
+.light .hljs-template-variable,
+.light .hljs-type,
+.light .hljs-selector-class,
+.light .hljs-selector-attr,
+.light .hljs-selector-pseudo,
+.light .hljs-number {
+  color: #005cc5;
+}
+
+.light .hljs-symbol,
+.light .hljs-bullet,
+.light .hljs-link,
+.light .hljs-meta,
+.light .hljs-selector-id,
+.light .hljs-title {
+  color: #005cc5;
+}
