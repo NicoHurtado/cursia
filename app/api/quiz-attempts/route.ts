@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       const question = quiz.questions[i];
       const userAnswer = answers[i];
       const isCorrect = userAnswer === question.correctAnswer;
-      
+
       if (isCorrect) {
         correctAnswers++;
       }
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     // Parse quiz attempts
     const quizAttempts = JSON.parse(userProgress.quizAttempts);
-    
+
     // Add new attempt
     const attempt = {
       moduleId,

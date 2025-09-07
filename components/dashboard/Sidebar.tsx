@@ -4,15 +4,15 @@ import { useSession, signOut } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  User, 
-  Plus, 
-  BookOpen, 
-  Award, 
+import {
+  User,
+  Plus,
+  BookOpen,
+  Award,
   LogOut,
   Home,
   CreditCard,
-  Users
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -63,11 +63,13 @@ export function Sidebar() {
         <Button
           variant="default"
           className={cn(
-            "w-full justify-start h-14 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg",
-            pathname === '/dashboard/community' && "bg-blue-700 shadow-xl"
+            'w-full justify-start h-14 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg',
+            pathname === '/dashboard/community' && 'bg-blue-700 shadow-xl'
           )}
           onClick={() => handleNavigation('/dashboard/community')}
-          aria-current={pathname === '/dashboard/community' ? "page" : undefined}
+          aria-current={
+            pathname === '/dashboard/community' ? 'page' : undefined
+          }
         >
           <Users className="h-6 w-6 mr-3" />
           <span className="font-semibold text-base">Comunidad</span>
@@ -76,20 +78,21 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-2">
-        {navigation.map((item) => {
+        {navigation.map(item => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
-          
+
           return (
             <Button
               key={item.name}
               variant="ghost"
               className={cn(
-                "w-full justify-start h-12 px-4",
-                isActive && "bg-primary/10 text-primary border-r-2 border-primary"
+                'w-full justify-start h-12 px-4',
+                isActive &&
+                  'bg-primary/10 text-primary border-r-2 border-primary'
               )}
               onClick={() => handleNavigation(item.href)}
-              aria-current={isActive ? "page" : undefined}
+              aria-current={isActive ? 'page' : undefined}
             >
               <Icon className="h-5 w-5 mr-3" />
               <span className="font-medium">{item.name}</span>

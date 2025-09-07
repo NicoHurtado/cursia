@@ -23,7 +23,7 @@ export class SimpleAI {
     interests: string[]
   ): Promise<any> {
     const cacheKey = `course-metadata:${JSON.stringify({ prompt, level, interests })}`;
-    
+
     // Check cache
     const cached = this.getFromCache(cacheKey);
     if (cached) {
@@ -32,16 +32,23 @@ export class SimpleAI {
     }
 
     console.log('🚀 Generating course metadata...');
-    
+
     try {
-      const metadataJson = await generateCourseMetadata(prompt, level, interests);
+      const metadataJson = await generateCourseMetadata(
+        prompt,
+        level,
+        interests
+      );
       // Clean the JSON string to remove control characters
       const cleanedJson = this.cleanJsonString(metadataJson);
-      const metadata = this.parseJsonWithFallback(cleanedJson, CourseMetadataSchema);
-      
+      const metadata = this.parseJsonWithFallback(
+        cleanedJson,
+        CourseMetadataSchema
+      );
+
       // Cache the result
       this.setCache(cacheKey, metadata);
-      
+
       return metadata;
     } catch (error) {
       console.error('Course metadata generation failed:', error);
@@ -64,7 +71,7 @@ export class SimpleAI {
       totalModules,
       courseDescription,
     })}`;
-    
+
     // Check cache
     const cached = this.getFromCache(cacheKey);
     if (cached) {
@@ -73,7 +80,7 @@ export class SimpleAI {
     }
 
     console.log(`🚀 Generating module content: ${moduleTitle}...`);
-    
+
     try {
       const moduleJson = await generateModuleContent(
         courseTitle,
@@ -82,101 +89,122 @@ export class SimpleAI {
         totalModules,
         courseDescription
       );
-      
+
       // Clean the JSON string to remove control characters
       const cleanedJson = this.cleanJsonString(moduleJson);
-      
+
       let moduleContent;
       try {
-        moduleContent = this.parseJsonWithFallback(cleanedJson, ModuleContentSchema, moduleTitle);
+        moduleContent = this.parseJsonWithFallback(
+          cleanedJson,
+          ModuleContentSchema,
+          moduleTitle
+        );
       } catch (error) {
         console.warn('Schema validation failed, attempting to fix:', error);
-        
+
         // Try to fix the module content with fallback parsing
-        const rawContent = this.parseJsonWithFallback(cleanedJson, null, moduleTitle);
-        
+        const rawContent = this.parseJsonWithFallback(
+          cleanedJson,
+          null,
+          moduleTitle
+        );
+
         // Ensure we have a proper quiz structure
         if (!rawContent.quiz) {
           rawContent.quiz = {
             title: `Quiz: ${moduleTitle}`,
-            questions: []
+            questions: [],
           };
         }
-        
-        if (!rawContent.quiz.questions || rawContent.quiz.questions.length < 5) {
-          console.warn(`Only ${rawContent.quiz.questions?.length || 0} questions generated, adding fallback questions`);
-          
+
+        if (
+          !rawContent.quiz.questions ||
+          rawContent.quiz.questions.length < 5
+        ) {
+          console.warn(
+            `Only ${rawContent.quiz.questions?.length || 0} questions generated, adding fallback questions`
+          );
+
           // Add high-quality fallback questions
           const fallbackQuestions = [
             {
               question: `¿Cuál es el concepto más importante que se enseña en "${moduleTitle}"?`,
               options: [
-                "Un concepto fundamental del tema",
-                "Una técnica avanzada",
-                "Una herramienta auxiliar", 
-                "Un concepto opcional"
+                'Un concepto fundamental del tema',
+                'Una técnica avanzada',
+                'Una herramienta auxiliar',
+                'Un concepto opcional',
               ],
               correctAnswer: 0,
-              explanation: "Este módulo se enfoca en enseñar los conceptos fundamentales que son la base para el aprendizaje posterior."
+              explanation:
+                'Este módulo se enfoca en enseñar los conceptos fundamentales que son la base para el aprendizaje posterior.',
             },
             {
               question: `¿Qué tipo de práctica es más efectiva para dominar "${moduleTitle}"?`,
               options: [
-                "Ejercicios prácticos y proyectos",
-                "Solo lectura teórica",
-                "Memorización de conceptos",
-                "Ver videos pasivamente"
+                'Ejercicios prácticos y proyectos',
+                'Solo lectura teórica',
+                'Memorización de conceptos',
+                'Ver videos pasivamente',
               ],
               correctAnswer: 0,
-              explanation: "La práctica activa con ejercicios y proyectos es la forma más efectiva de consolidar el aprendizaje."
+              explanation:
+                'La práctica activa con ejercicios y proyectos es la forma más efectiva de consolidar el aprendizaje.',
             },
             {
               question: `¿Cuál es el siguiente paso lógico después de completar este módulo?`,
               options: [
-                "Aplicar los conceptos en un proyecto",
-                "Repetir el mismo contenido",
-                "Saltar al siguiente tema sin práctica",
-                "Olvidar lo aprendido"
+                'Aplicar los conceptos en un proyecto',
+                'Repetir el mismo contenido',
+                'Saltar al siguiente tema sin práctica',
+                'Olvidar lo aprendido',
               ],
               correctAnswer: 0,
-              explanation: "La aplicación práctica de los conceptos aprendidos es crucial para el aprendizaje efectivo."
+              explanation:
+                'La aplicación práctica de los conceptos aprendidos es crucial para el aprendizaje efectivo.',
             },
             {
               question: `¿Qué característica hace que este módulo sea educativo?`,
               options: [
-                "Explicaciones claras y ejemplos prácticos",
-                "Contenido superficial",
-                "Información desactualizada",
-                "Falta de estructura"
+                'Explicaciones claras y ejemplos prácticos',
+                'Contenido superficial',
+                'Información desactualizada',
+                'Falta de estructura',
               ],
               correctAnswer: 0,
-              explanation: "Un módulo educativo efectivo combina explicaciones claras con ejemplos prácticos aplicables."
+              explanation:
+                'Un módulo educativo efectivo combina explicaciones claras con ejemplos prácticos aplicables.',
             },
             {
               question: `¿Cómo se puede verificar que se ha comprendido el contenido de "${moduleTitle}"?`,
               options: [
-                "Completando ejercicios y explicando conceptos",
-                "Memorizando definiciones",
-                "Copiando código sin entender",
-                "Saltando las prácticas"
+                'Completando ejercicios y explicando conceptos',
+                'Memorizando definiciones',
+                'Copiando código sin entender',
+                'Saltando las prácticas',
               ],
               correctAnswer: 0,
-              explanation: "La verdadera comprensión se demuestra aplicando los conceptos y explicándolos con tus propias palabras."
-            }
+              explanation:
+                'La verdadera comprensión se demuestra aplicando los conceptos y explicándolos con tus propias palabras.',
+            },
           ];
-          
+
           const currentQuestions = rawContent.quiz.questions || [];
           const neededQuestions = Math.max(0, 5 - currentQuestions.length);
-          rawContent.quiz.questions = [...currentQuestions, ...fallbackQuestions.slice(0, neededQuestions)];
+          rawContent.quiz.questions = [
+            ...currentQuestions,
+            ...fallbackQuestions.slice(0, neededQuestions),
+          ];
         }
-        
+
         // Try parsing again
         moduleContent = ModuleContentSchema.parse(rawContent);
       }
-      
+
       // Cache the result
       this.setCache(cacheKey, moduleContent);
-      
+
       return moduleContent;
     } catch (error) {
       console.error('Module content generation failed:', error);
@@ -247,19 +275,19 @@ export class SimpleAI {
     try {
       // Remove any leading/trailing whitespace
       let cleaned = jsonString.trim();
-      
+
       // Remove any markdown code blocks if present
       cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
       cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
-      
+
       // Remove any text before the first { and after the last }
       const startIndex = cleaned.indexOf('{');
       const lastIndex = cleaned.lastIndexOf('}');
-      
+
       if (startIndex !== -1 && lastIndex !== -1 && lastIndex > startIndex) {
         cleaned = cleaned.substring(startIndex, lastIndex + 1);
       }
-      
+
       // More aggressive cleaning for problematic characters
       cleaned = cleaned
         // Remove all control characters except those that are valid in JSON strings
@@ -276,10 +304,10 @@ export class SimpleAI {
         .replace(/\t/g, '\\t')
         .replace(/\f/g, '\\f')
         .replace(/\v/g, '\\v');
-      
+
       // Try to fix common JSON issues
       cleaned = this.fixCommonJsonIssues(cleaned);
-      
+
       return cleaned;
     } catch (error) {
       console.warn('Error cleaning JSON string:', error);
@@ -292,19 +320,22 @@ export class SimpleAI {
     try {
       // Fix trailing commas
       let fixed = jsonString.replace(/,(\s*[}\]])/g, '$1');
-      
+
       // Fix unescaped quotes in strings (basic attempt)
-      fixed = fixed.replace(/([^\\])"([^"]*)"([^\\])/g, (match, before, content, after) => {
-        // Only fix if it looks like an unescaped quote in a string value
-        if (before === ':' || before === '[' || before === ',') {
-          return `${before}"${content.replace(/"/g, '\\"')}"${after}`;
+      fixed = fixed.replace(
+        /([^\\])"([^"]*)"([^\\])/g,
+        (match, before, content, after) => {
+          // Only fix if it looks like an unescaped quote in a string value
+          if (before === ':' || before === '[' || before === ',') {
+            return `${before}"${content.replace(/"/g, '\\"')}"${after}`;
+          }
+          return match;
         }
-        return match;
-      });
-      
+      );
+
       // Ensure proper escaping of backslashes
       fixed = fixed.replace(/\\(?!["\\/bfnrt])/g, '\\\\');
-      
+
       return fixed;
     } catch (error) {
       console.warn('Error fixing JSON issues:', error);
@@ -316,7 +347,7 @@ export class SimpleAI {
   private fixUnterminatedStrings(jsonString: string): string {
     try {
       let fixed = jsonString;
-      
+
       // Find unterminated strings and try to close them
       // Look for patterns like: "content without closing quote
       const unterminatedStringRegex = /"([^"]*?)(?=\s*[,}\]])/g;
@@ -327,13 +358,13 @@ export class SimpleAI {
         }
         return match;
       });
-      
+
       // Fix strings that might have been broken by newlines
       const brokenStringRegex = /"([^"]*?)\n([^"]*?)"/g;
       fixed = fixed.replace(brokenStringRegex, (match, part1, part2) => {
         return `"${part1}\\n${part2}"`;
       });
-      
+
       // Fix strings that end abruptly without quotes
       const abruptEndRegex = /"([^"]*?)(?=\s*[,}\]])/g;
       fixed = fixed.replace(abruptEndRegex, (match, content) => {
@@ -343,7 +374,7 @@ export class SimpleAI {
         }
         return match;
       });
-      
+
       return fixed;
     } catch (error) {
       console.warn('Error fixing unterminated strings:', error);
@@ -355,11 +386,11 @@ export class SimpleAI {
   private fixPropertyNames(jsonString: string): string {
     try {
       let fixed = jsonString;
-      
+
       // Fix property names without quotes (e.g., title: "value" -> "title": "value")
       const unquotedPropertyRegex = /(\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g;
       fixed = fixed.replace(unquotedPropertyRegex, '$1"$2":');
-      
+
       return fixed;
     } catch (error) {
       console.warn('Error fixing property names:', error);
@@ -370,13 +401,13 @@ export class SimpleAI {
   // Generate fallback content when all parsing strategies fail
   private generateFallbackContent(moduleTitle: string): any {
     console.log('Generating fallback content for module:', moduleTitle);
-    
+
     return {
       title: moduleTitle,
       description: `Este módulo te introduce a los conceptos fundamentales de ${moduleTitle}. Aprenderás no solo qué son estos conceptos, sino por qué son importantes y cómo se aplican en situaciones reales.`,
       chunks: [
         {
-          title: "¿Por qué es importante este tema?",
+          title: '¿Por qué es importante este tema?',
           content: `## ¿Por qué necesitas aprender ${moduleTitle}?
 
 ### El problema que resuelve
@@ -398,10 +429,10 @@ En este módulo no solo memorizarás definiciones. Aprenderás:
 
 Piensa en ${moduleTitle} como el alfabeto de un idioma. Antes de poder escribir poesía, necesitas conocer las letras. Antes de poder crear aplicaciones complejas, necesitas dominar estos conceptos fundamentales.
 
-> **Reflexión**: ¿Qué tipo de proyectos te gustaría crear algún día? Estos conceptos básicos son el primer paso hacia ese objetivo.`
+> **Reflexión**: ¿Qué tipo de proyectos te gustaría crear algún día? Estos conceptos básicos son el primer paso hacia ese objetivo.`,
         },
         {
-          title: "Los conceptos fundamentales",
+          title: 'Los conceptos fundamentales',
           content: `## Entendiendo los conceptos básicos
 
 ### ¿Qué son realmente estos conceptos?
@@ -431,10 +462,10 @@ Sin entender estos conceptos fundamentales, es como intentar:
 3. **La aplicación**: Cuándo y cómo usarlos
 4. **La práctica**: Ejercicios para consolidar tu comprensión
 
-> **Pregunta para reflexionar**: ¿Has aprendido alguna habilidad nueva recientemente? ¿Recuerdas cómo empezaste con los conceptos más básicos?`
+> **Pregunta para reflexionar**: ¿Has aprendido alguna habilidad nueva recientemente? ¿Recuerdas cómo empezaste con los conceptos más básicos?`,
         },
         {
-          title: "Cómo se aplican en la vida real",
+          title: 'Cómo se aplican en la vida real',
           content: `## Aplicaciones en el mundo real
 
 ### ¿Dónde verás estos conceptos?
@@ -466,10 +497,10 @@ Una vez que domines estos conceptos fundamentales, podrás:
 - Entender mejor la tecnología que te rodea
 - Abrirte puertas a nuevas oportunidades
 
-> **Reflexión**: ¿Qué tipo de aplicación te gustaría crear? ¿Cómo crees que estos conceptos te ayudarían a lograrlo?`
+> **Reflexión**: ¿Qué tipo de aplicación te gustaría crear? ¿Cómo crees que estos conceptos te ayudarían a lograrlo?`,
         },
         {
-          title: "Errores comunes y cómo evitarlos",
+          title: 'Errores comunes y cómo evitarlos',
           content: `## Errores comunes y cómo evitarlos
 
 ### ¿Qué son los errores en programación?
@@ -502,10 +533,10 @@ Los errores son como los tropiezos cuando aprendes a caminar. Son completamente 
 - **Pide ayuda**: No hay nada malo en pedir ayuda cuando la necesitas
 - **Practica más**: La práctica reduce la frecuencia de errores
 
-> **Reflexión**: ¿Recuerdas algún error que hayas cometido al aprender algo nuevo? ¿Qué aprendiste de ese error?`
+> **Reflexión**: ¿Recuerdas algún error que hayas cometido al aprender algo nuevo? ¿Qué aprendiste de ese error?`,
         },
         {
-          title: "Cómo conectar con otros conceptos",
+          title: 'Cómo conectar con otros conceptos',
           content: `## Cómo conectar con otros conceptos
 
 ### El panorama completo
@@ -546,10 +577,10 @@ Ahora que tienes una base sólida, estás listo para:
 - Crear tus primeros proyectos
 - Continuar tu viaje de aprendizaje
 
-> **Reflexión**: ¿Cómo crees que estos conceptos te ayudarán en los siguientes módulos? ¿Qué tipo de proyectos te gustaría crear usando estos conceptos?`
+> **Reflexión**: ¿Cómo crees que estos conceptos te ayudarán en los siguientes módulos? ¿Qué tipo de proyectos te gustaría crear usando estos conceptos?`,
         },
         {
-          title: "Resumen y consolidación",
+          title: 'Resumen y consolidación',
           content: `## Resumen y consolidación
 
 ### Lo que has aprendido realmente
@@ -593,8 +624,8 @@ Antes de continuar, tómate un momento para reflexionar:
 - ¿Cómo crees que estos conceptos te ayudarán en el futuro?
 - ¿Qué tipo de proyectos te gustaría crear usando estos conceptos?
 
-> **¡Felicidades!** Has completado este módulo y has construido una base sólida para continuar tu aprendizaje. Recuerda que el aprendizaje es un proceso, no un destino.`
-        }
+> **¡Felicidades!** Has completado este módulo y has construido una base sólida para continuar tu aprendizaje. Recuerda que el aprendizaje es un proceso, no un destino.`,
+        },
       ],
       quiz: {
         title: `Quiz: ${moduleTitle}`,
@@ -602,99 +633,112 @@ Antes de continuar, tómate un momento para reflexionar:
           {
             question: `¿Cuál es el concepto más importante que se enseña en "${moduleTitle}"?`,
             options: [
-              "Los fundamentos y principios básicos del tema",
-              "Técnicas avanzadas y complejas",
-              "Herramientas auxiliares y complementarias",
-              "Conceptos opcionales y avanzados"
+              'Los fundamentos y principios básicos del tema',
+              'Técnicas avanzadas y complejas',
+              'Herramientas auxiliares y complementarias',
+              'Conceptos opcionales y avanzados',
             ],
             correctAnswer: 0,
-            explanation: "Este módulo se enfoca en enseñar los conceptos fundamentales que son la base para el aprendizaje posterior y la aplicación práctica."
+            explanation:
+              'Este módulo se enfoca en enseñar los conceptos fundamentales que son la base para el aprendizaje posterior y la aplicación práctica.',
           },
           {
             question: `¿Qué tipo de práctica es más efectiva para dominar "${moduleTitle}"?`,
             options: [
-              "Ejercicios prácticos y proyectos reales",
-              "Solo lectura teórica y memorización",
-              "Ver videos pasivamente sin interactuar",
-              "Copiar código sin entender la lógica"
+              'Ejercicios prácticos y proyectos reales',
+              'Solo lectura teórica y memorización',
+              'Ver videos pasivamente sin interactuar',
+              'Copiar código sin entender la lógica',
             ],
             correctAnswer: 0,
-            explanation: "La práctica activa con ejercicios y proyectos es la forma más efectiva de consolidar el aprendizaje y desarrollar habilidades aplicables."
+            explanation:
+              'La práctica activa con ejercicios y proyectos es la forma más efectiva de consolidar el aprendizaje y desarrollar habilidades aplicables.',
           },
           {
             question: `¿Cuál es el siguiente paso lógico después de completar este módulo?`,
             options: [
-              "Aplicar los conceptos en un proyecto personal",
-              "Repetir exactamente el mismo contenido",
-              "Saltar al siguiente tema sin práctica",
-              "Olvidar lo aprendido y empezar de nuevo"
+              'Aplicar los conceptos en un proyecto personal',
+              'Repetir exactamente el mismo contenido',
+              'Saltar al siguiente tema sin práctica',
+              'Olvidar lo aprendido y empezar de nuevo',
             ],
             correctAnswer: 0,
-            explanation: "La aplicación práctica de los conceptos aprendidos es crucial para el aprendizaje efectivo y la retención a largo plazo."
+            explanation:
+              'La aplicación práctica de los conceptos aprendidos es crucial para el aprendizaje efectivo y la retención a largo plazo.',
           },
           {
             question: `¿Qué característica hace que este módulo sea educativo?`,
             options: [
-              "Explicaciones claras y ejemplos prácticos aplicables",
-              "Contenido superficial y genérico",
-              "Información desactualizada y obsoleta",
-              "Falta de estructura y organización"
+              'Explicaciones claras y ejemplos prácticos aplicables',
+              'Contenido superficial y genérico',
+              'Información desactualizada y obsoleta',
+              'Falta de estructura y organización',
             ],
             correctAnswer: 0,
-            explanation: "Un módulo educativo efectivo combina explicaciones claras con ejemplos prácticos que los estudiantes pueden aplicar en situaciones reales."
+            explanation:
+              'Un módulo educativo efectivo combina explicaciones claras con ejemplos prácticos que los estudiantes pueden aplicar en situaciones reales.',
           },
           {
             question: `¿Cómo se puede verificar que se ha comprendido el contenido de "${moduleTitle}"?`,
             options: [
-              "Completando ejercicios y explicando conceptos con tus propias palabras",
-              "Memorizando definiciones sin entender su aplicación",
-              "Copiando código sin comprender la lógica",
-              "Saltando las prácticas y ejercicios"
+              'Completando ejercicios y explicando conceptos con tus propias palabras',
+              'Memorizando definiciones sin entender su aplicación',
+              'Copiando código sin comprender la lógica',
+              'Saltando las prácticas y ejercicios',
             ],
             correctAnswer: 0,
-            explanation: "La verdadera comprensión se demuestra aplicando los conceptos en ejercicios prácticos y siendo capaz de explicarlos con tus propias palabras."
+            explanation:
+              'La verdadera comprensión se demuestra aplicando los conceptos en ejercicios prácticos y siendo capaz de explicarlos con tus propias palabras.',
           },
           {
             question: `¿Qué es más importante al aprender "${moduleTitle}"?`,
             options: [
-              "Entender los principios fundamentales y su aplicación",
-              "Memorizar sintaxis específica sin contexto",
-              "Aprender solo las partes más avanzadas",
-              "Enfocarse únicamente en la teoría"
+              'Entender los principios fundamentales y su aplicación',
+              'Memorizar sintaxis específica sin contexto',
+              'Aprender solo las partes más avanzadas',
+              'Enfocarse únicamente en la teoría',
             ],
             correctAnswer: 0,
-            explanation: "Entender los principios fundamentales y cómo aplicarlos es más valioso que memorizar sintaxis específica, ya que permite adaptarse a diferentes situaciones."
+            explanation:
+              'Entender los principios fundamentales y cómo aplicarlos es más valioso que memorizar sintaxis específica, ya que permite adaptarse a diferentes situaciones.',
           },
           {
             question: `¿Cuál es la mejor estrategia para consolidar el aprendizaje de "${moduleTitle}"?`,
             options: [
-              "Practicar regularmente con proyectos pequeños y progresivos",
-              "Estudiar intensivamente solo una vez",
-              "Evitar la práctica y solo leer teoría",
-              "Saltar directamente a proyectos complejos"
+              'Practicar regularmente con proyectos pequeños y progresivos',
+              'Estudiar intensivamente solo una vez',
+              'Evitar la práctica y solo leer teoría',
+              'Saltar directamente a proyectos complejos',
             ],
             correctAnswer: 0,
-            explanation: "La práctica regular con proyectos pequeños y progresivos es la mejor estrategia para consolidar el aprendizaje y desarrollar confianza gradualmente."
-          }
-        ]
+            explanation:
+              'La práctica regular con proyectos pequeños y progresivos es la mejor estrategia para consolidar el aprendizaje y desarrollar confianza gradualmente.',
+          },
+        ],
       },
-      content1: "Contenido educativo completo sobre los fundamentos y conceptos básicos.",
-      content2: "Implementación práctica con ejemplos reales y casos de uso.",
-      content3: "Optimización, mejores prácticas y técnicas avanzadas.",
-      content4: "Integración en proyectos reales y consideraciones de producción.",
-      total_chunks: 6
+      content1:
+        'Contenido educativo completo sobre los fundamentos y conceptos básicos.',
+      content2: 'Implementación práctica con ejemplos reales y casos de uso.',
+      content3: 'Optimización, mejores prácticas y técnicas avanzadas.',
+      content4:
+        'Integración en proyectos reales y consideraciones de producción.',
+      total_chunks: 6,
     };
   }
 
   // Parse JSON with multiple fallback strategies
-  private parseJsonWithFallback(jsonString: string, schema: any = null, moduleTitle: string = 'Módulo'): any {
+  private parseJsonWithFallback(
+    jsonString: string,
+    schema: any = null,
+    moduleTitle: string = 'Módulo'
+  ): any {
     const strategies = [
       // Strategy 1: Direct parse
       () => JSON.parse(jsonString),
-      
+
       // Strategy 2: Remove all backslashes and word boundaries
       () => JSON.parse(jsonString.replace(/\\b/g, '').replace(/\b/g, '')),
-      
+
       // Strategy 3: More aggressive cleaning
       () => {
         const cleaned = jsonString
@@ -704,7 +748,7 @@ Antes de continuar, tómate un momento para reflexionar:
           .replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
         return JSON.parse(cleaned);
       },
-      
+
       // Strategy 4: Try to extract just the JSON object
       () => {
         const match = jsonString.match(/\{[\s\S]*\}/);
@@ -713,7 +757,7 @@ Antes de continuar, tómate un momento para reflexionar:
         }
         throw new Error('No JSON object found');
       },
-      
+
       // Strategy 5: Fix unterminated strings
       () => {
         let fixed = jsonString
@@ -723,13 +767,13 @@ Antes de continuar, tómate un momento para reflexionar:
           .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
           .replace(/,(\s*[}\]])/g, '$1')
           .replace(/\\(?!["\\/bfnrt])/g, '\\\\');
-        
+
         // Try to fix unterminated strings by finding and closing them
         fixed = this.fixUnterminatedStrings(fixed);
-        
+
         return JSON.parse(fixed);
       },
-      
+
       // Strategy 6: Fix property names without quotes
       () => {
         let fixed = jsonString
@@ -739,23 +783,23 @@ Antes de continuar, tómate un momento para reflexionar:
           .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
           .replace(/,(\s*[}\]])/g, '$1')
           .replace(/\\(?!["\\/bfnrt])/g, '\\\\');
-        
+
         // Fix property names without quotes
         fixed = this.fixPropertyNames(fixed);
-        
+
         // Fix unterminated strings
         fixed = this.fixUnterminatedStrings(fixed);
-        
+
         return JSON.parse(fixed);
       },
-      
+
       // Strategy 7: Last resort - try to extract and reconstruct JSON
       () => {
         // Try to extract the JSON object and fix it manually
         const match = jsonString.match(/\{[\s\S]*\}/);
         if (match) {
           let extracted = match[0];
-          
+
           // Apply all cleaning strategies
           extracted = extracted
             .replace(/\\b/g, '')
@@ -764,44 +808,48 @@ Antes de continuar, tómate un momento para reflexionar:
             .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
             .replace(/,(\s*[}\]])/g, '$1')
             .replace(/\\(?!["\\/bfnrt])/g, '\\\\');
-          
+
           // Fix property names
           extracted = this.fixPropertyNames(extracted);
-          
+
           // Fix unterminated strings
           extracted = this.fixUnterminatedStrings(extracted);
-          
+
           return JSON.parse(extracted);
         }
         throw new Error('No JSON object found');
       },
-      
+
       // Strategy 8: Ultimate fallback - generate valid content structure
       () => {
-        console.log('Using ultimate fallback strategy - generating valid content structure');
+        console.log(
+          'Using ultimate fallback strategy - generating valid content structure'
+        );
         return this.generateFallbackContent(moduleTitle);
-      }
+      },
     ];
 
     for (let i = 0; i < strategies.length; i++) {
       try {
         console.log(`Trying JSON parsing strategy ${i + 1}...`);
         const result = strategies[i]();
-        
+
         // If schema is provided, validate against it
         if (schema) {
           return schema.parse(result);
         }
-        
+
         return result;
       } catch (error) {
         console.warn(`Strategy ${i + 1} failed:`, error.message);
         if (i === strategies.length - 1) {
-          throw new Error(`All JSON parsing strategies failed. Last error: ${error.message}`);
+          throw new Error(
+            `All JSON parsing strategies failed. Last error: ${error.message}`
+          );
         }
       }
     }
-    
+
     throw new Error('All parsing strategies failed');
   }
 

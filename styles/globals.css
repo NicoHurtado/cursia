@@ -272,3 +272,104 @@
 .markdown-content .callout-info {
   @apply border-l-purple-500 bg-purple-50 dark:bg-purple-950/20;
 }
+
+/* Enhanced markdown content styles */
+.markdown-content {
+  @apply text-foreground leading-relaxed;
+}
+
+.markdown-content > * {
+  @apply mb-4;
+}
+
+.markdown-content h1 {
+  @apply text-3xl font-bold mt-8 mb-6 first:mt-0 border-b border-border pb-3;
+}
+
+.markdown-content h2 {
+  @apply text-2xl font-bold mt-8 mb-4 first:mt-0 border-b border-border pb-2;
+}
+
+.markdown-content h3 {
+  @apply text-xl font-semibold mt-6 mb-3;
+}
+
+.markdown-content h4 {
+  @apply text-lg font-semibold mt-4 mb-2;
+}
+
+.markdown-content h5 {
+  @apply text-base font-semibold mt-3 mb-2;
+}
+
+.markdown-content h6 {
+  @apply text-sm font-semibold mt-2 mb-1;
+}
+
+.markdown-content p {
+  @apply text-foreground leading-7 mb-4;
+}
+
+.markdown-content ul {
+  @apply list-disc list-inside mb-4 space-y-2 text-foreground pl-4;
+}
+
+.markdown-content ol {
+  @apply list-decimal list-inside mb-4 space-y-2 text-foreground pl-4;
+}
+
+.markdown-content li {
+  @apply text-foreground leading-6 mb-1;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-blue-500 pl-4 py-2 my-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-r-lg;
+}
+
+.markdown-content code {
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground;
+}
+
+.markdown-content pre {
+  @apply bg-muted/30 p-4 rounded-lg border overflow-x-auto my-4;
+}
+
+.markdown-content pre code {
+  @apply bg-transparent p-0;
+}
+
+.markdown-content strong {
+  @apply font-semibold text-foreground;
+}
+
+.markdown-content em {
+  @apply italic text-foreground;
+}
+
+.markdown-content a {
+  @apply text-blue-600 dark:text-blue-400 hover:underline font-medium;
+}
+
+.markdown-content hr {
+  @apply my-8 border-t border-border;
+}
+
+.markdown-content table {
+  @apply w-full border-collapse border border-border rounded-lg my-4;
+}
+
+.markdown-content thead {
+  @apply bg-muted/50;
+}
+
+.markdown-content tr {
+  @apply border-b border-border;
+}
+
+.markdown-content th {
+  @apply border border-border px-4 py-2 text-left font-semibold text-foreground;
+}
+
+.markdown-content td {
+  @apply border border-border px-4 py-2 text-foreground;
+}

@@ -17,7 +17,12 @@ export async function GET(
     }
 
     const { courseId } = await params;
-    console.log('Getting progress for course:', courseId, 'user:', session.user.id);
+    console.log(
+      'Getting progress for course:',
+      courseId,
+      'user:',
+      session.user.id
+    );
 
     // Get user progress for this course
     const userProgress = await db.userProgress.findFirst({
@@ -66,21 +71,26 @@ export async function GET(
     const completedModulesArray = JSON.parse(userProgress.completedModules);
 
     const moduleProgress: { [key: number]: number } = {};
-    
+
     course.modules.forEach(module => {
       const totalChunks = module.chunks.length;
-      const completedChunks = completedChunksArray.filter((chunkId: string) => 
+      const completedChunks = completedChunksArray.filter((chunkId: string) =>
         module.chunks.some(chunk => chunk.id === chunkId)
       ).length;
-      
-      moduleProgress[module.moduleOrder] = totalChunks > 0 ? 
-        Math.round((completedChunks / totalChunks) * 100) : 0;
+
+      moduleProgress[module.moduleOrder] =
+        totalChunks > 0 ? Math.round((completedChunks / totalChunks) * 100) : 0;
     });
 
     // Calculate overall completion percentage
-    const totalChunks = course.modules.reduce((sum, module) => sum + module.chunks.length, 0);
-    const completionPercentage = totalChunks > 0 ? 
-      Math.round((completedChunksArray.length / totalChunks) * 100) : 0;
+    const totalChunks = course.modules.reduce(
+      (sum, module) => sum + module.chunks.length,
+      0
+    );
+    const completionPercentage =
+      totalChunks > 0
+        ? Math.round((completedChunksArray.length / totalChunks) * 100)
+        : 0;
 
     return NextResponse.json({
       completedChunks: completedChunksArray,
@@ -90,7 +100,6 @@ export async function GET(
       currentModuleId: userProgress.currentModuleId,
       currentChunkId: userProgress.currentChunkId,
     });
-
   } catch (error) {
     console.error('Error fetching user progress:', error);
     return NextResponse.json(

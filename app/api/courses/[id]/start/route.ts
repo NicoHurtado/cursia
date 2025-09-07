@@ -52,7 +52,9 @@ export async function POST(
     });
 
     // Find modules that don't have chunks (need content generation)
-    const modulesToGenerate = existingModules.filter(module => module.chunks.length === 0);
+    const modulesToGenerate = existingModules.filter(
+      module => module.chunks.length === 0
+    );
 
     // Parse module list once at the beginning
     const moduleList = JSON.parse(course.moduleList);
@@ -61,10 +63,10 @@ export async function POST(
     const module1 = existingModules.find(m => m.moduleOrder === 1);
     if (module1 && module1.chunks.length === 0) {
       console.log('Module 1 needs content generation - generating immediately');
-      
+
       // Generate module 1 content immediately
       const moduleTitle = moduleList[0];
-      
+
       try {
         const moduleContent = await simpleAI.generateModuleContent(
           course.title,
@@ -87,7 +89,7 @@ export async function POST(
         for (let j = 0; j < moduleContent.chunks.length; j++) {
           const chunk = moduleContent.chunks[j];
           const chunkOrder = j + 1;
-          
+
           // Search for video if this is the second chunk
           let videoData = null;
           if (chunkOrder === 2) {
@@ -107,7 +109,7 @@ export async function POST(
               // Continue without video if search fails
             }
           }
-          
+
           await db.chunk.create({
             data: {
               moduleId: module1.id,
@@ -129,7 +131,10 @@ export async function POST(
         });
 
         // Create quiz questions for module 1
-        for (const [index, question] of moduleContent.quiz.questions.entries()) {
+        for (const [
+          index,
+          question,
+        ] of moduleContent.quiz.questions.entries()) {
           await db.quizQuestion.create({
             data: {
               quizId: quiz.id,
@@ -153,21 +158,25 @@ export async function POST(
     }
 
     // Update the modules to generate list after potentially generating module 1
-    const updatedModulesToGenerate = modulesToGenerate.filter(module => module.moduleOrder !== 1);
+    const updatedModulesToGenerate = modulesToGenerate.filter(
+      module => module.moduleOrder !== 1
+    );
 
     // If all modules already have content, just return success
     if (updatedModulesToGenerate.length === 0) {
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         message: 'All modules already have content',
-        modulesGenerated: existingModules.length 
+        modulesGenerated: existingModules.length,
       });
     }
 
     // Generate content for remaining modules (2+) in background
     // Sort modules to prioritize module 1
-    const sortedModulesToGenerate = updatedModulesToGenerate.sort((a, b) => a.moduleOrder - b.moduleOrder);
-    
+    const sortedModulesToGenerate = updatedModulesToGenerate.sort(
+      (a, b) => a.moduleOrder - b.moduleOrder
+    );
+
     for (const module of sortedModulesToGenerate) {
       const moduleTitle = moduleList[module.moduleOrder - 1];
       const moduleOrder = module.moduleOrder;
@@ -203,7 +212,7 @@ export async function POST(
         for (let j = 0; j < moduleContent.chunks.length; j++) {
           const chunk = moduleContent.chunks[j];
           const chunkOrder = j + 1;
-          
+
           // Search for video if this is the second chunk
           let videoData = null;
           if (chunkOrder === 2) {
@@ -223,7 +232,7 @@ export async function POST(
               // Continue without video if search fails
             }
           }
-          
+
           await db.chunk.create({
             data: {
               moduleId: module.id,
@@ -269,10 +278,9 @@ export async function POST(
             message: `Module ${moduleOrder} generation completed`,
           },
         });
-
       } catch (error) {
         console.error(`Error generating module ${moduleOrder}:`, error);
-        
+
         // Log error
         await db.generationLog.create({
           data: {
@@ -293,12 +301,11 @@ export async function POST(
       data: { status: 'COMPLETE' },
     });
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'Course started successfully',
-      modulesGenerated: course.totalModules 
+      modulesGenerated: course.totalModules,
     });
-
   } catch (error) {
     console.error('Start course error:', error);
     return NextResponse.json(

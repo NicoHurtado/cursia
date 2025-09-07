@@ -6,16 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  BookOpen, 
-  Calendar, 
-  CheckCircle2, 
-  AlertCircle, 
+import {
+  BookOpen,
+  Calendar,
+  CheckCircle2,
+  AlertCircle,
   Loader2,
   ExternalLink,
   Trash2,
   Upload,
-  Eye
+  Eye,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserPlan } from '@/lib/plans';
@@ -42,11 +42,15 @@ interface CourseCardProps {
   userPlan?: UserPlan | null;
 }
 
-export function CourseCard({ course, onDelete, onPublish, userPlan }: CourseCardProps) {
+export function CourseCard({
+  course,
+  onDelete,
+  onPublish,
+  userPlan,
+}: CourseCardProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
-
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -78,9 +82,10 @@ export function CourseCard({ course, onDelete, onPublish, userPlan }: CourseCard
     });
   };
 
-  const progressPercentage = course.totalModules > 0 
-    ? Math.round((course.completedModules / course.totalModules) * 100)
-    : 0;
+  const progressPercentage =
+    course.totalModules > 0
+      ? Math.round((course.completedModules / course.totalModules) * 100)
+      : 0;
 
   const handleOpenCourse = () => {
     router.push(`/courses/${course.id}`);
@@ -88,7 +93,7 @@ export function CourseCard({ course, onDelete, onPublish, userPlan }: CourseCard
 
   const handleDelete = async () => {
     if (!onDelete) return;
-    
+
     setIsDeleting(true);
     try {
       await onDelete(course.id);
@@ -101,7 +106,7 @@ export function CourseCard({ course, onDelete, onPublish, userPlan }: CourseCard
 
   const handlePublish = async () => {
     if (!onPublish) return;
-    
+
     setIsPublishing(true);
     try {
       await onPublish(course.id);
@@ -154,7 +159,9 @@ export function CourseCard({ course, onDelete, onPublish, userPlan }: CourseCard
           <div className="mb-4">
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="text-muted-foreground">Progreso</span>
-              <span className="font-medium">{course.completedModules}/{course.totalModules} módulos</span>
+              <span className="font-medium">
+                {course.completedModules}/{course.totalModules} módulos
+              </span>
             </div>
             <Progress value={progressPercentage} className="h-2" />
           </div>
@@ -177,25 +184,27 @@ export function CourseCard({ course, onDelete, onPublish, userPlan }: CourseCard
         {/* CTA */}
         <div className="space-y-2">
           {/* Open Course Button - Blue */}
-          <Button 
+          <Button
             onClick={handleOpenCourse}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             {course.status === 'complete' ? 'Ver Curso' : 'Abrir Curso'}
           </Button>
-          
+
           {/* Publish Button - Green if MAESTRO and not published, Gray if not MAESTRO or already published */}
           {onPublish && (
-            <Button 
+            <Button
               onClick={handlePublish}
               className={cn(
-                "w-full",
+                'w-full',
                 userPlan === UserPlan.MAESTRO && !course.isPublic
-                  ? "bg-green-600 hover:bg-green-700 text-white"
-                  : "bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed"
+                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed'
               )}
-              disabled={isPublishing || userPlan !== UserPlan.MAESTRO || course.isPublic}
+              disabled={
+                isPublishing || userPlan !== UserPlan.MAESTRO || course.isPublic
+              }
             >
               {isPublishing ? (
                 <>
@@ -205,17 +214,16 @@ export function CourseCard({ course, onDelete, onPublish, userPlan }: CourseCard
               ) : (
                 <>
                   <Upload className="h-4 w-4 mr-2" />
-                  {course.isPublic 
-                    ? 'Ya Publicado' 
+                  {course.isPublic
+                    ? 'Ya Publicado'
                     : userPlan === UserPlan.MAESTRO
-                      ? 'Publicar en Comunidad' 
-                      : 'Plan MAESTRO Requerido'
-                  }
+                      ? 'Publicar en Comunidad'
+                      : 'Plan MAESTRO Requerido'}
                 </>
               )}
             </Button>
           )}
-          
+
           {/* Public Status Badge */}
           {course.isPublic && (
             <div className="flex items-center justify-center gap-2 text-sm text-green-600 dark:text-green-400">

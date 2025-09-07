@@ -18,10 +18,17 @@ export async function POST(
 
     const { courseId } = await params;
     const { chunkId, updatePosition = false } = await request.json();
-    console.log('Marking chunk complete:', { courseId, chunkId, updatePosition });
+    console.log('Marking chunk complete:', {
+      courseId,
+      chunkId,
+      updatePosition,
+    });
 
     if (!chunkId) {
-      return NextResponse.json({ error: 'chunkId is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'chunkId is required' },
+        { status: 400 }
+      );
     }
 
     // Verify the course belongs to the user
@@ -80,7 +87,7 @@ export async function POST(
 
     // Parse completed chunks
     const completedChunks = JSON.parse(userProgress.completedChunks);
-    
+
     // Add chunk if not already completed (only if not just updating position)
     if (!updatePosition && !completedChunks.includes(chunkId)) {
       completedChunks.push(chunkId);
@@ -107,7 +114,9 @@ export async function POST(
       },
     });
 
-    const completionPercentage = Math.round((completedChunks.length / totalChunks) * 100);
+    const completionPercentage = Math.round(
+      (completedChunks.length / totalChunks) * 100
+    );
 
     // Calculate module progress
     const modules = await db.module.findMany({
@@ -123,7 +132,7 @@ export async function POST(
     });
 
     const moduleProgress: { [key: number]: number } = {};
-    
+
     for (const module of modules) {
       const moduleCompletedChunks = completedChunks.filter((chunkId: string) =>
         module.chunks.some(chunk => chunk.id === chunkId)

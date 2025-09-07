@@ -29,15 +29,20 @@ export function CourseShell({ course }: CourseShellProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [courseStarted, setCourseStarted] = useState(false);
-  const courseHasContent = course.modules.some(module => module.chunks.length > 0);
-  const module1HasContent = course.modules.find(m => m.moduleOrder === 1)?.chunks.length > 0;
-  
-  const [currentView, setCurrentView] = useState<'intro' | 'module' | 'quiz' | 'finish'>('intro');
+  const courseHasContent = course.modules.some(
+    module => module.chunks.length > 0
+  );
+  const module1HasContent =
+    course.modules.find(m => m.moduleOrder === 1)?.chunks.length > 0;
+
+  const [currentView, setCurrentView] = useState<
+    'intro' | 'module' | 'quiz' | 'finish'
+  >('intro');
   const [currentModuleOrder, setCurrentModuleOrder] = useState(1);
   const [currentChunkOrder, setCurrentChunkOrder] = useState(1);
   const [isLoadingProgress, setIsLoadingProgress] = useState(true);
@@ -48,26 +53,38 @@ export function CourseShell({ course }: CourseShellProps) {
         console.log('Loading user progress for course:', course.id);
         const response = await fetch(`/api/progress/${course.id}`);
         console.log('Progress response status:', response.status);
-        
+
         if (response.ok) {
           const progressData = await response.json();
           console.log('Progress data loaded:', progressData);
           setUserProgress(progressData);
-          
+
           if (progressData.currentModuleId) {
-            const currentModule = course.modules.find(m => m.id === progressData.currentModuleId);
+            const currentModule = course.modules.find(
+              m => m.id === progressData.currentModuleId
+            );
             if (currentModule) {
-              console.log('Setting current module to:', currentModule.moduleOrder);
+              console.log(
+                'Setting current module to:',
+                currentModule.moduleOrder
+              );
               setCurrentModuleOrder(currentModule.moduleOrder);
             }
           }
-          
+
           if (progressData.currentChunkId) {
-            const currentModule = course.modules.find(m => m.id === progressData.currentModuleId);
+            const currentModule = course.modules.find(
+              m => m.id === progressData.currentModuleId
+            );
             if (currentModule) {
-              const currentChunk = currentModule.chunks.find(c => c.id === progressData.currentChunkId);
+              const currentChunk = currentModule.chunks.find(
+                c => c.id === progressData.currentChunkId
+              );
               if (currentChunk) {
-                console.log('Setting current chunk to:', currentChunk.chunkOrder);
+                console.log(
+                  'Setting current chunk to:',
+                  currentChunk.chunkOrder
+                );
                 setCurrentChunkOrder(currentChunk.chunkOrder);
               }
             }
@@ -76,7 +93,7 @@ export function CourseShell({ course }: CourseShellProps) {
           console.log('Failed to load progress, status:', response.status);
           const errorData = await response.json();
           console.log('Error data:', errorData);
-          
+
           console.log('Initializing with empty progress');
           setUserProgress({
             completedChunks: [],
@@ -89,7 +106,7 @@ export function CourseShell({ course }: CourseShellProps) {
         }
       } catch (error) {
         console.error('Error loading user progress:', error);
-        
+
         console.log('Initializing with empty progress due to error');
         setUserProgress({
           completedChunks: [],
@@ -108,32 +125,49 @@ export function CourseShell({ course }: CourseShellProps) {
   }, [course.id, course.modules]);
 
   useEffect(() => {
-    if (module1HasContent && currentView === 'intro' && !isLoadingProgress && 
-        (!userProgress || userProgress.completedChunks.length === 0)) {
+    if (
+      module1HasContent &&
+      currentView === 'intro' &&
+      !isLoadingProgress &&
+      (!userProgress || userProgress.completedChunks.length === 0)
+    ) {
       setCurrentView('module');
       setCourseStarted(true);
     }
   }, [module1HasContent, currentView, isLoadingProgress, userProgress]);
 
-  const currentModule = course.modules.find(m => m.moduleOrder === currentModuleOrder);
+  const currentModule = course.modules.find(
+    m => m.moduleOrder === currentModuleOrder
+  );
   const currentQuiz = currentModule?.quizzes[0];
 
-  const totalChunks = course.modules.reduce((sum, module) => sum + module.chunks.length, 0);
+  const totalChunks = course.modules.reduce(
+    (sum, module) => sum + module.chunks.length,
+    0
+  );
 
-  const currentModuleCompleted = currentModule && userProgress ? 
-    currentModule.chunks.every(chunk => userProgress.completedChunks.includes(chunk.id)) : false;
+  const currentModuleCompleted =
+    currentModule && userProgress
+      ? currentModule.chunks.every(chunk =>
+          userProgress.completedChunks.includes(chunk.id)
+        )
+      : false;
 
-  const allModulesCompleted = userProgress ? course.modules.every(module => {
-    const moduleChunkIds = module.chunks.map(chunk => chunk.id);
-    const completedModuleChunks = userProgress.completedChunks.filter(id => 
-      moduleChunkIds.includes(id)
-    );
-    return completedModuleChunks.length === module.chunks.length;
-  }) : false;
+  const allModulesCompleted = userProgress
+    ? course.modules.every(module => {
+        const moduleChunkIds = module.chunks.map(chunk => chunk.id);
+        const completedModuleChunks = userProgress.completedChunks.filter(id =>
+          moduleChunkIds.includes(id)
+        );
+        return completedModuleChunks.length === module.chunks.length;
+      })
+    : false;
 
-  const allQuizzesPassed = userProgress ? course.modules.every(module => 
-    userProgress.completedModules.includes(module.id)
-  ) : false;
+  const allQuizzesPassed = userProgress
+    ? course.modules.every(module =>
+        userProgress.completedModules.includes(module.id)
+      )
+    : false;
 
   const showFinishCourse = allModulesCompleted && allQuizzesPassed;
 
@@ -149,7 +183,9 @@ export function CourseShell({ course }: CourseShellProps) {
 
   const handlePreviousChunk = () => {
     if (currentModule) {
-      const currentChunkIndex = currentModule.chunks.findIndex(chunk => chunk.chunkOrder === currentChunkOrder);
+      const currentChunkIndex = currentModule.chunks.findIndex(
+        chunk => chunk.chunkOrder === currentChunkOrder
+      );
       if (currentChunkIndex > 0) {
         const previousChunk = currentModule.chunks[currentChunkIndex - 1];
         setCurrentChunkOrder(previousChunk.chunkOrder);
@@ -159,14 +195,21 @@ export function CourseShell({ course }: CourseShellProps) {
 
   const handleNextChunk = async () => {
     if (currentModule) {
-      const currentChunk = currentModule.chunks.find(chunk => chunk.chunkOrder === currentChunkOrder);
-      const currentChunkIndex = currentModule.chunks.findIndex(chunk => chunk.chunkOrder === currentChunkOrder);
-      
+      const currentChunk = currentModule.chunks.find(
+        chunk => chunk.chunkOrder === currentChunkOrder
+      );
+      const currentChunkIndex = currentModule.chunks.findIndex(
+        chunk => chunk.chunkOrder === currentChunkOrder
+      );
+
       // Mark current chunk as complete if not already completed
-      if (currentChunk && !userProgress?.completedChunks.includes(currentChunk.id)) {
+      if (
+        currentChunk &&
+        !userProgress?.completedChunks.includes(currentChunk.id)
+      ) {
         await handleMarkChunkComplete(currentChunk.id);
       }
-      
+
       // Move to next chunk if available
       if (currentChunkIndex < currentModule.chunks.length - 1) {
         const nextChunk = currentModule.chunks[currentChunkIndex + 1];
@@ -177,43 +220,58 @@ export function CourseShell({ course }: CourseShellProps) {
 
   useEffect(() => {
     if (!isLoadingProgress && currentModule) {
-      const currentChunk = currentModule.chunks.find(chunk => chunk.chunkOrder === currentChunkOrder);
+      const currentChunk = currentModule.chunks.find(
+        chunk => chunk.chunkOrder === currentChunkOrder
+      );
       if (currentChunk) {
         fetch(`/api/progress/${course.id}/mark-chunk-complete`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             chunkId: currentChunk.id,
-            updatePosition: true
+            updatePosition: true,
           }),
         }).catch(error => {
           console.error('Error updating position:', error);
         });
       }
     }
-  }, [currentModuleOrder, currentChunkOrder, isLoadingProgress, course.id, currentModule]);
+  }, [
+    currentModuleOrder,
+    currentChunkOrder,
+    isLoadingProgress,
+    course.id,
+    currentModule,
+  ]);
 
   const handleMarkChunkComplete = async (chunkId: string) => {
     setIsMarkingComplete(true);
     try {
-      const response = await fetch(`/api/progress/${course.id}/mark-chunk-complete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ chunkId }),
-      });
+      const response = await fetch(
+        `/api/progress/${course.id}/mark-chunk-complete`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ chunkId }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        setUserProgress(prev => prev ? {
-          ...prev,
-          completedChunks: [...prev.completedChunks, chunkId],
-          completionPercentage: data.completion_percentage,
-          moduleProgress: data.module_progress,
-        } : null);
+        setUserProgress(prev =>
+          prev
+            ? {
+                ...prev,
+                completedChunks: [...prev.completedChunks, chunkId],
+                completionPercentage: data.completion_percentage,
+                moduleProgress: data.module_progress,
+              }
+            : null
+        );
 
         toast({
           title: '¡Lección completada!',
@@ -252,10 +310,11 @@ export function CourseShell({ course }: CourseShellProps) {
           setCourseStarted(true);
           setCurrentModuleOrder(1);
           setCurrentView('module');
-          
+
           toast({
             title: '¡Curso iniciado!',
-            description: 'Comenzando con el Módulo 1. Los módulos restantes se están generando en segundo plano.',
+            description:
+              'Comenzando con el Módulo 1. Los módulos restantes se están generando en segundo plano.',
           });
         } else {
           throw new Error('Failed to start course');
@@ -265,7 +324,8 @@ export function CourseShell({ course }: CourseShellProps) {
       console.error('Error starting course:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo iniciar el curso. Por favor, inténtalo de nuevo.',
+        description:
+          'No se pudo iniciar el curso. Por favor, inténtalo de nuevo.',
         variant: 'destructive',
       });
     } finally {
@@ -273,14 +333,13 @@ export function CourseShell({ course }: CourseShellProps) {
     }
   };
 
-
   const handleQuizComplete = (passed: boolean, score: number) => {
     if (passed && currentModule) {
       setUserProgress(prev => ({
         ...prev,
         completedModules: [...prev.completedModules, currentModule.id],
       }));
-      
+
       toast({
         title: '¡Quiz aprobado!',
         description: `¡Felicidades! Obtuviste ${score}% en el quiz.`,
@@ -367,7 +426,7 @@ export function CourseShell({ course }: CourseShellProps) {
         isStarting={isStarting}
         modules={course.modules.map(module => ({
           title: module.title,
-          description: module.description
+          description: module.description,
         }))}
         hasProgress={userProgress && userProgress.completedChunks.length > 0}
       />
@@ -382,7 +441,7 @@ export function CourseShell({ course }: CourseShellProps) {
           totalChunks={totalChunks}
           completedChunks={userProgress.completedChunks.length}
         />
-        
+
         <FinishCourse
           courseTitle={course.title || 'Course'}
           totalModules={course.totalModules}
@@ -404,7 +463,7 @@ export function CourseShell({ course }: CourseShellProps) {
           totalChunks={totalChunks}
           completedChunks={userProgress.completedChunks.length}
         />
-        
+
         <ModuleQuiz
           quiz={{
             id: currentModule?.id || '',
@@ -420,8 +479,10 @@ export function CourseShell({ course }: CourseShellProps) {
   }
 
   if (currentModule) {
-    const currentChunk = currentModule.chunks.find(chunk => chunk.chunkOrder === currentChunkOrder);
-    
+    const currentChunk = currentModule.chunks.find(
+      chunk => chunk.chunkOrder === currentChunkOrder
+    );
+
     return (
       <div className="min-h-screen bg-background">
         <CourseProgressBar
@@ -429,7 +490,7 @@ export function CourseShell({ course }: CourseShellProps) {
           totalChunks={totalChunks}
           completedChunks={userProgress.completedChunks.length}
         />
-        
+
         <div className="flex h-[calc(100vh-4rem)]">
           {/* Left Sidebar */}
           <ModuleSidebar
@@ -441,15 +502,17 @@ export function CourseShell({ course }: CourseShellProps) {
             onChunkChange={handleChunkChange}
             className="flex-shrink-0"
           />
-          
+
           {/* Main Content Area */}
           <div className="flex-1 flex">
             {/* Content Area */}
             <div className="flex-1 p-6 overflow-y-auto">
               {currentChunk ? (
-                <ChunkReader 
+                <ChunkReader
                   chunk={currentChunk}
-                  isCompleted={userProgress.completedChunks.includes(currentChunk.id)}
+                  isCompleted={userProgress.completedChunks.includes(
+                    currentChunk.id
+                  )}
                   isMarkingComplete={isMarkingComplete}
                   onMarkComplete={handleMarkChunkComplete}
                   onPrevious={handlePreviousChunk}
@@ -461,20 +524,26 @@ export function CourseShell({ course }: CourseShellProps) {
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <h2 className="text-xl font-semibold mb-2">Lección no encontrada</h2>
-                    <p className="text-muted-foreground">Esta lección no está disponible aún.</p>
+                    <h2 className="text-xl font-semibold mb-2">
+                      Lección no encontrada
+                    </h2>
+                    <p className="text-muted-foreground">
+                      Esta lección no está disponible aún.
+                    </p>
                   </div>
                 </div>
               )}
             </div>
-            
+
             {/* Right Sidebar - Chunk Navigator */}
             <div className="w-80 border-l border-border p-6 overflow-y-auto">
               <ChunkNavigator
                 chunks={currentModule.chunks}
                 currentChunkOrder={currentChunkOrder}
                 completedChunks={userProgress.completedChunks}
-                onChunkChange={(chunkOrder) => handleChunkChange(currentModuleOrder, chunkOrder)}
+                onChunkChange={chunkOrder =>
+                  handleChunkChange(currentModuleOrder, chunkOrder)
+                }
                 onTakeQuiz={handleTakeQuiz}
                 allChunksCompleted={currentModuleCompleted}
               />

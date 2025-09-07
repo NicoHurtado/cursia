@@ -5,13 +5,13 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Play, 
-  Clock, 
-  User, 
+import {
+  Play,
+  Clock,
+  User,
   ExternalLink,
   Loader2,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 
 interface YouTubeVideo {
@@ -54,13 +54,18 @@ export function VideoPlayer({ video, className }: VideoPlayerProps) {
     return new Date(dateString).toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
   if (hasError) {
     return (
-      <Card className={cn("border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800", className)}>
+      <Card
+        className={cn(
+          'border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800',
+          className
+        )}
+      >
         <CardContent className="p-6">
           <div className="flex items-center gap-3 text-red-600">
             <AlertCircle className="h-5 w-5" />
@@ -77,7 +82,7 @@ export function VideoPlayer({ video, className }: VideoPlayerProps) {
   }
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
+    <Card className={cn('overflow-hidden', className)}>
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2 mb-2">
           <Badge variant="outline" className="flex items-center gap-1">
@@ -89,9 +94,7 @@ export function VideoPlayer({ video, className }: VideoPlayerProps) {
             {video.duration}
           </Badge>
         </div>
-        <CardTitle className="text-lg leading-tight">
-          {video.title}
-        </CardTitle>
+        <CardTitle className="text-lg leading-tight">{video.title}</CardTitle>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <User className="h-4 w-4" />
           <span>{video.channelTitle}</span>
@@ -110,7 +113,7 @@ export function VideoPlayer({ video, className }: VideoPlayerProps) {
                 alt={video.title}
                 className="w-full h-full object-cover"
               />
-              
+
               {/* Play Button Overlay */}
               <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
                 <div className="bg-red-600 rounded-full p-4 group-hover:scale-110 transition-transform">
@@ -166,7 +169,12 @@ export function VideoPlayer({ video, className }: VideoPlayerProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank')}
+                  onClick={() =>
+                    window.open(
+                      `https://www.youtube.com/watch?v=${video.id}`,
+                      '_blank'
+                    )
+                  }
                   className="flex items-center gap-1"
                 >
                   <ExternalLink className="h-3 w-3" />

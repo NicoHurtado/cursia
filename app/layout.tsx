@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { APP_CONFIG } from '@/lib/constants';
 import '@/styles/globals.css';
+import '@/styles/highlight.css';
 
 const inter = Inter({ subsets: ['latin'] });
 

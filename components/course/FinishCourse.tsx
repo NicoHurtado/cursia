@@ -3,14 +3,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Trophy, 
-  CheckCircle2, 
-  Clock, 
-  BookOpen, 
+import {
+  Trophy,
+  CheckCircle2,
+  Clock,
+  BookOpen,
   Download,
   Star,
-  Calendar
+  Calendar,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -60,28 +60,29 @@ export function FinishCourse({
                 <Trophy className="h-10 w-10 text-green-600 dark:text-green-400" />
               </div>
             </div>
-            
+
             <CardTitle className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
               Congratulations!
             </CardTitle>
-            
+
             <p className="text-lg text-muted-foreground">
               You have successfully completed the course
             </p>
           </CardHeader>
-          
+
           <CardContent className="text-center">
             <div className="bg-green-50 dark:bg-green-900/10 rounded-lg p-6 mb-6">
               <h3 className="text-xl font-semibold mb-2">{courseTitle}</h3>
               <p className="text-muted-foreground">
-                Completed on {new Date().toLocaleDateString('es-ES', {
+                Completed on{' '}
+                {new Date().toLocaleDateString('es-ES', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                 })}
               </p>
             </div>
-            
+
             <div className="flex justify-center gap-4 mb-6">
               {onDownloadCertificate && (
                 <Button
@@ -94,9 +95,9 @@ export function FinishCourse({
                   Download Certificate
                 </Button>
               )}
-              
+
               <Button
-                onClick={() => window.location.href = '/dashboard'}
+                onClick={() => (window.location.href = '/dashboard')}
                 size="lg"
                 className="flex items-center gap-2"
               >
@@ -118,20 +119,23 @@ export function FinishCourse({
               <Trophy className="h-10 w-10 text-primary" />
             </div>
           </div>
-          
+
           <CardTitle className="text-3xl font-bold mb-2">
             Course Complete!
           </CardTitle>
-          
+
           <p className="text-lg text-muted-foreground">
-            You've finished all modules and quizzes. Ready to finalize your course?
+            You've finished all modules and quizzes. Ready to finalize your
+            course?
           </p>
         </CardHeader>
-        
+
         <CardContent>
           <div className="bg-muted/50 rounded-lg p-6 mb-6">
-            <h3 className="text-xl font-semibold mb-4 text-center">{courseTitle}</h3>
-            
+            <h3 className="text-xl font-semibold mb-4 text-center">
+              {courseTitle}
+            </h3>
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="text-center">
                 <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mx-auto mb-2">
@@ -140,7 +144,7 @@ export function FinishCourse({
                 <div className="text-2xl font-bold">{completedModules}</div>
                 <div className="text-sm text-muted-foreground">Modules</div>
               </div>
-              
+
               <div className="text-center">
                 <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mx-auto mb-2">
                   <CheckCircle2 className="h-6 w-6 text-primary" />
@@ -148,7 +152,7 @@ export function FinishCourse({
                 <div className="text-2xl font-bold">{completedChunks}</div>
                 <div className="text-sm text-muted-foreground">Chunks</div>
               </div>
-              
+
               <div className="text-center">
                 <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mx-auto mb-2">
                   <Star className="h-6 w-6 text-primary" />
@@ -156,25 +160,23 @@ export function FinishCourse({
                 <div className="text-2xl font-bold">100%</div>
                 <div className="text-sm text-muted-foreground">Progress</div>
               </div>
-              
+
               <div className="text-center">
                 <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mx-auto mb-2">
                   <Calendar className="h-6 w-6 text-primary" />
                 </div>
-                <div className="text-2xl font-bold">
-                  {timeSpent || 'N/A'}
-                </div>
+                <div className="text-2xl font-bold">{timeSpent || 'N/A'}</div>
                 <div className="text-sm text-muted-foreground">Time</div>
               </div>
             </div>
-            
+
             <div className="text-center">
               <Badge variant="secondary" className="text-sm">
                 All modules completed and quizzes passed
               </Badge>
             </div>
           </div>
-          
+
           <div className="text-center">
             <Button
               onClick={handleFinishCourse}
@@ -195,11 +197,11 @@ export function FinishCourse({
               )}
             </Button>
           </div>
-          
+
           <div className="mt-4 text-center text-sm text-muted-foreground">
             <p>
-              Once you finish the course, you'll be able to download your certificate
-              and view your achievement in your dashboard.
+              Once you finish the course, you'll be able to download your
+              certificate and view your achievement in your dashboard.
             </p>
           </div>
         </CardContent>

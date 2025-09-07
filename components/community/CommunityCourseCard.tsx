@@ -6,14 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
-import { 
-  BookOpen, 
-  Users, 
-  Calendar,
-  Eye,
-  Star,
-  Lock
-} from 'lucide-react';
+import { BookOpen, Users, Calendar, Eye, Star, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserPlan } from '@/lib/plans';
 
@@ -46,12 +39,12 @@ interface CommunityCourseCardProps {
   userRating?: number;
 }
 
-export function CommunityCourseCard({ 
-  course, 
-  currentUserId, 
+export function CommunityCourseCard({
+  course,
+  currentUserId,
   userPlan,
-  onRate, 
-  userRating = 0 
+  onRate,
+  userRating = 0,
 }: CommunityCourseCardProps) {
   const router = useRouter();
   const [isRating, setIsRating] = useState(false);
@@ -83,7 +76,7 @@ export function CommunityCourseCard({
 
   const handleRate = async (rating: number) => {
     if (!onRate) return;
-    
+
     setIsRating(true);
     try {
       await onRate(course.id, rating);
@@ -95,8 +88,12 @@ export function CommunityCourseCard({
   };
 
   const isOwner = currentUserId === course.user.id;
-  const canRate = !isOwner && onRate && (userPlan === UserPlan.EXPERTO || userPlan === UserPlan.MAESTRO);
-  const canView = userPlan === UserPlan.EXPERTO || userPlan === UserPlan.MAESTRO;
+  const canRate =
+    !isOwner &&
+    onRate &&
+    (userPlan === UserPlan.EXPERTO || userPlan === UserPlan.MAESTRO);
+  const canView =
+    userPlan === UserPlan.EXPERTO || userPlan === UserPlan.MAESTRO;
 
   return (
     <Card className="hover:shadow-md transition-shadow duration-200">
@@ -106,16 +103,17 @@ export function CommunityCourseCard({
             {course.userLevel}
           </Badge>
           {!canView && (
-            <Badge variant="outline" className="text-orange-600 border-orange-600">
+            <Badge
+              variant="outline"
+              className="text-orange-600 border-orange-600"
+            >
               <Lock className="h-3 w-3 mr-1" />
               Plan Requerido
             </Badge>
           )}
         </div>
-        
-        <CardTitle className="text-lg line-clamp-2">
-          {course.title}
-        </CardTitle>
+
+        <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
       </CardHeader>
 
       <CardContent className="pt-0">
@@ -127,9 +125,9 @@ export function CommunityCourseCard({
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <StarRating 
-                rating={course.averageRating} 
-                readonly 
+              <StarRating
+                rating={course.averageRating}
+                readonly
                 size="sm"
                 showNumber
               />
@@ -138,12 +136,14 @@ export function CommunityCourseCard({
               </span>
             </div>
           </div>
-          
+
           {canRate && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Tu calificación:</span>
-              <StarRating 
-                rating={userRating} 
+              <span className="text-sm text-muted-foreground">
+                Tu calificación:
+              </span>
+              <StarRating
+                rating={userRating}
                 onRatingChange={handleRate}
                 size="sm"
                 readonly={isRating}
@@ -174,7 +174,9 @@ export function CommunityCourseCard({
             </div>
             <div>
               <p className="text-sm font-medium">{course.user.name}</p>
-              <p className="text-xs text-muted-foreground">@{course.user.username}</p>
+              <p className="text-xs text-muted-foreground">
+                @{course.user.username}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -184,12 +186,12 @@ export function CommunityCourseCard({
         </div>
 
         {/* Action Button */}
-        <Button 
+        <Button
           className={cn(
-            "w-full",
-            canView 
-              ? "bg-blue-600 hover:bg-blue-700 text-white" 
-              : "bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed"
+            'w-full',
+            canView
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed'
           )}
           onClick={canView ? handleViewCourse : undefined}
           disabled={!canView}

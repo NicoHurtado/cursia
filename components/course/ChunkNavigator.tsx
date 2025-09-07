@@ -5,13 +5,13 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  CheckCircle2, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle2,
   Circle,
   BookOpen,
-  Clock
+  Clock,
 } from 'lucide-react';
 
 interface Chunk {
@@ -38,11 +38,17 @@ export function ChunkNavigator({
   onChunkChange,
   onTakeQuiz,
   allChunksCompleted = false,
-  className
+  className,
 }: ChunkNavigatorProps) {
-  const currentChunk = chunks.find(chunk => chunk.chunkOrder === currentChunkOrder);
-  const currentChunkIndex = chunks.findIndex(chunk => chunk.chunkOrder === currentChunkOrder);
-  const isCurrentChunkCompleted = currentChunk ? completedChunks.includes(currentChunk.id) : false;
+  const currentChunk = chunks.find(
+    chunk => chunk.chunkOrder === currentChunkOrder
+  );
+  const currentChunkIndex = chunks.findIndex(
+    chunk => chunk.chunkOrder === currentChunkOrder
+  );
+  const isCurrentChunkCompleted = currentChunk
+    ? completedChunks.includes(currentChunk.id)
+    : false;
 
   const handlePrevious = () => {
     if (currentChunkIndex > 0) {
@@ -56,9 +62,8 @@ export function ChunkNavigator({
     }
   };
 
-
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn('space-y-4', className)}>
       {/* Chunk List */}
       <Card>
         <CardHeader className="pb-3">
@@ -69,18 +74,20 @@ export function ChunkNavigator({
         </CardHeader>
         <CardContent className="pt-0">
           <div className="space-y-3">
-            {chunks.map((chunk) => {
+            {chunks.map(chunk => {
               const isCompleted = completedChunks.includes(chunk.id);
               const isCurrent = chunk.chunkOrder === currentChunkOrder;
-              
+
               return (
                 <div
                   key={chunk.id}
                   className={cn(
-                    "p-4 rounded-lg border transition-all cursor-pointer",
-                    "hover:bg-muted/50",
-                    isCurrent && "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800",
-                    isCompleted && "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800"
+                    'p-4 rounded-lg border transition-all cursor-pointer',
+                    'hover:bg-muted/50',
+                    isCurrent &&
+                      'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800',
+                    isCompleted &&
+                      'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800'
                   )}
                   onClick={() => onChunkChange(chunk.chunkOrder)}
                 >
@@ -92,11 +99,11 @@ export function ChunkNavigator({
                         <Circle className="h-5 w-5 text-gray-400" />
                       )}
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <Badge 
-                          variant={isCurrent ? "default" : "outline"}
+                        <Badge
+                          variant={isCurrent ? 'default' : 'outline'}
                           className="text-xs"
                         >
                           {chunk.chunkOrder}
@@ -107,7 +114,7 @@ export function ChunkNavigator({
                           </Badge>
                         )}
                       </div>
-                      
+
                       <h4 className="font-medium text-sm leading-relaxed">
                         {chunk.title}
                       </h4>
@@ -143,11 +150,13 @@ export function ChunkNavigator({
                 <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                   <CheckCircle2 className="h-5 w-5 text-white" />
                 </div>
-                <span className="font-semibold text-lg">¡Módulo Completado!</span>
+                <span className="font-semibold text-lg">
+                  ¡Módulo Completado!
+                </span>
               </div>
               <p className="text-sm text-green-700 dark:text-green-300 leading-relaxed">
-                Has completado todas las lecciones de este módulo. 
-                Ahora puedes tomar el quiz para evaluar tu conocimiento.
+                Has completado todas las lecciones de este módulo. Ahora puedes
+                tomar el quiz para evaluar tu conocimiento.
               </p>
               <Button
                 onClick={onTakeQuiz}

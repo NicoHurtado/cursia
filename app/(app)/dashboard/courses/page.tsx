@@ -90,7 +90,7 @@ export default function CoursesPage() {
       if (response.ok) {
         // Remove the course from the local state
         setCourses(prev => prev.filter(course => course.id !== courseId));
-        
+
         toast({
           title: 'Curso eliminado',
           description: 'El curso se ha movido a la papelera.',
@@ -120,12 +120,12 @@ export default function CoursesPage() {
 
       if (response.ok) {
         // Update the course in local state to mark it as public
-        setCourses(prev => prev.map(course => 
-          course.id === courseId 
-            ? { ...course, isPublic: true }
-            : course
-        ));
-        
+        setCourses(prev =>
+          prev.map(course =>
+            course.id === courseId ? { ...course, isPublic: true } : course
+          )
+        );
+
         toast({
           title: 'Curso publicado',
           description: 'El curso se ha publicado exitosamente en la comunidad.',
@@ -165,7 +165,10 @@ export default function CoursesPage() {
             Gestiona y accede a todos tus cursos creados
           </p>
         </div>
-        <Button onClick={handleCreateCourse} className="flex items-center gap-2">
+        <Button
+          onClick={handleCreateCourse}
+          className="flex items-center gap-2"
+        >
           <Plus className="h-4 w-4" />
           Crear Nuevo Curso
         </Button>
@@ -183,7 +186,8 @@ export default function CoursesPage() {
             </div>
             <h3 className="text-lg font-semibold mb-2">No tienes cursos aún</h3>
             <p className="text-muted-foreground text-center mb-6 max-w-md">
-              Crea tu primer curso personalizado con IA y comienza tu viaje de aprendizaje.
+              Crea tu primer curso personalizado con IA y comienza tu viaje de
+              aprendizaje.
             </p>
             <Button onClick={handleCreateCourse} size="lg">
               <Plus className="h-4 w-4 mr-2" />
@@ -193,10 +197,10 @@ export default function CoursesPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => (
-            <CourseCard 
-              key={course.id} 
-              course={course} 
+          {courses.map(course => (
+            <CourseCard
+              key={course.id}
+              course={course}
               onDelete={handleDeleteCourse}
               onPublish={handlePublishCourse}
               userPlan={userPlan}

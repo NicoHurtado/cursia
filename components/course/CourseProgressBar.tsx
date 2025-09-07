@@ -22,22 +22,20 @@ export function CourseProgressBar({
             <BookOpen className="h-4 w-4" />
             <span>Progress</span>
           </div>
-          
+
           <div className="flex-1">
-            <Progress 
-              value={completionPercentage} 
+            <Progress
+              value={completionPercentage}
               className="h-2"
               aria-label={`Course progress: ${completionPercentage}%`}
             />
           </div>
-          
+
           <div className="text-sm font-medium text-muted-foreground">
             {completedChunks}/{totalChunks} chunks
           </div>
-          
-          <div className="text-sm font-semibold">
-            {completionPercentage}%
-          </div>
+
+          <div className="text-sm font-semibold">{completionPercentage}%</div>
         </div>
       </div>
     </div>

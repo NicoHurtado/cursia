@@ -6,15 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Loader2, 
-  Trash2, 
-  RotateCcw, 
+import {
+  Loader2,
+  Trash2,
+  RotateCcw,
   Calendar,
   CheckCircle2,
   AlertCircle,
   BookOpen,
-  ArrowLeft
+  ArrowLeft,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
@@ -127,15 +127,22 @@ export default function TrashPage() {
   };
 
   const handlePermanentDelete = async (courseId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar permanentemente este curso? Esta acción no se puede deshacer.')) {
+    if (
+      !confirm(
+        '¿Estás seguro de que quieres eliminar permanentemente este curso? Esta acción no se puede deshacer.'
+      )
+    ) {
       return;
     }
 
     setDeleting(courseId);
     try {
-      const response = await fetch(`/api/courses/${courseId}/permanent-delete`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/courses/${courseId}/permanent-delete`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (response.ok) {
         setCourses(prev => prev.filter(course => course.id !== courseId));
@@ -150,7 +157,8 @@ export default function TrashPage() {
       console.error('Error permanently deleting course:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo eliminar permanentemente el curso. Inténtalo de nuevo.',
+        description:
+          'No se pudo eliminar permanentemente el curso. Inténtalo de nuevo.',
         variant: 'destructive',
       });
     } finally {
@@ -189,7 +197,8 @@ export default function TrashPage() {
               Papelera
             </h1>
             <p className="text-muted-foreground">
-              Cursos eliminados. Puedes restaurarlos o eliminarlos permanentemente.
+              Cursos eliminados. Puedes restaurarlos o eliminarlos
+              permanentemente.
             </p>
           </div>
         </div>
@@ -210,13 +219,19 @@ export default function TrashPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => {
-            const progressPercentage = course.totalModules > 0 
-              ? Math.round((course.completedModules / course.totalModules) * 100)
-              : 0;
+          {courses.map(course => {
+            const progressPercentage =
+              course.totalModules > 0
+                ? Math.round(
+                    (course.completedModules / course.totalModules) * 100
+                  )
+                : 0;
 
             return (
-              <Card key={course.id} className="hover:shadow-md transition-shadow duration-200">
+              <Card
+                key={course.id}
+                className="hover:shadow-md transition-shadow duration-200"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
@@ -242,7 +257,10 @@ export default function TrashPage() {
                     <div className="mb-4">
                       <div className="flex items-center justify-between text-sm mb-2">
                         <span className="text-muted-foreground">Progreso</span>
-                        <span className="font-medium">{course.completedModules}/{course.totalModules} módulos</span>
+                        <span className="font-medium">
+                          {course.completedModules}/{course.totalModules}{' '}
+                          módulos
+                        </span>
                       </div>
                       <Progress value={progressPercentage} className="h-2" />
                     </div>

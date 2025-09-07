@@ -9,7 +9,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -38,12 +38,11 @@ export async function DELETE(
       },
     });
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'Course moved to trash',
-      course: deletedCourse 
+      course: deletedCourse,
     });
-
   } catch (error) {
     console.error('Error deleting course:', error);
     return NextResponse.json(

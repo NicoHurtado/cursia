@@ -81,7 +81,7 @@ export async function POST(
         const moduleQuizAttempts = quizAttempts.filter(
           (attempt: any) => attempt.moduleId === module.id
         );
-        
+
         const hasPassedQuiz = moduleQuizAttempts.some(
           (attempt: any) => attempt.passed
         );

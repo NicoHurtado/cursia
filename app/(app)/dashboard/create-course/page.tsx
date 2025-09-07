@@ -9,7 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Plus, X, BookOpen, Sparkles } from 'lucide-react';
 
@@ -19,17 +25,48 @@ const courseSchema = z.object({
     .min(10, 'El prompt debe tener al menos 10 caracteres')
     .max(2000, 'El prompt debe tener menos de 2000 caracteres'),
   level: z.enum(['principiante', 'intermedio', 'avanzado']),
-  interests: z.array(z.string()).min(1, 'Selecciona al menos un interés').max(6, 'Máximo 6 intereses'),
+  interests: z
+    .array(z.string())
+    .min(1, 'Selecciona al menos un interés')
+    .max(6, 'Máximo 6 intereses'),
 });
 
 type CourseForm = z.infer<typeof courseSchema>;
 
 const interestCategories = {
-  'Tecnología': ['Programación', 'Inteligencia Artificial', 'Desarrollo Web', 'Aplicaciones Móviles', 'Ciberseguridad', 'Datos y Analytics'],
-  'Negocios': ['Marketing Digital', 'Emprendimiento', 'Finanzas', 'Gestión de Proyectos', 'Ventas', 'Estrategia'],
-  'Diseño': ['Diseño UX/UI', 'Diseño Gráfico', 'Fotografía', 'Ilustración', 'Branding', 'Arquitectura'],
-  'Educación': ['Enseñanza', 'Psicología Educativa', 'Desarrollo Personal', 'Idiomas', 'Investigación', 'Metodologías'],
-  'Creatividad': ['Música', 'Escritura', 'Arte', 'Cine', 'Teatro', 'Literatura']
+  Tecnología: [
+    'Programación',
+    'Inteligencia Artificial',
+    'Desarrollo Web',
+    'Aplicaciones Móviles',
+    'Ciberseguridad',
+    'Datos y Analytics',
+  ],
+  Negocios: [
+    'Marketing Digital',
+    'Emprendimiento',
+    'Finanzas',
+    'Gestión de Proyectos',
+    'Ventas',
+    'Estrategia',
+  ],
+  Diseño: [
+    'Diseño UX/UI',
+    'Diseño Gráfico',
+    'Fotografía',
+    'Ilustración',
+    'Branding',
+    'Arquitectura',
+  ],
+  Educación: [
+    'Enseñanza',
+    'Psicología Educativa',
+    'Desarrollo Personal',
+    'Idiomas',
+    'Investigación',
+    'Metodologías',
+  ],
+  Creatividad: ['Música', 'Escritura', 'Arte', 'Cine', 'Teatro', 'Literatura'],
 };
 
 export default function CreateCoursePage() {
@@ -82,11 +119,12 @@ export default function CreateCoursePage() {
         if (result.upgradeRequired) {
           toast({
             title: 'Límite de cursos alcanzado',
-            description: result.error + ' Actualiza tu plan para crear más cursos.',
+            description:
+              result.error + ' Actualiza tu plan para crear más cursos.',
             variant: 'destructive',
             action: (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => router.push('/dashboard/plans')}
               >
@@ -106,7 +144,8 @@ export default function CreateCoursePage() {
 
       toast({
         title: '¡Éxito!',
-        description: result.message || 'Curso creado exitosamente! Redirigiendo...',
+        description:
+          result.message || 'Curso creado exitosamente! Redirigiendo...',
       });
 
       // Redirect to course page
@@ -126,9 +165,12 @@ export default function CreateCoursePage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Crear Nuevo Curso</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-2">
+          Crear Nuevo Curso
+        </h1>
         <p className="text-muted-foreground">
-          Describe el curso que quieres crear y personaliza tu experiencia de aprendizaje
+          Describe el curso que quieres crear y personaliza tu experiencia de
+          aprendizaje
         </p>
       </div>
 
@@ -158,7 +200,8 @@ export default function CreateCoursePage() {
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                Sé específico sobre el tema, nivel y enfoque que deseas para tu curso.
+                Sé específico sobre el tema, nivel y enfoque que deseas para tu
+                curso.
               </p>
             </div>
           </CardContent>
@@ -174,7 +217,10 @@ export default function CreateCoursePage() {
               <Label htmlFor="level">Selecciona el nivel del curso</Label>
               <Select
                 onValueChange={value =>
-                  setValue('level', value as 'principiante' | 'intermedio' | 'avanzado')
+                  setValue(
+                    'level',
+                    value as 'principiante' | 'intermedio' | 'avanzado'
+                  )
                 }
                 disabled={isCreatingCourse}
               >
@@ -203,16 +249,21 @@ export default function CreateCoursePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Selecciona intereses para personalizar ejemplos y ejercicios</Label>
+              <Label>
+                Selecciona intereses para personalizar ejemplos y ejercicios
+              </Label>
               <p className="text-xs text-muted-foreground">
-                Estos intereses se usarán para crear ejemplos y ejercicios más relevantes para ti.
+                Estos intereses se usarán para crear ejemplos y ejercicios más
+                relevantes para ti.
               </p>
             </div>
 
             {/* Selected Interests */}
             {interests.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Intereses seleccionados ({interests.length}/6)</Label>
+                <Label className="text-sm font-medium">
+                  Intereses seleccionados ({interests.length}/6)
+                </Label>
                 <div className="flex flex-wrap gap-2">
                   {interests.map(interest => (
                     <Badge
@@ -244,16 +295,25 @@ export default function CreateCoursePage() {
                   <Button
                     key={category}
                     type="button"
-                    variant={selectedCategory === category ? "default" : "outline"}
+                    variant={
+                      selectedCategory === category ? 'default' : 'outline'
+                    }
                     className="h-auto p-4 flex flex-col items-start"
-                    onClick={() => setSelectedCategory(
-                      selectedCategory === category ? null : category
-                    )}
+                    onClick={() =>
+                      setSelectedCategory(
+                        selectedCategory === category ? null : category
+                      )
+                    }
                     disabled={isCreatingCourse}
                   >
                     <span className="font-medium">{category}</span>
                     <span className="text-xs text-muted-foreground mt-1">
-                      {interestCategories[category as keyof typeof interestCategories].length} opciones
+                      {
+                        interestCategories[
+                          category as keyof typeof interestCategories
+                        ].length
+                      }{' '}
+                      opciones
                     </span>
                   </Button>
                 ))}
@@ -267,14 +327,22 @@ export default function CreateCoursePage() {
                   Intereses en {selectedCategory}
                 </Label>
                 <div className="flex flex-wrap gap-2">
-                  {interestCategories[selectedCategory as keyof typeof interestCategories].map(interest => (
+                  {interestCategories[
+                    selectedCategory as keyof typeof interestCategories
+                  ].map(interest => (
                     <Button
                       key={interest}
                       type="button"
-                      variant={interests.includes(interest) ? "default" : "outline"}
+                      variant={
+                        interests.includes(interest) ? 'default' : 'outline'
+                      }
                       size="sm"
                       onClick={() => addInterest(interest)}
-                      disabled={isCreatingCourse || (interests.includes(interest) || interests.length >= 6)}
+                      disabled={
+                        isCreatingCourse ||
+                        interests.includes(interest) ||
+                        interests.length >= 6
+                      }
                     >
                       {interest}
                     </Button>

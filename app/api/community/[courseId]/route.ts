@@ -9,7 +9,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
@@ -22,12 +22,15 @@ export async function DELETE(
         id: courseId,
         userId: session.user.id,
         isPublic: true,
-        deletedAt: null
-      }
+        deletedAt: null,
+      },
     });
 
     if (!course) {
-      return NextResponse.json({ error: 'Curso no encontrado o no tienes permisos' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Curso no encontrado o no tienes permisos' },
+        { status: 404 }
+      );
     }
 
     // Despublicar el curso (no eliminarlo, solo quitarle la visibilidad pública)
@@ -35,15 +38,14 @@ export async function DELETE(
       where: { id: courseId },
       data: {
         isPublic: false,
-        publishedAt: null
-      }
+        publishedAt: null,
+      },
     });
 
     return NextResponse.json({
       message: 'Curso removido de la comunidad exitosamente',
-      course: updatedCourse
+      course: updatedCourse,
     });
-
   } catch (error) {
     console.error('Error removing course from community:', error);
     return NextResponse.json(

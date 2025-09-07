@@ -18,7 +18,10 @@ export class YouTubeService {
   private static readonly API_KEY = process.env.YOUTUBE_DATA_API_KEY;
   private static readonly BASE_URL = 'https://www.googleapis.com/youtube/v3';
   private static readonly CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-  private static cache = new Map<string, { data: YouTubeVideo[]; timestamp: number }>();
+  private static cache = new Map<
+    string,
+    { data: YouTubeVideo[]; timestamp: number }
+  >();
 
   /**
    * Search for YouTube videos related to a specific topic
@@ -42,7 +45,7 @@ export class YouTubeService {
 
     try {
       console.log(`🔍 Searching YouTube for: ${query}`);
-      
+
       // Build search parameters
       const searchParams = new URLSearchParams({
         part: 'snippet',
@@ -53,14 +56,16 @@ export class YouTubeService {
         videoEmbeddable: 'true',
         videoDuration: duration === 'any' ? '' : duration,
         order: 'relevance',
-        safeSearch: 'moderate'
+        safeSearch: 'moderate',
       });
 
       // Make API request
       const response = await fetch(`${this.BASE_URL}/search?${searchParams}`);
-      
+
       if (!response.ok) {
-        throw new Error(`YouTube API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `YouTube API error: ${response.status} ${response.statusText}`
+        );
       }
 
       const data = await response.json();
@@ -83,28 +88,31 @@ export class YouTubeService {
       }
 
       // Process and format results
-      const videos: YouTubeVideo[] = data.items.map((item: any, index: number) => {
-        const details = videoDetails.find(d => d.id === item.id.videoId);
-        const duration = details?.contentDetails?.duration || 'PT0S';
-        
-        return {
-          id: item.id.videoId,
-          title: item.snippet.title,
-          description: item.snippet.description,
-          thumbnail: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
-          duration: this.formatDuration(duration),
-          channelTitle: item.snippet.channelTitle,
-          publishedAt: item.snippet.publishedAt,
-          embedUrl: `https://www.youtube.com/embed/${item.id.videoId}`
-        };
-      });
+      const videos: YouTubeVideo[] = data.items.map(
+        (item: any, index: number) => {
+          const details = videoDetails.find(d => d.id === item.id.videoId);
+          const duration = details?.contentDetails?.duration || 'PT0S';
+
+          return {
+            id: item.id.videoId,
+            title: item.snippet.title,
+            description: item.snippet.description,
+            thumbnail:
+              item.snippet.thumbnails.medium?.url ||
+              item.snippet.thumbnails.default?.url,
+            duration: this.formatDuration(duration),
+            channelTitle: item.snippet.channelTitle,
+            publishedAt: item.snippet.publishedAt,
+            embedUrl: `https://www.youtube.com/embed/${item.id.videoId}`,
+          };
+        }
+      );
 
       // Cache the results
       this.cache.set(cacheKey, { data: videos, timestamp: Date.now() });
 
       console.log(`✅ Found ${videos.length} videos for: ${query}`);
       return videos;
-
     } catch (error) {
       console.error('❌ YouTube API error:', error);
       throw new Error(`Failed to search YouTube videos: ${error}`);
@@ -121,20 +129,25 @@ export class YouTubeService {
   ): Promise<YouTubeVideo | null> {
     try {
       // Create a focused search query
-      const searchQuery = this.createSearchQuery(lessonTitle, lessonContent, courseTopic);
-      
+      const searchQuery = this.createSearchQuery(
+        lessonTitle,
+        lessonContent,
+        courseTopic
+      );
+
       // Search for videos
       const videos = await this.searchVideos(searchQuery, 10, 'medium');
-      
+
       if (videos.length === 0) {
         console.log(`⚠️ No videos found for lesson: ${lessonTitle}`);
         return null;
       }
 
       // Return the most relevant video (first result from relevance-ordered search)
-      console.log(`✅ Found video for lesson: ${lessonTitle} - ${videos[0].title}`);
+      console.log(
+        `✅ Found video for lesson: ${lessonTitle} - ${videos[0].title}`
+      );
       return videos[0];
-
     } catch (error) {
       console.error('❌ Error finding relevant video:', error);
       return null;
@@ -157,14 +170,18 @@ export class YouTubeService {
 
     try {
       console.log(`🎥 Searching video for chunk: ${chunkTitle}`);
-      const video = await this.findRelevantVideo(chunkTitle, chunkContent, courseTitle);
-      
+      const video = await this.findRelevantVideo(
+        chunkTitle,
+        chunkContent,
+        courseTitle
+      );
+
       if (video) {
         console.log(`✅ Video found and ready for chunk: ${chunkTitle}`);
       } else {
         console.log(`⚠️ No video found for chunk: ${chunkTitle}`);
       }
-      
+
       return video;
     } catch (error) {
       console.error(`❌ Error finding video for chunk ${chunkTitle}:`, error);
@@ -201,7 +218,12 @@ export class YouTubeService {
     const query = searchTerms.join(' ');
 
     // Add educational keywords
-    const educationalKeywords = ['tutorial', 'curso', 'aprender', 'explicación'];
+    const educationalKeywords = [
+      'tutorial',
+      'curso',
+      'aprender',
+      'explicación',
+    ];
     const finalQuery = `${query} ${educationalKeywords[Math.floor(Math.random() * educationalKeywords.length)]}`;
 
     return finalQuery.trim();
@@ -239,7 +261,7 @@ export class YouTubeService {
   static getCacheStats(): { size: number; keys: string[] } {
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys())
+      keys: Array.from(this.cache.keys()),
     };
   }
 }

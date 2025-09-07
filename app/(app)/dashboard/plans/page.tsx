@@ -1,10 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap, Crown, Users, Globe, Award, CreditCard } from 'lucide-react';
+import {
+  Check,
+  Star,
+  Zap,
+  Crown,
+  Users,
+  Globe,
+  Award,
+  CreditCard,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { UserPlan, PLAN_NAMES, PLAN_PRICES } from '@/lib/plans';
@@ -21,10 +37,10 @@ const plans = [
     features: [
       '1 curso al mes',
       'Funcionalidades básicas',
-      'Soporte comunitario'
+      'Soporte comunitario',
     ],
     popular: false,
-    cta: 'Plan Actual'
+    cta: 'Plan Actual',
   },
   {
     id: UserPlan.APRENDIZ,
@@ -39,10 +55,10 @@ const plans = [
       'Diplomas personalizados',
       'Gustos personalizados',
       'Generación con IA avanzada',
-      'Soporte por email'
+      'Soporte por email',
     ],
     popular: false,
-    cta: 'Actualizar a Aprendiz'
+    cta: 'Actualizar a Aprendiz',
   },
   {
     id: UserPlan.EXPERTO,
@@ -57,10 +73,10 @@ const plans = [
       'Acceso a todos los cursos de la comunidad',
       'Todo lo del plan Aprendiz',
       'Contenido premium exclusivo',
-      'Soporte prioritario'
+      'Soporte prioritario',
     ],
     popular: true,
-    cta: 'Actualizar a Experto'
+    cta: 'Actualizar a Experto',
   },
   {
     id: UserPlan.MAESTRO,
@@ -76,29 +92,29 @@ const plans = [
       'Perfiles personalizados',
       'Todo lo del plan Experto',
       'Herramientas de creación avanzadas',
-      'Soporte VIP'
+      'Soporte VIP',
     ],
     popular: false,
-    cta: 'Actualizar a Maestro'
-  }
+    cta: 'Actualizar a Maestro',
+  },
 ];
 
 const additionalFeatures = [
   {
     icon: Users,
     title: 'Comunidad Global',
-    description: 'Conecta con estudiantes y educadores de todo el mundo'
+    description: 'Conecta con estudiantes y educadores de todo el mundo',
   },
   {
     icon: Globe,
     title: 'Contenido Multilingüe',
-    description: 'Accede a cursos en múltiples idiomas'
+    description: 'Accede a cursos en múltiples idiomas',
   },
   {
     icon: Award,
     title: 'Certificaciones Reconocidas',
-    description: 'Obtén diplomas que respaldan tu conocimiento'
-  }
+    description: 'Obtén diplomas que respaldan tu conocimiento',
+  },
 ];
 
 export default function PlansPage() {
@@ -188,26 +204,28 @@ export default function PlansPage() {
             Elige tu Plan de Aprendizaje
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Desbloquea todo el potencial de la educación personalizada con IA. 
-            Desde principiantes hasta maestros, tenemos el plan perfecto para ti.
+            Desbloquea todo el potencial de la educación personalizada con IA.
+            Desde principiantes hasta maestros, tenemos el plan perfecto para
+            ti.
           </p>
         </div>
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {plans.map((plan) => {
+          {plans.map(plan => {
             const Icon = plan.icon;
             const isCurrentPlan = plan.id === currentPlan;
             const isPlanUpgrading = isUpgrading === plan.id;
-            
+
             return (
-              <Card 
+              <Card
                 key={plan.id}
                 className={cn(
-                  "relative transition-all duration-300 hover:scale-105 hover:shadow-2xl",
-                  plan.popular && "ring-2 ring-purple-500 shadow-2xl scale-105",
-                  isCurrentPlan && "ring-2 ring-green-500 bg-green-50 dark:bg-green-950/20",
-                  selectedPlan === plan.id && "ring-2 ring-blue-500"
+                  'relative transition-all duration-300 hover:scale-105 hover:shadow-2xl',
+                  plan.popular && 'ring-2 ring-purple-500 shadow-2xl scale-105',
+                  isCurrentPlan &&
+                    'ring-2 ring-green-500 bg-green-50 dark:bg-green-950/20',
+                  selectedPlan === plan.id && 'ring-2 ring-blue-500'
                 )}
               >
                 {plan.popular && (
@@ -217,7 +235,7 @@ export default function PlansPage() {
                     </Badge>
                   </div>
                 )}
-                
+
                 {isCurrentPlan && (
                   <div className="absolute -top-4 right-4">
                     <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1">
@@ -225,23 +243,31 @@ export default function PlansPage() {
                     </Badge>
                   </div>
                 )}
-                
+
                 <CardHeader className="text-center pb-6">
-                  <div className={cn(
-                    "w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-r flex items-center justify-center",
-                    plan.color
-                  )}>
+                  <div
+                    className={cn(
+                      'w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-r flex items-center justify-center',
+                      plan.color
+                    )}
+                  >
                     <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
-                  <CardDescription className="text-sm">{plan.description}</CardDescription>
-                  
+                  <CardTitle className="text-xl font-bold">
+                    {plan.name}
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    {plan.description}
+                  </CardDescription>
+
                   <div className="mt-4">
                     <div className="flex items-baseline justify-center">
                       <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
                         {plan.price}
                       </span>
-                      <span className="text-sm text-muted-foreground ml-1">{plan.period}</span>
+                      <span className="text-sm text-muted-foreground ml-1">
+                        {plan.period}
+                      </span>
                     </div>
                   </div>
                 </CardHeader>
@@ -251,26 +277,32 @@ export default function PlansPage() {
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start space-x-2">
                         <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground">{feature}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {feature}
+                        </span>
                       </li>
                     ))}
                   </ul>
                 </CardContent>
 
                 <CardFooter>
-                  <Button 
+                  <Button
                     className={cn(
-                      "w-full h-10 text-sm font-semibold transition-all duration-300",
-                      isCurrentPlan 
-                        ? "bg-green-500 hover:bg-green-600" 
-                        : plan.popular 
-                          ? "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700" 
-                          : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                      'w-full h-10 text-sm font-semibold transition-all duration-300',
+                      isCurrentPlan
+                        ? 'bg-green-500 hover:bg-green-600'
+                        : plan.popular
+                          ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
+                          : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
                     )}
                     onClick={() => handleUpgrade(plan.id)}
                     disabled={isPlanUpgrading || isCurrentPlan}
                   >
-                    {isPlanUpgrading ? 'Actualizando...' : isCurrentPlan ? 'Plan Actual' : plan.cta}
+                    {isPlanUpgrading
+                      ? 'Actualizando...'
+                      : isCurrentPlan
+                        ? 'Plan Actual'
+                        : plan.cta}
                   </Button>
                 </CardFooter>
               </Card>
@@ -291,7 +323,9 @@ export default function PlansPage() {
                   <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
                     <Icon className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    {feature.title}
+                  </h3>
                   <p className="text-muted-foreground">{feature.description}</p>
                 </div>
               );
@@ -306,27 +340,39 @@ export default function PlansPage() {
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-2">¿Puedo cambiar de plan en cualquier momento?</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                ¿Puedo cambiar de plan en cualquier momento?
+              </h3>
               <p className="text-muted-foreground">
-                Sí, puedes actualizar o degradar tu plan en cualquier momento desde tu panel de control.
+                Sí, puedes actualizar o degradar tu plan en cualquier momento
+                desde tu panel de control.
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-2">¿Los cursos se generan automáticamente?</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                ¿Los cursos se generan automáticamente?
+              </h3>
               <p className="text-muted-foreground">
-                Sí, nuestros cursos se generan automáticamente usando IA avanzada basada en tus intereses y nivel.
+                Sí, nuestros cursos se generan automáticamente usando IA
+                avanzada basada en tus intereses y nivel.
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-2">¿Qué incluyen los diplomas personalizados?</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                ¿Qué incluyen los diplomas personalizados?
+              </h3>
               <p className="text-muted-foreground">
-                Los diplomas incluyen tu nombre, el curso completado, fecha de finalización y son verificables digitalmente.
+                Los diplomas incluyen tu nombre, el curso completado, fecha de
+                finalización y son verificables digitalmente.
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-2">¿Hay período de prueba gratuito?</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                ¿Hay período de prueba gratuito?
+              </h3>
               <p className="text-muted-foreground">
-                Ofrecemos 7 días de prueba gratuita para que explores todas las funcionalidades sin compromiso.
+                Ofrecemos 7 días de prueba gratuita para que explores todas las
+                funcionalidades sin compromiso.
               </p>
             </div>
           </div>
@@ -338,10 +384,11 @@ export default function PlansPage() {
             ¿Listo para Transformar tu Aprendizaje?
           </h2>
           <p className="text-xl text-muted-foreground mb-8">
-            Únete a miles de estudiantes que ya están aprendiendo con IA personalizada
+            Únete a miles de estudiantes que ya están aprendiendo con IA
+            personalizada
           </p>
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-4"
           >
             Comenzar Prueba Gratuita

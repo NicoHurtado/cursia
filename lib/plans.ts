@@ -2,7 +2,7 @@ export enum UserPlan {
   FREE = 'FREE',
   APRENDIZ = 'APRENDIZ',
   EXPERTO = 'EXPERTO',
-  MAESTRO = 'MAESTRO'
+  MAESTRO = 'MAESTRO',
 }
 
 export interface PlanLimits {
@@ -87,12 +87,18 @@ export function getPlanLimits(plan: UserPlan): PlanLimits {
   return PLAN_LIMITS[plan];
 }
 
-export function canCreateCourse(userPlan: UserPlan, coursesCreatedThisMonth: number): boolean {
+export function canCreateCourse(
+  userPlan: UserPlan,
+  coursesCreatedThisMonth: number
+): boolean {
   const limits = getPlanLimits(userPlan);
   return coursesCreatedThisMonth < limits.maxCoursesPerMonth;
 }
 
-export function getRemainingCourses(userPlan: UserPlan, coursesCreatedThisMonth: number): number {
+export function getRemainingCourses(
+  userPlan: UserPlan,
+  coursesCreatedThisMonth: number
+): number {
   const limits = getPlanLimits(userPlan);
   return Math.max(0, limits.maxCoursesPerMonth - coursesCreatedThisMonth);
 }

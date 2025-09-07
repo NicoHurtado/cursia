@@ -5,15 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  CheckCircle2, 
-  XCircle, 
-  RotateCcw, 
+import {
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
   ArrowRight,
   Trophy,
   AlertCircle,
   Star,
-  PartyPopper
+  PartyPopper,
 } from 'lucide-react';
 
 interface QuizQuestion {
@@ -55,15 +55,17 @@ type QuizResult = {
   }>;
 };
 
-export function ModuleQuiz({ 
-  quiz, 
-  onQuizComplete, 
-  onRetry, 
-  onContinue 
+export function ModuleQuiz({
+  quiz,
+  onQuizComplete,
+  onRetry,
+  onContinue,
 }: ModuleQuizProps) {
   const [state, setState] = useState<QuizState>('not-started');
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<number[]>(new Array(quiz.questions.length).fill(-1));
+  const [answers, setAnswers] = useState<number[]>(
+    new Array(quiz.questions.length).fill(-1)
+  );
   const [result, setResult] = useState<QuizResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -88,7 +90,7 @@ export function ModuleQuiz({
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    
+
     try {
       const response = await fetch('/api/quiz-attempts', {
         method: 'POST',
@@ -102,12 +104,12 @@ export function ModuleQuiz({
       });
 
       const data = await response.json();
-      
+
       if (response.ok) {
         console.log('Quiz result data:', data);
         console.log('First question details:', data.details[0]);
         setResult(data);
-        
+
         if (data.passed) {
           // Show celebration animation for 3 seconds, then continue
           setShowCelebration(true);
@@ -158,44 +160,44 @@ export function ModuleQuiz({
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
                   animationDelay: `${Math.random() * 2}s`,
-                  animationDuration: `${1 + Math.random() * 2}s`
+                  animationDuration: `${1 + Math.random() * 2}s`,
                 }}
               />
             ))}
           </div>
-          
+
           {/* Main content */}
           <div className="relative z-10">
             <div className="w-24 h-24 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
               <Trophy className="h-12 w-12 text-white" />
             </div>
-            
+
             <h2 className="text-3xl font-bold text-green-600 dark:text-green-400 mb-4 animate-bounce">
               ¡Felicitaciones! 🎉
             </h2>
-            
+
             <div className="text-4xl font-bold text-gray-800 dark:text-gray-200 mb-2">
               {result.score}%
             </div>
-            
+
             <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
               ¡Has aprobado el quiz! 🎊
             </p>
-            
+
             <div className="flex justify-center gap-2 mb-6">
               {[...Array(5)].map((_, i) => (
-                <Star 
-                  key={i} 
-                  className="h-6 w-6 text-yellow-400 fill-current animate-pulse" 
+                <Star
+                  key={i}
+                  className="h-6 w-6 text-yellow-400 fill-current animate-pulse"
                   style={{ animationDelay: `${i * 0.1}s` }}
                 />
               ))}
             </div>
-            
+
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Preparando el siguiente módulo...
             </p>
-            
+
             <div className="mt-4">
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full animate-pulse"></div>
@@ -212,7 +214,9 @@ export function ModuleQuiz({
       <div className="max-w-4xl mx-auto p-6">
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold mb-2">Module Quiz</CardTitle>
+            <CardTitle className="text-2xl font-bold mb-2">
+              Module Quiz
+            </CardTitle>
             <p className="text-muted-foreground">
               Test your knowledge with {quiz.questions.length} questions
             </p>
@@ -231,8 +235,8 @@ export function ModuleQuiz({
                 </span>
               </div>
             </div>
-            
-            <Button 
+
+            <Button
               onClick={() => setState('in-progress')}
               size="lg"
               className="px-8"
@@ -261,50 +265,61 @@ export function ModuleQuiz({
                 </div>
               )}
             </div>
-            
-            <CardTitle className={`text-3xl font-bold mb-2 ${
-              result.passed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-            }`}>
+
+            <CardTitle
+              className={`text-3xl font-bold mb-2 ${
+                result.passed
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-600 dark:text-red-400'
+              }`}
+            >
               {result.passed ? '¡Quiz Aprobado!' : 'Quiz No Aprobado'}
             </CardTitle>
-            
+
             <div className="text-4xl font-bold mb-2">{result.score}%</div>
             <p className="text-muted-foreground text-lg">
-              {result.correctAnswers} de {result.totalQuestions} preguntas correctas
+              {result.correctAnswers} de {result.totalQuestions} preguntas
+              correctas
             </p>
-            
-            <div className={`mt-4 p-4 rounded-lg border-l-4 ${
-              result.passed 
-                ? 'bg-green-50 border-green-400 dark:bg-green-950/20' 
-                : 'bg-orange-50 border-orange-400 dark:bg-orange-950/20'
-            }`}>
-              <p className={`text-sm font-medium ${
-                result.passed 
-                  ? 'text-green-800 dark:text-green-200' 
-                  : 'text-orange-800 dark:text-orange-200'
-              }`}>
-                {result.passed 
+
+            <div
+              className={`mt-4 p-4 rounded-lg border-l-4 ${
+                result.passed
+                  ? 'bg-green-50 border-green-400 dark:bg-green-950/20'
+                  : 'bg-orange-50 border-orange-400 dark:bg-orange-950/20'
+              }`}
+            >
+              <p
+                className={`text-sm font-medium ${
+                  result.passed
+                    ? 'text-green-800 dark:text-green-200'
+                    : 'text-orange-800 dark:text-orange-200'
+                }`}
+              >
+                {result.passed
                   ? '🎉 ¡Felicitaciones! Has aprobado el quiz y puedes continuar al siguiente módulo.'
-                  : '📚 No has alcanzado el 50% requerido. Puedes intentar el quiz nuevamente para mejorar tu puntuación.'
-                }
+                  : '📚 No has alcanzado el 50% requerido. Puedes intentar el quiz nuevamente para mejorar tu puntuación.'}
               </p>
             </div>
           </CardHeader>
-          
+
           <CardContent>
             <div className="mb-6">
               <h3 className="text-xl font-semibold mb-4 text-center">
                 📋 Revisión de Respuestas
               </h3>
             </div>
-            
+
             <div className="space-y-6 mb-8">
               {result.details.map((detail, index) => (
-                <div key={detail.questionId} className={`border-2 rounded-lg p-6 ${
-                  detail.isCorrect 
-                    ? 'border-green-200 bg-green-50 dark:bg-green-950/10' 
-                    : 'border-red-200 bg-red-50 dark:bg-red-950/10'
-                }`}>
+                <div
+                  key={detail.questionId}
+                  className={`border-2 rounded-lg p-6 ${
+                    detail.isCorrect
+                      ? 'border-green-200 bg-green-50 dark:bg-green-950/10'
+                      : 'border-red-200 bg-red-50 dark:bg-red-950/10'
+                  }`}
+                >
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0">
                       {detail.isCorrect ? (
@@ -317,52 +332,71 @@ export function ModuleQuiz({
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-3">
-                        <Badge variant={detail.isCorrect ? "default" : "destructive"} className="text-xs">
+                        <Badge
+                          variant={detail.isCorrect ? 'default' : 'destructive'}
+                          className="text-xs"
+                        >
                           Pregunta {index + 1}
                         </Badge>
-                        <Badge variant={detail.isCorrect ? "secondary" : "outline"} className="text-xs">
+                        <Badge
+                          variant={detail.isCorrect ? 'secondary' : 'outline'}
+                          className="text-xs"
+                        >
                           {detail.isCorrect ? 'Correcta' : 'Incorrecta'}
                         </Badge>
                       </div>
-                      
+
                       <h4 className="font-semibold text-lg mb-4">
                         {detail.question}
                       </h4>
-                      
+
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <span className="font-medium text-sm text-gray-700 dark:text-gray-300">Tu respuesta:</span>
-                          <div className={`p-4 rounded-lg border-l-4 ${
-                            detail.isCorrect 
-                              ? 'bg-green-50 border-green-400 dark:bg-green-950/20' 
-                              : 'bg-red-50 border-red-400 dark:bg-red-950/20'
-                          }`}>
+                          <span className="font-medium text-sm text-gray-700 dark:text-gray-300">
+                            Tu respuesta:
+                          </span>
+                          <div
+                            className={`p-4 rounded-lg border-l-4 ${
+                              detail.isCorrect
+                                ? 'bg-green-50 border-green-400 dark:bg-green-950/20'
+                                : 'bg-red-50 border-red-400 dark:bg-red-950/20'
+                            }`}
+                          >
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
-                                <span className={`text-xs font-medium px-2 py-1 rounded ${
-                                  detail.isCorrect 
-                                    ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200' 
-                                    : 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200'
-                                }`}>
-                                  {detail.userAnswer >= 0 ? `Opción ${detail.userAnswer + 1}` : 'Sin responder'}
+                                <span
+                                  className={`text-xs font-medium px-2 py-1 rounded ${
+                                    detail.isCorrect
+                                      ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200'
+                                      : 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200'
+                                  }`}
+                                >
+                                  {detail.userAnswer >= 0
+                                    ? `Opción ${detail.userAnswer + 1}`
+                                    : 'Sin responder'}
                                 </span>
                               </div>
                               <p className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-relaxed">
-                                {detail.userAnswer >= 0 ? detail.options[detail.userAnswer] : 'No seleccionaste ninguna opción'}
+                                {detail.userAnswer >= 0
+                                  ? detail.options[detail.userAnswer]
+                                  : 'No seleccionaste ninguna opción'}
                               </p>
                             </div>
                           </div>
                         </div>
-                        
-                        
+
                         {detail.explanation && (
                           <div className="space-y-2">
-                            <span className="font-medium text-sm text-gray-700 dark:text-gray-300">💡 Explicación:</span>
+                            <span className="font-medium text-sm text-gray-700 dark:text-gray-300">
+                              💡 Explicación:
+                            </span>
                             <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border-l-4 border-blue-500">
-                              <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">{detail.explanation}</p>
+                              <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                                {detail.explanation}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -372,15 +406,24 @@ export function ModuleQuiz({
                 </div>
               ))}
             </div>
-            
+
             <div className="flex gap-4 justify-center">
               {result.passed ? (
-                <Button onClick={onContinue} size="lg" className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white">
+                <Button
+                  onClick={onContinue}
+                  size="lg"
+                  className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white"
+                >
                   <ArrowRight className="mr-2 h-5 w-5" />
                   Continuar al Siguiente Módulo
                 </Button>
               ) : (
-                <Button onClick={handleRetry} variant="outline" size="lg" className="px-8 py-3 border-red-300 text-red-600 hover:bg-red-50">
+                <Button
+                  onClick={handleRetry}
+                  variant="outline"
+                  size="lg"
+                  className="px-8 py-3 border-red-300 text-red-600 hover:bg-red-50"
+                >
                   <RotateCcw className="mr-2 h-5 w-5" />
                   Intentar Quiz Nuevamente
                 </Button>
@@ -397,21 +440,21 @@ export function ModuleQuiz({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between mb-4">
-            <CardTitle className="text-xl">Question {currentQuestion + 1} of {quiz.questions.length}</CardTitle>
-            <Badge variant="outline">
-              {Math.round(progress)}% Complete
-            </Badge>
+            <CardTitle className="text-xl">
+              Question {currentQuestion + 1} of {quiz.questions.length}
+            </CardTitle>
+            <Badge variant="outline">{Math.round(progress)}% Complete</Badge>
           </div>
-          
+
           <Progress value={progress} className="mb-4" />
         </CardHeader>
-        
+
         <CardContent>
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-4">
               {currentQuestionData.question}
             </h3>
-            
+
             <div className="space-y-3">
               {currentQuestionData.options.map((option, index) => (
                 <button
@@ -424,11 +467,13 @@ export function ModuleQuiz({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                      answers[currentQuestion] === index
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-muted-foreground'
-                    }`}>
+                    <div
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                        answers[currentQuestion] === index
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-muted-foreground'
+                      }`}
+                    >
                       {answers[currentQuestion] === index && (
                         <div className="w-2 h-2 rounded-full bg-current" />
                       )}
@@ -440,7 +485,7 @@ export function ModuleQuiz({
               ))}
             </div>
           </div>
-          
+
           <div className="flex justify-between">
             <Button
               variant="outline"
@@ -449,7 +494,7 @@ export function ModuleQuiz({
             >
               Previous
             </Button>
-            
+
             <div className="flex gap-2">
               {isLastQuestion ? (
                 <Button

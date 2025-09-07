@@ -5,17 +5,23 @@ import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Search, 
-  Filter, 
-  Star, 
-  Users, 
-  BookOpen, 
+import {
+  Search,
+  Filter,
+  Star,
+  Users,
+  BookOpen,
   Calendar,
   TrendingUp,
-  Clock
+  Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CommunityCourseCard } from '@/components/community/CommunityCourseCard';
@@ -70,7 +76,7 @@ export default function CommunityPage() {
     page: 1,
     limit: 10,
     total: 0,
-    totalPages: 0
+    totalPages: 0,
   });
 
   const fetchCourses = async () => {
@@ -81,7 +87,7 @@ export default function CommunityPage() {
         limit: '12',
         ...(search && { search }),
         ...(level && level !== 'all' && { level }),
-        ...(sortBy && { sortBy })
+        ...(sortBy && { sortBy }),
       });
 
       const response = await fetch(`/api/community?${params}`);
@@ -112,14 +118,16 @@ export default function CommunityPage() {
       if (response.ok) {
         // Actualizar la calificación local
         setUserRatings(prev => ({ ...prev, [courseId]: rating }));
-        
+
         // Actualizar el curso en la lista
-        setCourses(prev => prev.map(course => 
-          course.id === courseId 
-            ? { ...course, totalRatings: course.totalRatings + 1 }
-            : course
-        ));
-        
+        setCourses(prev =>
+          prev.map(course =>
+            course.id === courseId
+              ? { ...course, totalRatings: course.totalRatings + 1 }
+              : course
+          )
+        );
+
         toast({
           title: 'Calificación guardada',
           description: 'Tu calificación se ha guardado exitosamente.',
@@ -163,7 +171,9 @@ export default function CommunityPage() {
         key={i}
         className={cn(
           'h-4 w-4',
-          i < Math.floor(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+          i < Math.floor(rating)
+            ? 'fill-yellow-400 text-yellow-400'
+            : 'text-gray-300'
         )}
       />
     ));
@@ -212,7 +222,10 @@ export default function CommunityPage() {
             </div>
             <h1 className="text-2xl font-bold mb-4">Acceso Restringido</h1>
             <p className="text-muted-foreground mb-6">
-              Necesitas un plan <span className="font-semibold text-blue-600">EXPERTO</span> o <span className="font-semibold text-purple-600">MAESTRO</span> para acceder a la comunidad de cursos.
+              Necesitas un plan{' '}
+              <span className="font-semibold text-blue-600">EXPERTO</span> o{' '}
+              <span className="font-semibold text-purple-600">MAESTRO</span>{' '}
+              para acceder a la comunidad de cursos.
             </p>
             <p className="text-sm text-muted-foreground mb-8">
               Plan actual: <span className="font-medium">{userPlan}</span>
@@ -250,7 +263,7 @@ export default function CommunityPage() {
                 <Input
                   placeholder="Buscar cursos..."
                   value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
+                  onChange={e => handleSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -308,7 +321,9 @@ export default function CommunityPage() {
         <Card>
           <CardContent className="p-12 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No se encontraron cursos</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              No se encontraron cursos
+            </h3>
             <p className="text-muted-foreground">
               Intenta ajustar los filtros de búsqueda
             </p>
@@ -318,7 +333,7 @@ export default function CommunityPage() {
         <>
           {/* Courses Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {courses.map((course) => (
+            {courses.map(course => (
               <CommunityCourseCard
                 key={course.id}
                 course={course}

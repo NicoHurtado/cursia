@@ -10,7 +10,7 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
@@ -18,10 +18,13 @@ export async function GET(
     // Verificar que el usuario tenga plan EXPERTO o MAESTRO
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { plan: true }
+      select: { plan: true },
     });
 
-    if (!user || (user.plan !== UserPlan.EXPERTO && user.plan !== UserPlan.MAESTRO)) {
+    if (
+      !user ||
+      (user.plan !== UserPlan.EXPERTO && user.plan !== UserPlan.MAESTRO)
+    ) {
       return NextResponse.json({ error: 'Plan insuficiente' }, { status: 403 });
     }
 
@@ -37,12 +40,15 @@ export async function GET(
       where: {
         id: courseId,
         isPublic: true,
-        deletedAt: null
-      }
+        deletedAt: null,
+      },
     });
 
     if (!course) {
-      return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Curso no encontrado' },
+        { status: 404 }
+      );
     }
 
     const [ratings, total] = await Promise.all([
@@ -57,12 +63,12 @@ export async function GET(
               id: true,
               name: true,
               username: true,
-              plan: true
-            }
-          }
-        }
+              plan: true,
+            },
+          },
+        },
       }),
-      db.courseRating.count({ where: { courseId } })
+      db.courseRating.count({ where: { courseId } }),
     ]);
 
     // Obtener la calificación del usuario actual si existe
@@ -70,9 +76,9 @@ export async function GET(
       where: {
         userId_courseId: {
           userId: session.user.id,
-          courseId: courseId
-        }
-      }
+          courseId: courseId,
+        },
+      },
     });
 
     return NextResponse.json({
@@ -82,15 +88,14 @@ export async function GET(
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
       },
       courseStats: {
         totalRatings: course.totalRatings,
         averageRating: course.averageRating,
-        totalCompletions: course.totalCompletions
-      }
+        totalCompletions: course.totalCompletions,
+      },
     });
-
   } catch (error) {
     console.error('Error fetching course ratings:', error);
     return NextResponse.json(

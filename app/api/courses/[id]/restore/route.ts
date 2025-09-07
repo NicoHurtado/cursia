@@ -9,7 +9,7 @@ export async function POST(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -26,7 +26,10 @@ export async function POST(
     });
 
     if (!course) {
-      return NextResponse.json({ error: 'Deleted course not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Deleted course not found' },
+        { status: 404 }
+      );
     }
 
     // Restore: remove deletedAt timestamp
@@ -39,12 +42,11 @@ export async function POST(
       },
     });
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'Course restored successfully',
-      course: restoredCourse 
+      course: restoredCourse,
     });
-
   } catch (error) {
     console.error('Error restoring course:', error);
     return NextResponse.json(

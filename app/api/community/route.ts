@@ -7,7 +7,7 @@ import { UserPlan } from '@/lib/plans';
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
@@ -15,11 +15,14 @@ export async function GET(request: NextRequest) {
     // Obtener el plan del usuario para determinar qué puede ver
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { plan: true }
+      select: { plan: true },
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Usuario no encontrado' },
+        { status: 404 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -34,13 +37,13 @@ export async function GET(request: NextRequest) {
     // Construir filtros
     const where: any = {
       isPublic: true,
-      deletedAt: null
+      deletedAt: null,
     };
 
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
+        { description: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -76,17 +79,17 @@ export async function GET(request: NextRequest) {
               id: true,
               name: true,
               username: true,
-              plan: true
-            }
+              plan: true,
+            },
           },
           _count: {
             select: {
-              courseRatings: true
-            }
-          }
-        }
+              courseRatings: true,
+            },
+          },
+        },
       }),
-      db.course.count({ where })
+      db.course.count({ where }),
     ]);
 
     return NextResponse.json({
@@ -95,12 +98,12 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
       },
       userPlan: user.plan,
-      canAccessCommunity: user.plan === UserPlan.EXPERTO || user.plan === UserPlan.MAESTRO
+      canAccessCommunity:
+        user.plan === UserPlan.EXPERTO || user.plan === UserPlan.MAESTRO,
     });
-
   } catch (error) {
     console.error('Error fetching community courses:', error);
     return NextResponse.json(

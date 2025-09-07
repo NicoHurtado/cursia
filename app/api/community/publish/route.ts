@@ -7,7 +7,7 @@ import { UserPlan } from '@/lib/plans';
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
@@ -15,17 +15,23 @@ export async function POST(request: NextRequest) {
     // Verificar que el usuario tenga plan MAESTRO
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { plan: true }
+      select: { plan: true },
     });
 
     if (!user || user.plan !== UserPlan.MAESTRO) {
-      return NextResponse.json({ error: 'Solo usuarios con plan MAESTRO pueden publicar cursos' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Solo usuarios con plan MAESTRO pueden publicar cursos' },
+        { status: 403 }
+      );
     }
 
     const { courseId } = await request.json();
 
     if (!courseId) {
-      return NextResponse.json({ error: 'ID del curso requerido' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'ID del curso requerido' },
+        { status: 400 }
+      );
     }
 
     // Verificar que el curso existe y pertenece al usuario
@@ -33,12 +39,15 @@ export async function POST(request: NextRequest) {
       where: {
         id: courseId,
         userId: session.user.id,
-        deletedAt: null
-      }
+        deletedAt: null,
+      },
     });
 
     if (!course) {
-      return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Curso no encontrado' },
+        { status: 404 }
+      );
     }
 
     // Publicar el curso
@@ -46,7 +55,7 @@ export async function POST(request: NextRequest) {
       where: { id: courseId },
       data: {
         isPublic: true,
-        publishedAt: new Date()
+        publishedAt: new Date(),
       },
       include: {
         user: {
@@ -54,17 +63,16 @@ export async function POST(request: NextRequest) {
             id: true,
             name: true,
             username: true,
-            plan: true
-          }
-        }
-      }
+            plan: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json({
       message: 'Curso publicado exitosamente',
-      course: updatedCourse
+      course: updatedCourse,
     });
-
   } catch (error) {
     console.error('Error publishing course:', error);
     return NextResponse.json(

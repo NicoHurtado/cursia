@@ -58,7 +58,9 @@ export async function GET(request: NextRequest) {
       id: course.id,
       courseId: course.courseId,
       title: course.title || 'Generating...',
-      description: course.description || 'Course description will appear here once generated.',
+      description:
+        course.description ||
+        'Course description will appear here once generated.',
       status: course.status.toLowerCase(),
       status_display: course.status,
       createdAt: course.createdAt.toISOString(),
@@ -130,7 +132,8 @@ export async function POST(request: NextRequest) {
       const rateLimitInfo = simpleAI.getRateLimitInfo(session.user.id);
       return NextResponse.json(
         {
-          error: 'Rate limit exceeded. Please wait before creating another course.',
+          error:
+            'Rate limit exceeded. Please wait before creating another course.',
           retryAfter: Math.ceil((rateLimitInfo.resetTime - Date.now()) / 1000),
         },
         { status: 429 }
@@ -263,7 +266,7 @@ export async function POST(request: NextRequest) {
         for (let i = 0; i < moduleContent.chunks.length; i++) {
           const chunk = moduleContent.chunks[i];
           const chunkOrder = i + 1;
-          
+
           // Search for video if this is the second chunk
           let videoData = null;
           if (chunkOrder === 2) {
@@ -283,7 +286,7 @@ export async function POST(request: NextRequest) {
               // Continue without video if search fails
             }
           }
-          
+
           await db.chunk.create({
             data: {
               moduleId: module.id,

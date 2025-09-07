@@ -10,9 +10,7 @@ export const NAVIGATION = {
     { name: 'Inicio', href: '/#inicio' },
     { name: 'Cómo funciona', href: '/#roadmap' },
   ],
-  app: [
-    { name: 'Dashboard', href: '/dashboard' },
-  ],
+  app: [{ name: 'Dashboard', href: '/dashboard' }],
 } as const;
 
 export const SOCIAL_LINKS = {

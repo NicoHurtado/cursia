@@ -6,14 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
-import { 
-  BookOpen, 
-  Users, 
-  Calendar,
-  Trash2,
-  Eye,
-  Star
-} from 'lucide-react';
+import { BookOpen, Users, Calendar, Trash2, Eye, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Course {
@@ -45,12 +38,12 @@ interface CourseCardProps {
   userRating?: number;
 }
 
-export function CourseCard({ 
-  course, 
-  currentUserId, 
-  onDelete, 
-  onRate, 
-  userRating = 0 
+export function CourseCard({
+  course,
+  currentUserId,
+  onDelete,
+  onRate,
+  userRating = 0,
 }: CourseCardProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -83,7 +76,7 @@ export function CourseCard({
 
   const handleDelete = async () => {
     if (!onDelete) return;
-    
+
     setIsDeleting(true);
     try {
       await onDelete(course.id);
@@ -96,7 +89,7 @@ export function CourseCard({
 
   const handleRate = async (rating: number) => {
     if (!onRate) return;
-    
+
     setIsRating(true);
     try {
       await onRate(course.id, rating);
@@ -131,10 +124,8 @@ export function CourseCard({
             )}
           </div>
         </div>
-        
-        <CardTitle className="text-lg line-clamp-2">
-          {course.title}
-        </CardTitle>
+
+        <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
       </CardHeader>
 
       <CardContent className="pt-0">
@@ -146,9 +137,9 @@ export function CourseCard({
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <StarRating 
-                rating={course.averageRating} 
-                readonly 
+              <StarRating
+                rating={course.averageRating}
+                readonly
                 size="sm"
                 showNumber
               />
@@ -157,12 +148,14 @@ export function CourseCard({
               </span>
             </div>
           </div>
-          
+
           {canRate && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Tu calificación:</span>
-              <StarRating 
-                rating={userRating} 
+              <span className="text-sm text-muted-foreground">
+                Tu calificación:
+              </span>
+              <StarRating
+                rating={userRating}
                 onRatingChange={handleRate}
                 size="sm"
                 readonly={isRating}
@@ -193,7 +186,9 @@ export function CourseCard({
             </div>
             <div>
               <p className="text-sm font-medium">{course.user.name}</p>
-              <p className="text-xs text-muted-foreground">@{course.user.username}</p>
+              <p className="text-xs text-muted-foreground">
+                @{course.user.username}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -203,11 +198,7 @@ export function CourseCard({
         </div>
 
         {/* Action Button */}
-        <Button 
-          className="w-full" 
-          variant="outline"
-          onClick={handleViewCourse}
-        >
+        <Button className="w-full" variant="outline" onClick={handleViewCourse}>
           <Eye className="h-4 w-4 mr-2" />
           Ver Curso
         </Button>

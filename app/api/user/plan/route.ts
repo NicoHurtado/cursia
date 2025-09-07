@@ -41,7 +41,10 @@ export async function GET(request: NextRequest) {
     });
 
     const planLimits = PLAN_LIMITS[user.plan as UserPlan];
-    const remainingCourses = Math.max(0, planLimits.maxCoursesPerMonth - coursesThisMonth);
+    const remainingCourses = Math.max(
+      0,
+      planLimits.maxCoursesPerMonth - coursesThisMonth
+    );
 
     return NextResponse.json({
       currentPlan: user.plan,
@@ -74,7 +77,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { plan } = body;
 
-    console.log('Received plan update request:', { userId: session.user.id, plan });
+    console.log('Received plan update request:', {
+      userId: session.user.id,
+      plan,
+    });
 
     // Validate plan
     const validPlans = Object.values(UserPlan);
@@ -122,7 +128,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Update user plan error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

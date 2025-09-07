@@ -77,8 +77,8 @@ export default function CoursePage({ params }: CoursePageProps) {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Course Not Found</h1>
           <p className="text-muted-foreground">
-            The course you're looking for doesn't exist or you don't have
-            access to it.
+            The course you're looking for doesn't exist or you don't have access
+            to it.
           </p>
         </div>
       </div>

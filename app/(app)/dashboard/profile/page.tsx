@@ -64,8 +64,8 @@ export default function ProfilePage() {
 
       {/* Trash Button */}
       <div className="max-w-md">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => router.push('/dashboard/trash')}
           className="w-full justify-start text-muted-foreground hover:text-foreground"
         >

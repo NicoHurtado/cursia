@@ -6,7 +6,7 @@ import { db } from '@/lib/db';
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -43,18 +43,23 @@ export async function GET(request: NextRequest) {
       title: course.title,
       description: course.description,
       status: course.status,
-      status_display: course.status === 'complete' ? 'COMPLETE' : 
-                     course.status === 'failed' ? 'FAILED' : 'READY',
+      status_display:
+        course.status === 'complete'
+          ? 'COMPLETE'
+          : course.status === 'failed'
+            ? 'FAILED'
+            : 'READY',
       createdAt: course.createdAt.toISOString(),
       updatedAt: course.updatedAt.toISOString(),
       completedAt: course.completedAt?.toISOString() || null,
       deletedAt: course.deletedAt?.toISOString() || null,
       totalModules: course.totalModules,
-      completedModules: course.modules.filter(m => m.moduleOrder <= course.totalModules).length,
+      completedModules: course.modules.filter(
+        m => m.moduleOrder <= course.totalModules
+      ).length,
     }));
 
     return NextResponse.json(courses);
-
   } catch (error) {
     console.error('Error fetching deleted courses:', error);
     return NextResponse.json(

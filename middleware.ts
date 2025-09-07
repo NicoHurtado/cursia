@@ -9,9 +9,10 @@ export default withAuth(
       authorized: ({ token, req }) => {
         // Fast path for public routes
         const publicPaths = ['/', '/login', '/signup'];
-        const isPublicPath = publicPaths.includes(req.nextUrl.pathname) || 
-                           req.nextUrl.pathname.startsWith('/api/auth');
-        
+        const isPublicPath =
+          publicPaths.includes(req.nextUrl.pathname) ||
+          req.nextUrl.pathname.startsWith('/api/auth');
+
         if (isPublicPath) {
           return true;
         }

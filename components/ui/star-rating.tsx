@@ -13,20 +13,20 @@ interface StarRatingProps {
   className?: string;
 }
 
-export function StarRating({ 
-  rating, 
-  onRatingChange, 
-  readonly = false, 
+export function StarRating({
+  rating,
+  onRatingChange,
+  readonly = false,
   size = 'md',
   showNumber = false,
-  className 
+  className,
 }: StarRatingProps) {
   const [hoveredRating, setHoveredRating] = useState(0);
 
   const sizeClasses = {
     sm: 'h-3 w-3',
     md: 'h-4 w-4',
-    lg: 'h-5 w-5'
+    lg: 'h-5 w-5',
   };
 
   const handleClick = (newRating: number) => {
@@ -55,7 +55,7 @@ export function StarRating({
         {Array.from({ length: 5 }, (_, i) => {
           const starValue = i + 1;
           const isFilled = starValue <= displayRating;
-          
+
           return (
             <button
               key={i}
@@ -73,8 +73,8 @@ export function StarRating({
               <Star
                 className={cn(
                   sizeClasses[size],
-                  isFilled 
-                    ? 'fill-yellow-400 text-yellow-400' 
+                  isFilled
+                    ? 'fill-yellow-400 text-yellow-400'
                     : 'text-gray-300 hover:text-yellow-300'
                 )}
               />

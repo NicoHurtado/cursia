@@ -6,13 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { 
-  BookOpen, 
-  CheckCircle2, 
-  Circle, 
+import {
+  BookOpen,
+  CheckCircle2,
+  Circle,
   Clock,
   Play,
-  Lock
+  Lock,
 } from 'lucide-react';
 
 interface Module {
@@ -48,16 +48,17 @@ export function ModuleSidebar({
   completedChunks,
   onModuleChange,
   onChunkChange,
-  className
+  className,
 }: ModuleSidebarProps) {
-  const [expandedModule, setExpandedModule] = useState<number>(currentModuleOrder);
+  const [expandedModule, setExpandedModule] =
+    useState<number>(currentModuleOrder);
 
   const getModuleStatus = (module: Module) => {
     const totalChunks = module.chunks.length;
-    const completedModuleChunks = module.chunks.filter(chunk => 
+    const completedModuleChunks = module.chunks.filter(chunk =>
       completedChunks.includes(chunk.id)
     ).length;
-    
+
     if (completedModuleChunks === 0) return 'locked';
     if (completedModuleChunks === totalChunks) return 'completed';
     return 'in-progress';
@@ -94,7 +95,7 @@ export function ModuleSidebar({
   };
 
   return (
-    <div className={cn("w-80 bg-background border-r border-border", className)}>
+    <div className={cn('w-80 bg-background border-r border-border', className)}>
       <div className="p-4 border-b border-border">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <BookOpen className="h-5 w-5" />
@@ -104,28 +105,29 @@ export function ModuleSidebar({
 
       <div className="overflow-y-auto h-full pb-4">
         <div className="space-y-2 p-4">
-          {modules.map((module) => {
+          {modules.map(module => {
             const status = getModuleStatus(module);
             const isExpanded = expandedModule === module.moduleOrder;
             const isCurrentModule = currentModuleOrder === module.moduleOrder;
             const totalChunks = module.chunks.length;
-            const completedChunksCount = module.chunks.filter(chunk => 
+            const completedChunksCount = module.chunks.filter(chunk =>
               completedChunks.includes(chunk.id)
             ).length;
-            const progressPercentage = totalChunks > 0 ? (completedChunksCount / totalChunks) * 100 : 0;
+            const progressPercentage =
+              totalChunks > 0 ? (completedChunksCount / totalChunks) * 100 : 0;
 
             return (
-              <Card 
-                key={module.id} 
+              <Card
+                key={module.id}
                 className={cn(
-                  "transition-all duration-200 cursor-pointer",
+                  'transition-all duration-200 cursor-pointer',
                   getStatusColor(status),
-                  isCurrentModule && "ring-2 ring-blue-500 ring-offset-2"
+                  isCurrentModule && 'ring-2 ring-blue-500 ring-offset-2'
                 )}
               >
                 <CardContent className="p-4">
                   {/* Module Header */}
-                  <div 
+                  <div
                     className="flex items-center justify-between mb-3"
                     onClick={() => {
                       setExpandedModule(isExpanded ? -1 : module.moduleOrder);
@@ -145,7 +147,7 @@ export function ModuleSidebar({
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-xs">
                         {completedChunksCount}/{totalChunks}
@@ -154,15 +156,19 @@ export function ModuleSidebar({
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
-                          setExpandedModule(isExpanded ? -1 : module.moduleOrder);
+                          setExpandedModule(
+                            isExpanded ? -1 : module.moduleOrder
+                          );
                         }}
                       >
-                        <span className={cn(
-                          "text-xs transition-transform",
-                          isExpanded ? "rotate-180" : ""
-                        )}>
+                        <span
+                          className={cn(
+                            'text-xs transition-transform',
+                            isExpanded ? 'rotate-180' : ''
+                          )}
+                        >
                           ▼
                         </span>
                       </Button>
@@ -183,22 +189,29 @@ export function ModuleSidebar({
                     <div className="space-y-2">
                       {/* Chunks */}
                       <div className="space-y-1">
-                        {module.chunks.map((chunk) => {
+                        {module.chunks.map(chunk => {
                           const chunkStatus = getChunkStatus(chunk.id);
-                          const isCurrentChunk = isCurrentModule && currentChunkOrder === chunk.chunkOrder;
-                          
+                          const isCurrentChunk =
+                            isCurrentModule &&
+                            currentChunkOrder === chunk.chunkOrder;
+
                           return (
                             <div
                               key={chunk.id}
                               className={cn(
-                                "flex items-center gap-2 p-2 rounded-md text-xs cursor-pointer transition-colors",
-                                "hover:bg-muted/50",
-                                isCurrentChunk && "bg-blue-100 dark:bg-blue-900/30",
-                                chunkStatus === 'completed' && "text-green-700 dark:text-green-400"
+                                'flex items-center gap-2 p-2 rounded-md text-xs cursor-pointer transition-colors',
+                                'hover:bg-muted/50',
+                                isCurrentChunk &&
+                                  'bg-blue-100 dark:bg-blue-900/30',
+                                chunkStatus === 'completed' &&
+                                  'text-green-700 dark:text-green-400'
                               )}
                               onClick={() => {
                                 if (status !== 'locked') {
-                                  onChunkChange(module.moduleOrder, chunk.chunkOrder);
+                                  onChunkChange(
+                                    module.moduleOrder,
+                                    chunk.chunkOrder
+                                  );
                                 }
                               }}
                             >

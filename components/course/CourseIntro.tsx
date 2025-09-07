@@ -3,13 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Play, 
-  BookOpen, 
-  Clock, 
-  Users, 
-  CheckCircle2
-} from 'lucide-react';
+import { Play, BookOpen, Clock, Users, CheckCircle2 } from 'lucide-react';
 
 interface ModuleData {
   title: string;
@@ -43,7 +37,7 @@ export function CourseIntro({
   onStartCourse,
   isStarting,
   modules,
-  hasProgress = false
+  hasProgress = false,
 }: CourseIntroProps) {
   const getLevelBadgeColor = (level: string) => {
     switch (level.toLowerCase()) {
@@ -72,7 +66,7 @@ export function CourseIntro({
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">
                   {title}
                 </h1>
-                
+
                 <p className="text-base text-muted-foreground leading-relaxed">
                   {description}
                 </p>
@@ -81,20 +75,24 @@ export function CourseIntro({
               {/* Course Metadata */}
               <div className="flex flex-wrap gap-2">
                 <Badge className={getLevelBadgeColor(level)}>
-                  {level === 'BEGINNER' ? 'Principiante' : 
-                   level === 'INTERMEDIATE' ? 'Intermedio' : 
-                   level === 'ADVANCED' ? 'Avanzado' : level}
+                  {level === 'BEGINNER'
+                    ? 'Principiante'
+                    : level === 'INTERMEDIATE'
+                      ? 'Intermedio'
+                      : level === 'ADVANCED'
+                        ? 'Avanzado'
+                        : level}
                 </Badge>
-                
+
                 <Badge variant="outline">
                   {language === 'es' ? 'Español' : language}
                 </Badge>
-                
+
                 <Badge variant="outline" className="flex items-center gap-1">
                   <BookOpen className="h-3 w-3" />
                   {totalModules} módulos
                 </Badge>
-                
+
                 {totalSizeEstimate && (
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
@@ -106,12 +104,13 @@ export function CourseIntro({
               {/* Modules Section - Moved to left column */}
               {modules && modules.length > 0 && (
                 <section className="space-y-4">
-                  <h2 className="text-lg font-semibold">
-                    Módulos del Curso
-                  </h2>
+                  <h2 className="text-lg font-semibold">Módulos del Curso</h2>
                   <div className="space-y-3">
                     {modules.map((module, index) => (
-                      <div key={index} className="bg-muted/50 rounded-lg p-4 border">
+                      <div
+                        key={index}
+                        className="bg-muted/50 rounded-lg p-4 border"
+                      >
                         <h3 className="text-sm font-semibold">
                           Módulo {index + 1}
                         </h3>
@@ -138,9 +137,9 @@ export function CourseIntro({
                 <CardContent className="pt-0">
                   <div className="flex flex-wrap gap-2">
                     {topics.map((topic, index) => (
-                      <Badge 
-                        key={index} 
-                        variant="secondary" 
+                      <Badge
+                        key={index}
+                        variant="secondary"
                         className="text-sm px-3 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 text-blue-700 border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:scale-105"
                       >
                         {topic}
@@ -162,7 +161,10 @@ export function CourseIntro({
                   <CardContent className="pt-0">
                     <ul className="space-y-2">
                       {prerequisites.map((prereq, index) => (
-                        <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <li
+                          key={index}
+                          className="flex items-start gap-2 text-sm text-muted-foreground"
+                        >
                           <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground mt-1.5 flex-shrink-0" />
                           {prereq}
                         </li>
@@ -204,7 +206,9 @@ export function CourseIntro({
                   {isStarting ? (
                     <>
                       <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-                      {hasProgress ? 'Continuando curso...' : 'Iniciando curso...'}
+                      {hasProgress
+                        ? 'Continuando curso...'
+                        : 'Iniciando curso...'}
                     </>
                   ) : (
                     <>

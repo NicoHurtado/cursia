@@ -5,7 +5,16 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Clock, User, CheckCircle2, Play, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  BookOpen,
+  Clock,
+  User,
+  CheckCircle2,
+  Play,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { VideoPlayer } from './VideoPlayer';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
@@ -41,25 +50,27 @@ interface ChunkReaderProps {
   className?: string;
 }
 
-export function ChunkReader({ 
-  chunk, 
-  isCompleted = false, 
-  isMarkingComplete = false, 
+export function ChunkReader({
+  chunk,
+  isCompleted = false,
+  isMarkingComplete = false,
   onMarkComplete,
   onPrevious,
   onNext,
   canGoPrevious = false,
   canGoNext = false,
   courseTopic = '',
-  className 
+  className,
 }: ChunkReaderProps) {
   // Check if this is the second lesson of a module
   const isSecondLesson = chunk.chunkOrder === 2;
 
   // Parse video data from chunk
-  const video: YouTubeVideo | null = chunk.videoData ? JSON.parse(chunk.videoData) : null;
+  const video: YouTubeVideo | null = chunk.videoData
+    ? JSON.parse(chunk.videoData)
+    : null;
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn('space-y-6', className)}>
       {/* Chunk Header */}
       <Card>
         <CardHeader className="pb-4">
@@ -96,7 +107,10 @@ export function ChunkReader({
                 <div className="text-muted-foreground mb-2">
                   <Play className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>No hay video disponible para esta lección</p>
-                  <p className="text-sm">El video se genera automáticamente durante la creación del curso</p>
+                  <p className="text-sm">
+                    El video se genera automáticamente durante la creación del
+                    curso
+                  </p>
                 </div>
               </div>
             )}

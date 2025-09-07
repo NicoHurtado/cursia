@@ -2,15 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Upload, 
-  BookOpen, 
-  Calendar, 
+import {
+  Upload,
+  BookOpen,
+  Calendar,
   CheckCircle2,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,7 +35,9 @@ interface PublishCourseDialogProps {
   onCoursePublished?: () => void;
 }
 
-export function PublishCourseDialog({ onCoursePublished }: PublishCourseDialogProps) {
+export function PublishCourseDialog({
+  onCoursePublished,
+}: PublishCourseDialogProps) {
   const { data: session } = useSession();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,8 +51,8 @@ export function PublishCourseDialog({ onCoursePublished }: PublishCourseDialogPr
       if (response.ok) {
         const data = await response.json();
         // Filtrar solo cursos completados y no públicos
-        const availableCourses = data.courses.filter((course: Course) => 
-          course.status === 'COMPLETE' && !course.isPublic
+        const availableCourses = data.courses.filter(
+          (course: Course) => course.status === 'COMPLETE' && !course.isPublic
         );
         setCourses(availableCourses);
       }
@@ -130,14 +138,16 @@ export function PublishCourseDialog({ onCoursePublished }: PublishCourseDialogPr
           ) : courses.length === 0 ? (
             <div className="text-center py-8">
               <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No hay cursos disponibles</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                No hay cursos disponibles
+              </h3>
               <p className="text-muted-foreground">
                 Completa un curso para poder publicarlo en la comunidad
               </p>
             </div>
           ) : (
             <div className="space-y-3">
-              {courses.map((course) => (
+              {courses.map(course => (
                 <div
                   key={course.id}
                   className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
@@ -152,7 +162,9 @@ export function PublishCourseDialog({ onCoursePublished }: PublishCourseDialogPr
                           {course.totalModules} módulos
                         </Badge>
                       </div>
-                      <h3 className="font-semibold text-lg mb-1">{course.title}</h3>
+                      <h3 className="font-semibold text-lg mb-1">
+                        {course.title}
+                      </h3>
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {course.description}
                       </p>
@@ -164,7 +176,7 @@ export function PublishCourseDialog({ onCoursePublished }: PublishCourseDialogPr
                       <Calendar className="h-3 w-3" />
                       <span>Creado {formatDate(course.createdAt)}</span>
                     </div>
-                    
+
                     <Button
                       onClick={() => handlePublish(course.id)}
                       disabled={publishing === course.id}

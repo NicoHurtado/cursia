@@ -25,7 +25,10 @@ export function Navbar({ variant = 'marketing' }: NavbarProps) {
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-20 items-center justify-between">
         <div className="flex items-center space-x-8">
-          <Link href={variant === 'app' && session ? "/dashboard" : "/"} className="flex items-center">
+          <Link
+            href={variant === 'app' && session ? '/dashboard' : '/'}
+            className="flex items-center"
+          >
             <span className="text-2xl font-bold">
               <span className="text-foreground">Curs</span>
               <span className="text-blue-600">ia</span>
@@ -125,7 +128,12 @@ export function Navbar({ variant = 'marketing' }: NavbarProps) {
               <div className="space-y-4">
                 {/* Dashboard button for mobile - only show on course pages */}
                 {pathname.startsWith('/courses/') && (
-                  <Button variant="outline" size="sm" asChild className="w-full">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="w-full"
+                  >
                     <Link href="/dashboard/courses">
                       <Home className="h-4 w-4 mr-2" />
                       Dashboard

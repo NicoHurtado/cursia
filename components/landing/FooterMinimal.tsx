@@ -37,7 +37,9 @@ export function FooterMinimal() {
 
           {/* Copyright */}
           <div className="text-sm text-muted-foreground">
-            © 2024 <span className="text-foreground">Curs</span><span className="text-blue-600">ia</span>. Todos los derechos reservados.
+            © 2024 <span className="text-foreground">Curs</span>
+            <span className="text-blue-600">ia</span>. Todos los derechos
+            reservados.
           </div>
         </div>
       </div>

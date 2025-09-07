@@ -53,8 +53,10 @@ export function HowItWorks() {
             Cómo funciona
           </h2>
           <p className="text-lg text-muted-foreground">
-            Desde la idea hasta el certificado, <span className="text-foreground">Curs</span><span className="text-blue-600">ia</span> automatiza todo el
-            proceso de creación de cursos.
+            Desde la idea hasta el certificado,{' '}
+            <span className="text-foreground">Curs</span>
+            <span className="text-blue-600">ia</span> automatiza todo el proceso
+            de creación de cursos.
           </p>
         </div>
 

@@ -4,7 +4,14 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Crown, Star, Zap, CreditCard, CheckCircle, XCircle } from 'lucide-react';
+import {
+  Crown,
+  Star,
+  Zap,
+  CreditCard,
+  CheckCircle,
+  XCircle,
+} from 'lucide-react';
 import { UserPlan, PLAN_NAMES, PLAN_PRICES } from '@/lib/plans';
 import { useRouter } from 'next/navigation';
 
@@ -101,13 +108,17 @@ export function PlanStatus({ className }: PlanStatusProps) {
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className={`w-10 h-10 ${colorClass} rounded-lg flex items-center justify-center`}>
+            <div
+              className={`w-10 h-10 ${colorClass} rounded-lg flex items-center justify-center`}
+            >
               <Icon className="h-5 w-5 text-white" />
             </div>
             <div>
               <CardTitle className="text-lg">{planData.planName}</CardTitle>
               <p className="text-sm text-muted-foreground">
-                {planData.planPrice > 0 ? `$${planData.planPrice.toLocaleString()}/mes` : 'Gratuito'}
+                {planData.planPrice > 0
+                  ? `$${planData.planPrice.toLocaleString()}/mes`
+                  : 'Gratuito'}
               </p>
             </div>
           </div>
@@ -124,8 +135,13 @@ export function PlanStatus({ className }: PlanStatusProps) {
         <div className="bg-muted/50 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">Cursos este mes</span>
-            <Badge variant={planData.usage.canCreateCourse ? "default" : "destructive"}>
-              {planData.usage.coursesCreatedThisMonth}/{planData.limits.maxCoursesPerMonth}
+            <Badge
+              variant={
+                planData.usage.canCreateCourse ? 'default' : 'destructive'
+              }
+            >
+              {planData.usage.coursesCreatedThisMonth}/
+              {planData.limits.maxCoursesPerMonth}
             </Badge>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -191,9 +207,13 @@ export function PlanStatus({ className }: PlanStatusProps) {
           <div className="flex items-center justify-between text-xs">
             <span>Soporte:</span>
             <span className="text-muted-foreground">
-              {planData.limits.hasVIPSupport ? 'VIP' : 
-               planData.limits.hasPrioritySupport ? 'Prioritario' : 
-               planData.limits.hasEmailSupport ? 'Email' : 'Básico'}
+              {planData.limits.hasVIPSupport
+                ? 'VIP'
+                : planData.limits.hasPrioritySupport
+                  ? 'Prioritario'
+                  : planData.limits.hasEmailSupport
+                    ? 'Email'
+                    : 'Básico'}
             </span>
           </div>
         </div>

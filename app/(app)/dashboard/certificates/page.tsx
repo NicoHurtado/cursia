@@ -21,12 +21,12 @@ export default function CertificatesPage() {
           <div className="w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mb-6">
             <Award className="h-10 w-10 text-white" />
           </div>
-          
+
           <h2 className="text-2xl font-bold mb-4">¡Próximamente!</h2>
-          
+
           <p className="text-muted-foreground text-center mb-6 max-w-md">
-            Estamos trabajando en un sistema de certificaciones que te permitirá obtener 
-            certificados oficiales al completar tus cursos.
+            Estamos trabajando en un sistema de certificaciones que te permitirá
+            obtener certificados oficiales al completar tus cursos.
           </p>
 
           <Badge variant="secondary" className="mb-6">
@@ -43,7 +43,7 @@ export default function CertificatesPage() {
                 Obtén certificados verificables al completar cursos
               </p>
             </div>
-            
+
             <div className="text-center p-4 rounded-lg bg-muted/50">
               <Star className="h-8 w-8 text-blue-500 mx-auto mb-2" />
               <h3 className="font-semibold mb-1">Logros Especiales</h3>
@@ -51,7 +51,7 @@ export default function CertificatesPage() {
                 Desbloquea insignias por logros únicos
               </p>
             </div>
-            
+
             <div className="text-center p-4 rounded-lg bg-muted/50">
               <Award className="h-8 w-8 text-green-500 mx-auto mb-2" />
               <h3 className="font-semibold mb-1">Portafolio Digital</h3>
@@ -80,7 +80,7 @@ export default function CertificatesPage() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card className="opacity-50">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">

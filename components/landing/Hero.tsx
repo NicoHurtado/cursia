@@ -148,7 +148,8 @@ export function Hero() {
 
           {/* Subcopy */}
           <p className="text-xl md:text-2xl text-muted-foreground max-w-[720px] mx-auto leading-relaxed">
-            Escribe tu prompt. <span className="text-foreground">Curs</span><span className="text-blue-600">ia</span> crea tu curso.
+            Escribe tu prompt. <span className="text-foreground">Curs</span>
+            <span className="text-blue-600">ia</span> crea tu curso.
           </p>
 
           {/* Animated Prompt Display */}

@@ -9,7 +9,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -26,7 +26,10 @@ export async function DELETE(
     });
 
     if (!course) {
-      return NextResponse.json({ error: 'Deleted course not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Deleted course not found' },
+        { status: 404 }
+      );
     }
 
     // Permanent delete: delete the course and all related data
@@ -36,11 +39,10 @@ export async function DELETE(
       },
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Course permanently deleted' 
+    return NextResponse.json({
+      success: true,
+      message: 'Course permanently deleted',
     });
-
   } catch (error) {
     console.error('Error permanently deleting course:', error);
     return NextResponse.json(

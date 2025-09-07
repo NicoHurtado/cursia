@@ -1,298 +1,241 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Code, 
-  Quote, 
-  List, 
-  CheckCircle, 
-  AlertCircle, 
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
+import rehypeSanitize from 'rehype-sanitize';
+import rehypeHighlight from 'rehype-highlight';
+import { Components } from 'react-markdown';
+import {
+  Code,
+  Quote,
+  List,
+  CheckCircle,
+  AlertCircle,
   Info,
   Lightbulb,
-  BookOpen
+  BookOpen,
+  Copy,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 interface MarkdownRendererProps {
   content: string;
   className?: string;
 }
 
-export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
-  // Simple markdown parser for basic elements
-  const parseMarkdown = (text: string) => {
-    const lines = text.split('\n');
-    const elements: JSX.Element[] = [];
-    let key = 0;
+export function MarkdownRenderer({
+  content,
+  className,
+}: MarkdownRendererProps) {
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      if (!line) {
-        elements.push(<div key={key++} className="h-4" />);
-        continue;
-      }
+  // Normalize AI output by inserting newlines before headings/lists/quotes
+  // and fixing common concatenations (e.g., "ProgramaciónAsí" -> line break)
+  function normalizeMarkdown(raw: string): string {
+    if (!raw) return '';
+    let text = raw.replace(/\r\n/g, '\n');
 
-      // Headers
-      if (line.startsWith('## ')) {
-        elements.push(
-          <h2 key={key++} className="text-2xl font-bold text-foreground mt-8 mb-4 first:mt-0 border-b border-border pb-2">
-            {line.substring(3)}
-          </h2>
-        );
-      } else if (line.startsWith('### ')) {
-        elements.push(
-          <h3 key={key++} className="text-xl font-semibold text-foreground mt-6 mb-3">
-            {line.substring(4)}
-          </h3>
-        );
-      } else if (line.startsWith('#### ')) {
-        elements.push(
-          <h4 key={key++} className="text-lg font-medium text-foreground mt-4 mb-2">
-            {line.substring(5)}
-          </h4>
-        );
-      }
-      // Blockquotes
-      else if (line.startsWith('> ')) {
-        const quoteContent = line.substring(2);
-        elements.push(
-          <Card key={key++} className="border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-950/20 my-4">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Quote className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <p className="text-blue-900 dark:text-blue-100 italic">
-                  {quoteContent}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      }
-      // Code blocks
-      else if (line.startsWith('```')) {
-        const language = line.substring(3) || 'text';
-        const codeLines: string[] = [];
-        i++; // Skip the opening ```
-        
-        while (i < lines.length && !lines[i].startsWith('```')) {
-          codeLines.push(lines[i]);
-          i++;
-        }
-        
-        elements.push(
-          <Card key={key++} className="my-4 bg-gray-900 dark:bg-gray-800 border-gray-700">
-            <CardContent className="p-0">
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800 dark:bg-gray-700 border-b border-gray-600">
-                <Code className="h-4 w-4 text-gray-400" />
-                <Badge variant="secondary" className="text-xs">
-                  {language}
-                </Badge>
-              </div>
-              <pre className="p-4 overflow-x-auto">
-                <code className="text-gray-100 text-sm font-mono">
-                  {codeLines.join('\n')}
-                </code>
-              </pre>
-            </CardContent>
-          </Card>
-        );
-      }
-      // Lists
-      else if (line.startsWith('- ') || line.startsWith('* ')) {
-        const listItems: string[] = [line.substring(2)];
-        i++; // Check for more list items
-        
-        while (i < lines.length && (lines[i].startsWith('- ') || lines[i].startsWith('* ') || lines[i].startsWith('  '))) {
-          if (lines[i].startsWith('- ') || lines[i].startsWith('* ')) {
-            listItems.push(lines[i].substring(2));
-          } else if (lines[i].startsWith('  ')) {
-            // Sub-item
-            listItems[listItems.length - 1] += '\n  ' + lines[i].substring(2);
-          }
-          i++;
-        }
-        i--; // Adjust for the loop increment
-        
-        elements.push(
-          <ul key={key++} className="my-4 space-y-2">
-            {listItems.map((item, index) => (
-              <li key={index} className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
-                <span className="text-foreground">{item}</span>
-              </li>
-            ))}
-          </ul>
-        );
-      }
-      // Numbered lists
-      else if (/^\d+\.\s/.test(line)) {
-        const listItems: string[] = [line.replace(/^\d+\.\s/, '')];
-        i++; // Check for more list items
-        
-        while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
-          listItems.push(lines[i].replace(/^\d+\.\s/, ''));
-          i++;
-        }
-        i--; // Adjust for the loop increment
-        
-        elements.push(
-          <ol key={key++} className="my-4 space-y-2 list-decimal list-inside">
-            {listItems.map((item, index) => (
-              <li key={index} className="text-foreground ml-4">
-                {item}
-              </li>
-            ))}
-          </ol>
-        );
-      }
-      // Special callout blocks
-      else if (line.startsWith('> [!NOTE]') || line.startsWith('> [!TIP]') || line.startsWith('> [!WARNING]') || line.startsWith('> [!INFO]')) {
-        const type = line.match(/\[!(.+?)\]/)?.[1] || 'NOTE';
-        const content = line.replace(/^> \[!.+?\]\s*/, '');
-        
-        const iconMap = {
-          NOTE: BookOpen,
-          TIP: Lightbulb,
-          WARNING: AlertCircle,
-          INFO: Info,
-        };
-        
-        const colorMap = {
-          NOTE: 'border-l-blue-500 bg-blue-50 dark:bg-blue-950/20',
-          TIP: 'border-l-green-500 bg-green-50 dark:bg-green-950/20',
-          WARNING: 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/20',
-          INFO: 'border-l-purple-500 bg-purple-50 dark:bg-purple-950/20',
-        };
-        
-        const textColorMap = {
-          NOTE: 'text-blue-900 dark:text-blue-100',
-          TIP: 'text-green-900 dark:text-green-100',
-          WARNING: 'text-yellow-900 dark:text-yellow-100',
-          INFO: 'text-purple-900 dark:text-purple-100',
-        };
-        
-        const Icon = iconMap[type as keyof typeof iconMap] || Info;
-        
-        elements.push(
-          <Card key={key++} className={cn("border-l-4 my-4", colorMap[type as keyof typeof colorMap])}>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Icon className={cn("h-5 w-5 mt-0.5 flex-shrink-0", textColorMap[type as keyof typeof textColorMap])} />
-                <div>
-                  <h4 className={cn("font-semibold mb-1", textColorMap[type as keyof typeof textColorMap])}>
-                    {type}
-                  </h4>
-                  <p className={cn("text-sm", textColorMap[type as keyof typeof textColorMap])}>
-                    {content}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      }
-      // Regular paragraphs
-      else {
-        const processedLine = processInlineMarkdown(line);
-        elements.push(
-          <p key={key++} className="text-foreground leading-relaxed mb-4">
-            {processedLine}
-          </p>
-        );
-      }
+    // Add paragraph breaks when a lowercase or ) is immediately followed by an uppercase
+    // This helps with cases like: "... ProgramaciónAsí ..."
+    text = text.replace(/([a-záéíóúñ0-9\)])([A-ZÁÉÍÓÚÑ])/g, '$1\n\n$2');
+
+    // Ensure headings start on their own line
+    text = text
+      .replace(/(?<!^|\n)(#{1,6}\s)/g, '\n\n$1')
+      .replace(/\s*(#{1,6}\s)/g, '\n$1');
+
+    // Ensure blockquotes, unordered and ordered lists start on new line
+    text = text
+      .replace(/(?<!\n)>\s/g, '\n> ')
+      .replace(/:\s*-\s/g, ':\n- ')
+      .replace(/(?<!\n)-\s/g, '\n- ')
+      .replace(/(?<!\n)(\d+)\.\s/g, '\n$1. ');
+
+    // Collapse excessive blank lines to at most one empty line between blocks
+    text = text.replace(/\n{3,}/g, '\n\n');
+
+    return text.trim();
+  }
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedCode(text);
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
     }
-
-    return elements;
   };
 
-  // Process inline markdown (bold, italic, code, links)
-  const processInlineMarkdown = (text: string): JSX.Element[] => {
-    const parts: (string | JSX.Element)[] = [];
-    let currentIndex = 0;
-    let key = 0;
+  // Custom components for react-markdown with GitHub-like styling
+  const components: Components = {
+    h1: ({ children }) => (
+      <h1 className="text-3xl font-bold text-foreground mt-8 mb-6 first:mt-0 border-b border-border pb-3">
+        {children}
+      </h1>
+    ),
+    h2: ({ children }) => (
+      <h2 className="text-2xl font-bold text-foreground mt-8 mb-4 first:mt-0 border-b border-border pb-2">
+        {children}
+      </h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">
+        {children}
+      </h3>
+    ),
+    h4: ({ children }) => (
+      <h4 className="text-lg font-semibold text-foreground mt-4 mb-2">
+        {children}
+      </h4>
+    ),
+    h5: ({ children }) => (
+      <h5 className="text-base font-semibold text-foreground mt-3 mb-2">
+        {children}
+      </h5>
+    ),
+    h6: ({ children }) => (
+      <h6 className="text-sm font-semibold text-foreground mt-2 mb-1">
+        {children}
+      </h6>
+    ),
+    p: ({ children }) => (
+      <p className="text-foreground leading-7 mb-4">{children}</p>
+    ),
+    strong: ({ children }) => (
+      <strong className="font-semibold text-foreground">{children}</strong>
+    ),
+    em: ({ children }) => (
+      <em className="italic text-foreground">{children}</em>
+    ),
+    code: ({ inline, className, children, ...props }: any) => {
+      const match = /language-(\w+)/.exec(className || '');
+      const codeContent = String(children).replace(/\n$/, '');
 
-    // Process bold text
-    const boldRegex = /\*\*(.*?)\*\*/g;
-    let match;
-    const boldMatches: { start: number; end: number; content: string }[] = [];
-
-    while ((match = boldRegex.exec(text)) !== null) {
-      boldMatches.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        content: match[1]
-      });
-    }
-
-    // Process italic text
-    const italicRegex = /\*(.*?)\*/g;
-    const italicMatches: { start: number; end: number; content: string }[] = [];
-
-    while ((match = italicRegex.exec(text)) !== null) {
-      italicMatches.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        content: match[1]
-      });
-    }
-
-    // Process inline code
-    const codeRegex = /`(.*?)`/g;
-    const codeMatches: { start: number; end: number; content: string }[] = [];
-
-    while ((match = codeRegex.exec(text)) !== null) {
-      codeMatches.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        content: match[1]
-      });
-    }
-
-    // Combine all matches and sort by position
-    const allMatches = [
-      ...boldMatches.map(m => ({ ...m, type: 'bold' as const })),
-      ...italicMatches.map(m => ({ ...m, type: 'italic' as const })),
-      ...codeMatches.map(m => ({ ...m, type: 'code' as const }))
-    ].sort((a, b) => a.start - b.start);
-
-    // Build the result
-    for (let i = 0; i < allMatches.length; i++) {
-      const match = allMatches[i];
-      
-      // Add text before the match
-      if (currentIndex < match.start) {
-        parts.push(text.slice(currentIndex, match.start));
-      }
-
-      // Add the formatted content
-      if (match.type === 'bold') {
-        parts.push(<strong key={key++} className="font-semibold text-foreground">{match.content}</strong>);
-      } else if (match.type === 'italic') {
-        parts.push(<em key={key++} className="italic text-foreground">{match.content}</em>);
-      } else if (match.type === 'code') {
-        parts.push(
-          <code key={key++} className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground">
-            {match.content}
-          </code>
+      if (!inline && match) {
+        // Block code with syntax highlighting
+        return (
+          <div className="relative group my-4">
+            <div className="flex items-center justify-between bg-muted/50 px-4 py-2 border-t border-l border-r rounded-t-lg">
+              <span className="text-xs font-medium text-muted-foreground uppercase">
+                {match[1]}
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => copyToClipboard(codeContent)}
+              >
+                <Copy className="h-3 w-3 mr-1" />
+                {copiedCode === codeContent ? 'Copied!' : 'Copy'}
+              </Button>
+            </div>
+            <pre className="bg-muted/30 p-4 rounded-b-lg border-b border-l border-r overflow-x-auto">
+              <code className={className} {...props}>
+                {children}
+              </code>
+            </pre>
+          </div>
         );
       }
 
-      currentIndex = match.end;
-    }
-
-    // Add remaining text
-    if (currentIndex < text.length) {
-      parts.push(text.slice(currentIndex));
-    }
-
-    return parts.length > 0 ? parts as JSX.Element[] : [<span key={0}>{text}</span>];
+      // Inline code
+      return (
+        <code
+          className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground"
+          {...props}
+        >
+          {children}
+        </code>
+      );
+    },
+    pre: ({ children }) => (
+      <div className="relative group my-4">
+        <pre className="bg-muted/30 p-4 rounded-lg border overflow-x-auto">
+          {children}
+        </pre>
+      </div>
+    ),
+    ul: ({ children }) => (
+      <ul className="list-disc list-inside mb-4 space-y-2 text-foreground pl-4">
+        {children}
+      </ul>
+    ),
+    ol: ({ children }) => (
+      <ol className="list-decimal list-inside mb-4 space-y-2 text-foreground pl-4">
+        {children}
+      </ol>
+    ),
+    li: ({ children }) => (
+      <li className="text-foreground leading-6 mb-1">{children}</li>
+    ),
+    blockquote: ({ children }) => (
+      <blockquote className="border-l-4 border-blue-500 pl-4 py-2 my-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-r-lg">
+        <div className="flex items-start gap-2">
+          <Quote className="h-4 w-4 text-blue-500 mt-1 flex-shrink-0" />
+          <div className="text-foreground/90">{children}</div>
+        </div>
+      </blockquote>
+    ),
+    table: ({ children }) => (
+      <div className="my-4 overflow-x-auto">
+        <table className="w-full border-collapse border border-border rounded-lg">
+          {children}
+        </table>
+      </div>
+    ),
+    thead: ({ children }) => <thead className="bg-muted/50">{children}</thead>,
+    tbody: ({ children }) => <tbody>{children}</tbody>,
+    tr: ({ children }) => (
+      <tr className="border-b border-border">{children}</tr>
+    ),
+    th: ({ children }) => (
+      <th className="border border-border px-4 py-2 text-left font-semibold text-foreground">
+        {children}
+      </th>
+    ),
+    td: ({ children }) => (
+      <td className="border border-border px-4 py-2 text-foreground">
+        {children}
+      </td>
+    ),
+    hr: () => <hr className="my-8 border-t border-border" />,
+    a: ({ href, children }) => (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+      >
+        {children}
+      </a>
+    ),
+    img: ({ src, alt }) => (
+      <img
+        src={src}
+        alt={alt}
+        className="max-w-full h-auto rounded-lg border border-border my-4"
+      />
+    ),
   };
 
   return (
-    <div className={cn("markdown-content", className)}>
-      {parseMarkdown(content)}
+    <div
+      className={cn(
+        'prose prose-slate dark:prose-invert max-w-none markdown-content',
+        className
+      )}
+    >
+      <ReactMarkdown
+        components={components}
+        remarkPlugins={[remarkGfm, remarkBreaks]}
+        rehypePlugins={[rehypeSanitize, rehypeHighlight]}
+      >
+        {normalizeMarkdown(content)}
+      </ReactMarkdown>
     </div>
   );
 }
