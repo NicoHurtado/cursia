@@ -23,6 +23,8 @@ interface CourseIntroProps {
   isStarting: boolean;
   modules: ModuleData[];
   hasProgress?: boolean;
+  createdBy?: string;
+  userPrompt?: string;
 }
 
 export function CourseIntro({
@@ -38,6 +40,8 @@ export function CourseIntro({
   isStarting,
   modules,
   hasProgress = false,
+  createdBy,
+  userPrompt,
 }: CourseIntroProps) {
   const getLevelBadgeColor = (level: string) => {
     switch (level.toLowerCase()) {
@@ -63,11 +67,11 @@ export function CourseIntro({
             {/* Left Side - Title, Description and Modules */}
             <div className="space-y-6">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">
+                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4 leading-tight">
                   {title}
                 </h1>
 
-                <p className="text-base text-muted-foreground leading-relaxed">
+                <p className="text-[15px] md:text-base text-muted-foreground leading-relaxed max-w-3xl">
                   {description}
                 </p>
               </div>
@@ -101,6 +105,27 @@ export function CourseIntro({
                 )}
               </div>
 
+              {/* Author & Prompt */}
+              {(createdBy || userPrompt) && (
+                <Card className="bg-muted/30 border-dashed">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col gap-2">
+                      {createdBy && (
+                        <div className="text-sm text-muted-foreground">
+                          Generado por: <span className="font-medium text-foreground">{createdBy}</span>
+                        </div>
+                      )}
+                      {userPrompt && (
+                        <div className="text-sm"> 
+                          <span className="text-muted-foreground">Prompt:</span>
+                          <span className="ml-2 text-foreground">{userPrompt}</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Modules Section - Moved to left column */}
               {modules && modules.length > 0 && (
                 <section className="space-y-4">
@@ -109,7 +134,7 @@ export function CourseIntro({
                     {modules.map((module, index) => (
                       <div
                         key={index}
-                        className="bg-muted/50 rounded-lg p-4 border"
+                        className="bg-muted/40 rounded-lg p-4 border hover:bg-muted/60 transition-colors"
                       >
                         <h3 className="text-sm font-semibold">
                           Módulo {index + 1}
@@ -140,7 +165,7 @@ export function CourseIntro({
                       <Badge
                         key={index}
                         variant="secondary"
-                        className="text-sm px-3 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 text-blue-700 border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:scale-105"
+                        className="text-xs md:text-sm px-2.5 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 text-blue-700 border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:scale-[1.02]"
                       >
                         {topic}
                       </Badge>
@@ -187,11 +212,11 @@ export function CourseIntro({
 
                 {/* Cursi Image */}
                 <div className="flex justify-center">
-                  <div className="w-80 h-80 bg-white rounded-lg shadow-sm flex items-center justify-center">
+                  <div className="w-64 h-64 md:w-80 md:h-80 bg-white rounded-lg shadow-sm flex items-center justify-center">
                     <img
                       src="/Cursi.png"
                       alt="Cursi - Mascota de Cursia"
-                      className="w-76 h-76 object-contain opacity-90"
+                      className="w-56 h-56 md:w-72 md:h-72 object-contain opacity-90"
                     />
                   </div>
                 </div>

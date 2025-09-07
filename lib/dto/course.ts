@@ -92,6 +92,8 @@ export const CourseFullResponseSchema = z.object({
   progress_percentage: z.number(),
   title: z.string().nullable(),
   description: z.string().nullable(),
+  userPrompt: z.string().nullable().optional(),
+  createdBy: z.string().nullable().optional(),
   prerequisites: z.array(z.string()),
   totalModules: z.number(),
   moduleList: z.array(z.string()),

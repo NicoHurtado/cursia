@@ -429,6 +429,8 @@ export function CourseShell({ course }: CourseShellProps) {
           description: module.description,
         }))}
         hasProgress={userProgress && userProgress.completedChunks.length > 0}
+        createdBy={course.createdBy || undefined}
+        userPrompt={course.userPrompt || undefined}
       />
     );
   }

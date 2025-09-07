@@ -59,6 +59,8 @@ export async function GET(
       progress_percentage: 0, // Will be calculated by status endpoint
       title: course.title,
       description: course.description,
+      userPrompt: course.userPrompt,
+      createdBy: session.user.name || session.user.email || session.user.id,
       prerequisites: JSON.parse(course.prerequisites),
       totalModules: course.totalModules,
       moduleList: JSON.parse(course.moduleList),
