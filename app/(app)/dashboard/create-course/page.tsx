@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Plus, X, BookOpen, Sparkles } from 'lucide-react';
+import { CourseLoadingScreen } from '@/components/course/CourseLoadingScreen';
 
 const courseSchema = z.object({
   prompt: z
@@ -27,8 +28,9 @@ const courseSchema = z.object({
   level: z.enum(['principiante', 'intermedio', 'avanzado']),
   interests: z
     .array(z.string())
-    .min(1, 'Selecciona al menos un interés')
-    .max(6, 'Máximo 6 intereses'),
+    .max(6, 'Máximo 6 intereses')
+    .optional()
+    .default([]),
 });
 
 type CourseForm = z.infer<typeof courseSchema>;
@@ -102,6 +104,7 @@ export default function CreateCoursePage() {
   };
 
   const onSubmit = async (data: CourseForm) => {
+    // Show loading screen immediately
     setIsCreatingCourse(true);
 
     try {
@@ -139,16 +142,11 @@ export default function CreateCoursePage() {
             variant: 'destructive',
           });
         }
+        setIsCreatingCourse(false);
         return;
       }
 
-      toast({
-        title: '¡Éxito!',
-        description:
-          result.message || 'Curso creado exitosamente! Redirigiendo...',
-      });
-
-      // Redirect to course page
+      // Redirect to course page (the loading screen will show there)
       router.push(`/courses/${result.id}`);
     } catch (error) {
       toast({
@@ -156,10 +154,14 @@ export default function CreateCoursePage() {
         description: 'Ocurrió un error. Por favor, inténtalo de nuevo.',
         variant: 'destructive',
       });
-    } finally {
       setIsCreatingCourse(false);
     }
   };
+
+  // Show loading screen when creating course
+  if (isCreatingCourse) {
+    return <CourseLoadingScreen status="GENERATING_METADATA" />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

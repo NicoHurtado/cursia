@@ -25,9 +25,11 @@ interface AnthropicResponse {
 export async function askClaude({
   system,
   user,
+  retries = 3,
 }: {
   system: string;
   user: string;
+  retries?: number;
 }): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
@@ -37,7 +39,7 @@ export async function askClaude({
 
   const requestBody: AnthropicRequest = {
     model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 4000,
+    max_tokens: 8000,
     messages: [
       {
         role: 'user',
@@ -47,35 +49,64 @@ export async function askClaude({
     system,
   };
 
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`🔄 Attempt ${attempt}/${retries} - Calling Anthropic API...`);
+      
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Anthropic API error: ${response.status} ${errorText}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ API Error (attempt ${attempt}): ${response.status} ${errorText}`);
+        
+        // Handle specific error codes
+        if (response.status === 529 || response.status === 429) {
+          // Overloaded or rate limited - wait longer
+          if (attempt < retries) {
+            const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff
+            console.log(`⏳ API overloaded, waiting ${waitTime}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            continue;
+          }
+        }
+        
+        throw new Error(`Anthropic API error: ${response.status} ${errorText}`);
+      }
+
+      const data: AnthropicResponse = await response.json();
+
+      if (!data.content || data.content.length === 0) {
+        throw new Error('No content received from Anthropic API');
+      }
+
+      console.log(`✅ API call successful on attempt ${attempt}`);
+      return data.content[0].text;
+    } catch (error) {
+      console.error(`❌ Attempt ${attempt} failed:`, error);
+      
+      if (attempt === retries) {
+        if (error instanceof Error) {
+          throw new Error(`Anthropic API call failed after ${retries} attempts: ${error.message}`);
+        }
+        throw new Error(`Unknown error occurred while calling Anthropic API after ${retries} attempts`);
+      }
+      
+      // Wait before retry
+      const waitTime = Math.pow(2, attempt) * 1000;
+      console.log(`⏳ Waiting ${waitTime}ms before retry...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
     }
-
-    const data: AnthropicResponse = await response.json();
-
-    if (!data.content || data.content.length === 0) {
-      throw new Error('No content received from Anthropic API');
-    }
-
-    return data.content[0].text;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Anthropic API call failed: ${error.message}`);
-    }
-    throw new Error('Unknown error occurred while calling Anthropic API');
   }
+
+  throw new Error('This should never be reached');
 }
 
 export async function generateCourseMetadata(
@@ -91,12 +122,12 @@ Genera metadata de curso en JSON. Responde SOLO con JSON válido:
 
 {
   "title": "string (título atractivo y específico)",
-  "description": "string (descripción detallada de 150-200 palabras que explique qué aprenderá el estudiante)",
+  "description": "string (descripción detallada y enriquecida de 300-400 palabras que explique qué aprenderá el estudiante, con ejemplos y aplicaciones reales)",
   "prerequisites": ["string", "string"],
   "totalModules": number (4-6),
   "moduleList": ["string", "string", ...],
   "topics": ["string", "string", ...],
-  "introduction": "string (introducción motivacional al curso)",
+  "introduction": "string (introducción motivacional al curso de 150-250 palabras, con objetivos claros y expectativas de aprendizaje)",
   "finalProjectData": {
     "title": "string",
     "description": "string",
@@ -172,7 +203,7 @@ export async function generateModuleContent(
   totalModules: number,
   courseDescription: string
 ): Promise<string> {
-  const systemPrompt = `Eres un maestro experto que crea contenido educativo verdaderamente humano y efectivo. Tu objetivo es enseñar de manera que los estudiantes realmente aprendan y comprendan.
+  const systemPrompt = `Eres un maestro experto y pedagogo con décadas de experiencia. Tu misión es crear contenido educativo de la más alta calidad que realmente transforme a los estudiantes. Cada palabra debe tener propósito educativo.
 
 ${MARKDOWN_RENDERING_POLICIES}
 
@@ -180,14 +211,14 @@ Genera contenido de módulo en JSON. Responde SOLO con JSON válido:
 
 {
   "title": "string",
-  "description": "string (descripción detallada del módulo, 2-3 oraciones)",
+  "description": "string (descripción detallada del módulo, 4-6 oraciones con objetivos concretos y resultados de aprendizaje)",
   "chunks": [
-    {"title": "string", "content": "string (contenido educativo completo en Markdown)"},
-    {"title": "string", "content": "string (contenido educativo completo en Markdown)"},
-    {"title": "string", "content": "string (contenido educativo completo en Markdown)"},
-    {"title": "string", "content": "string (contenido educativo completo en Markdown)"},
-    {"title": "string", "content": "string (contenido educativo completo en Markdown)"},
-    {"title": "string", "content": "string (contenido educativo completo en Markdown)"}
+    {"title": "string", "content": "string (MÍNIMO 1200 caracteres, contenido educativo profundo con explicaciones conceptuales, ejemplos reales, analogías, ejercicios mentales y aplicaciones prácticas)"},
+    {"title": "string", "content": "string (MÍNIMO 1200 caracteres, contenido educativo profundo con explicaciones conceptuales, ejemplos reales, analogías, ejercicios mentales y aplicaciones prácticas)"},
+    {"title": "string", "content": "string (MÍNIMO 1200 caracteres, contenido educativo profundo con explicaciones conceptuales, ejemplos reales, analogías, ejercicios mentales y aplicaciones prácticas)"},
+    {"title": "string", "content": "string (MÍNIMO 1200 caracteres, contenido educativo profundo con explicaciones conceptuales, ejemplos reales, analogías, ejercicios mentales y aplicaciones prácticas)"},
+    {"title": "string", "content": "string (MÍNIMO 1200 caracteres, contenido educativo profundo con explicaciones conceptuales, ejemplos reales, analogías, ejercicios mentales y aplicaciones prácticas)"},
+    {"title": "string", "content": "string (MÍNIMO 1200 caracteres, contenido educativo profundo con explicaciones conceptuales, ejemplos reales, analogías, ejercicios mentales y aplicaciones prácticas)"}
   ],
   "quiz": {
     "title": "string",
@@ -196,24 +227,23 @@ Genera contenido de módulo en JSON. Responde SOLO con JSON válido:
         "question": "string",
         "options": ["string", "string", "string", "string"],
         "correctAnswer": number (0-3),
-        "explanation": "string (explicación detallada de por qué es correcta)"
+        "explanation": "string (explicación detallada y educativa de por qué es correcta, incluyendo conceptos clave)"
       }
     ]
   },
-  "content1": "string",
-  "content2": "string", 
-  "content3": "string",
-  "content4": "string",
   "total_chunks": 6
 }
 
-PRINCIPIOS DE ENSEÑANZA HUMANA:
+PRINCIPIOS DE ENSEÑANZA HUMANA CRÍTICOS:
 
 1. **HILO NARRATIVO**: Cada chunk debe conectar con el anterior y preparar el siguiente
 2. **CONTEXTO PRIMERO**: Explica el "por qué" antes del "cómo"
 3. **PROGRESIÓN NATURAL**: De lo simple a lo complejo, de lo concreto a lo abstracto
 4. **APRENDIZAJE ACTIVO**: Incluye reflexiones, preguntas y ejercicios mentales
 5. **RELEVANCIA**: Conecta cada concepto con situaciones reales
+6. **PROFUNDIDAD**: Cada chunk debe ser sustancial y educativo, no superficial
+7. **EJEMPLOS CONCRETOS**: Usa analogías de la vida real y casos de uso específicos
+8. **CONSTRUCCIÓN DE CONOCIMIENTO**: Cada concepto debe construir sobre el anterior
 
 ESTRUCTURA EDUCATIVA POR CHUNK:
 

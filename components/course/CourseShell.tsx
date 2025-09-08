@@ -9,6 +9,7 @@ import { FinishCourse } from './FinishCourse';
 import { ModuleSidebar } from './ModuleSidebar';
 import { ChunkNavigator } from './ChunkNavigator';
 import { ChunkReader } from './ChunkReader';
+import { CourseLoadingScreen } from './CourseLoadingScreen';
 import { useToast } from '@/components/ui/use-toast';
 import { CourseFullResponse } from '@/lib/dto/course';
 
@@ -46,6 +47,8 @@ export function CourseShell({ course }: CourseShellProps) {
   const [currentModuleOrder, setCurrentModuleOrder] = useState(1);
   const [currentChunkOrder, setCurrentChunkOrder] = useState(1);
   const [isLoadingProgress, setIsLoadingProgress] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [courseStatus, setCourseStatus] = useState<string>('loading');
 
   useEffect(() => {
     const loadUserProgress = async () => {
@@ -58,6 +61,13 @@ export function CourseShell({ course }: CourseShellProps) {
           const progressData = await response.json();
           console.log('Progress data loaded:', progressData);
           setUserProgress(progressData);
+          
+          // Check if course is still being generated
+          if (course.status === 'GENERATING_METADATA' || course.status === 'METADATA_READY') {
+            console.log('Course is still being generated, status:', course.status);
+            setIsGenerating(true);
+            setCourseStatus(course.status);
+          }
 
           if (progressData.currentModuleId) {
             const currentModule = course.modules.find(
@@ -124,17 +134,33 @@ export function CourseShell({ course }: CourseShellProps) {
     loadUserProgress();
   }, [course.id, course.modules]);
 
+  // Check if course is ready periodically when generating
   useEffect(() => {
-    if (
-      module1HasContent &&
-      currentView === 'intro' &&
-      !isLoadingProgress &&
-      (!userProgress || userProgress.completedChunks.length === 0)
-    ) {
-      setCurrentView('module');
-      setCourseStarted(true);
-    }
-  }, [module1HasContent, currentView, isLoadingProgress, userProgress]);
+    if (!isGenerating) return;
+
+    const checkCourseStatus = async () => {
+      try {
+        const response = await fetch(`/api/courses/${course.id}`);
+        if (response.ok) {
+          const courseData = await response.json();
+          const module1 = courseData.modules.find((m: any) => m.moduleOrder === 1);
+          
+          if (module1 && module1.chunks.length > 0) {
+            setIsGenerating(false);
+            setCourseStatus('READY');
+            // Reload progress to get updated data
+            window.location.reload();
+          }
+        }
+      } catch (error) {
+        console.error('Error checking course status:', error);
+      }
+    };
+
+    const interval = setInterval(checkCourseStatus, 3000); // Check every 3 seconds
+    return () => clearInterval(interval);
+  }, [isGenerating, course.id]);
+
 
   const currentModule = course.modules.find(
     m => m.moduleOrder === currentModuleOrder
@@ -314,7 +340,16 @@ export function CourseShell({ course }: CourseShellProps) {
           toast({
             title: '¡Curso iniciado!',
             description:
-              'Comenzando con el Módulo 1. Los módulos restantes se están generando en segundo plano.',
+              'Comenzando con el Módulo 1. Los módulos restantes se están generando automáticamente en segundo plano.',
+          });
+        } else if (response.status === 202) {
+          // Course is still being generated
+          const data = await response.json();
+          setIsGenerating(true);
+          toast({
+            title: 'Generando contenido...',
+            description: 'El contenido del curso se está generando. Por favor, espera un momento e inténtalo de nuevo.',
+            variant: 'default',
           });
         } else {
           throw new Error('Failed to start course');
@@ -400,15 +435,8 @@ export function CourseShell({ course }: CourseShellProps) {
     });
   };
 
-  if (isLoadingProgress || !userProgress) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando progreso...</p>
-        </div>
-      </div>
-    );
+  if (isLoadingProgress || !userProgress || isGenerating) {
+    return <CourseLoadingScreen status={courseStatus} />;
   }
 
   if (currentView === 'intro') {

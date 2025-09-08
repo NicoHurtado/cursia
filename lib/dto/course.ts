@@ -5,7 +5,7 @@ export const CourseMetadataSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z
     .string()
-    .min(200, 'Description must be at least 200 characters'),
+    .min(600, 'Description must be at least 600 characters'),
   prerequisites: z.array(z.string()).default([]),
   totalModules: z.number().int().min(1).max(10).default(4),
   moduleList: z.array(z.string()).min(1, 'At least one module is required'),
@@ -26,14 +26,16 @@ export const CourseMetadataSchema = z.object({
 // Module Content Schema
 export const ModuleContentSchema = z.object({
   title: z.string().min(1, 'Module title is required'),
-  description: z.string().min(1, 'Module description is required'),
+  description: z
+    .string()
+    .min(80, 'Module description must be at least 80 characters'),
   chunks: z
     .array(
       z.object({
         title: z.string().min(1, 'Chunk title is required'),
         content: z
           .string()
-          .min(100, 'Chunk content must be at least 100 characters'),
+          .min(1200, 'Chunk content must be at least 1200 characters'),
       })
     )
     .length(6, 'Exactly 6 chunks are required'),
@@ -54,13 +56,12 @@ export const ModuleContentSchema = z.object({
           explanation: z.string().optional(),
         })
       )
-      .min(3, 'At least 3 questions are required')
-      .max(10, 'Maximum 10 questions allowed'),
+      .length(7, 'Exactly 7 questions are required'),
   }),
-  content1: z.string().min(1, 'Content1 is required'),
-  content2: z.string().min(1, 'Content2 is required'),
-  content3: z.string().min(1, 'Content3 is required'),
-  content4: z.string().min(1, 'Content4 is required'),
+  content1: z.string().optional(),
+  content2: z.string().optional(),
+  content3: z.string().optional(),
+  content4: z.string().optional(),
   total_chunks: z.number().int().default(6),
 });
 
@@ -68,7 +69,7 @@ export const ModuleContentSchema = z.object({
 export const CourseCreateRequestSchema = z.object({
   prompt: z.string().min(10, 'Prompt must be at least 10 characters'),
   level: z.enum(['principiante', 'intermedio', 'avanzado']),
-  interests: z.array(z.string()).max(10, 'Maximum 10 interests allowed'),
+  interests: z.array(z.string()).max(10, 'Maximum 10 interests allowed').optional().default([]),
 });
 
 export const CourseCreateResponseSchema = z.object({

@@ -53,7 +53,21 @@ export default function CoursePage({ params }: CoursePageProps) {
   if (status === 'loading' || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="text-center space-y-4">
+          <div className="relative">
+            <div className="w-16 h-16 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+              <Loader2 className="h-8 w-8 text-white animate-spin" />
+            </div>
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              Cargando curso...
+            </h2>
+            <p className="text-muted-foreground">
+              Preparando tu experiencia de aprendizaje
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

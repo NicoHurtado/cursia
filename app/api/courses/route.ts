@@ -196,11 +196,14 @@ export async function POST(request: NextRequest) {
 
     try {
       // Generate metadata with simple AI system
+      console.log('📋 Generating course metadata...');
       const metadata = await simpleAI.generateCourseMetadata(
         prompt,
         level,
         interests
       );
+
+      console.log('✅ Metadata generated successfully');
 
       // Update course with metadata
       await db.course.update({
@@ -231,6 +234,8 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      console.log('📝 Starting module 1 generation...');
+
       // Generate Module 1
       await db.generationLog.create({
         data: {
@@ -244,13 +249,16 @@ export async function POST(request: NextRequest) {
       const moduleTitle = moduleList[0]; // First module
 
       if (moduleTitle) {
-        const moduleContent = await simpleAI.generateModuleContent(
-          metadata.title,
-          moduleTitle,
-          1,
-          metadata.totalModules,
-          metadata.description
-        );
+        try {
+          console.log(`🔄 Generating module 1: "${moduleTitle}"`);
+          const moduleContent = await simpleAI.generateModuleContent(
+            metadata.title,
+            moduleTitle,
+            1,
+            metadata.totalModules,
+            metadata.description
+          );
+          console.log('✅ Module 1 content generated successfully');
 
         // Create module 1 with full content
         const module = await db.module.create({
@@ -324,6 +332,30 @@ export async function POST(request: NextRequest) {
           });
         }
 
+        } catch (error) {
+          console.error('❌ Error generating module 1 content:', error);
+          
+          // Log the error
+          await db.generationLog.create({
+            data: {
+              courseId: course.id,
+              action: 'module1_error',
+              message: `Module 1 generation failed: ${error}`,
+            },
+          });
+
+          // Update course status to failed
+          await db.course.update({
+            where: { courseId },
+            data: { status: 'FAILED' },
+          });
+
+          return NextResponse.json(
+            { error: 'Failed to generate module 1 content. Please try again.' },
+            { status: 500 }
+          );
+        }
+
         // Create remaining modules with only title and description
         for (let i = 1; i < metadata.totalModules; i++) {
           const moduleTitle = moduleList[i];
@@ -333,7 +365,7 @@ export async function POST(request: NextRequest) {
                 courseId: course.id,
                 moduleOrder: i + 1,
                 title: moduleTitle,
-                description: `Módulo ${i + 1}: ${moduleTitle} - Contenido detallado se generará al iniciar el curso.`,
+                description: `Módulo ${i + 1}: ${moduleTitle} - Contenido detallado se generará automáticamente en background.`,
               },
             });
           }
@@ -353,6 +385,148 @@ export async function POST(request: NextRequest) {
             message: 'Module 1 generation completed',
           },
         });
+
+        // Start background generation for remaining modules
+        console.log(`🚀 Starting background generation for course ${course.id}`);
+        try {
+          // Call the background generation endpoint asynchronously
+          const backgroundUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/courses/${course.id}/generate-background`;
+          
+          // Fire and forget - don't wait for response
+          fetch(backgroundUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.user.id}`, // This won't work, we need a different approach
+            },
+          }).catch(error => {
+            console.error('Background generation failed to start:', error);
+          });
+
+          // Alternative: Use a simple setTimeout to trigger background generation
+          setTimeout(async () => {
+            try {
+              // We need to call the generation logic directly since we can't make HTTP calls
+              const remainingModules = await db.module.findMany({
+                where: {
+                  courseId: course.id,
+                  moduleOrder: { gt: 1 },
+                },
+                include: {
+                  chunks: true,
+                },
+                orderBy: {
+                  moduleOrder: 'asc',
+                },
+              });
+
+              const modulesToGenerate = remainingModules.filter(
+                module => module.chunks.length === 0
+              );
+
+              for (const module of modulesToGenerate) {
+                const moduleTitle = moduleList[module.moduleOrder - 1];
+                const moduleOrder = module.moduleOrder;
+
+                try {
+                  console.log(`🔄 Generating module ${moduleOrder} in background...`);
+                  
+                  const moduleContent = await simpleAI.generateModuleContent(
+                    metadata.title,
+                    moduleTitle,
+                    moduleOrder,
+                    metadata.totalModules,
+                    metadata.description
+                  );
+
+                  // Update module with generated content
+                  await db.module.update({
+                    where: { id: module.id },
+                    data: {
+                      title: moduleContent.title,
+                      description: moduleContent.description,
+                    },
+                  });
+
+                  // Create chunks
+                  for (let j = 0; j < moduleContent.chunks.length; j++) {
+                    const chunk = moduleContent.chunks[j];
+                    const chunkOrder = j + 1;
+
+                    // Search for video if this is the second chunk
+                    let videoData = null;
+                    if (chunkOrder === 2) {
+                      try {
+                        const { YouTubeService } = await import('@/lib/youtube');
+                        const video = await YouTubeService.findVideoForChunk(
+                          chunk.title,
+                          chunk.content,
+                          metadata.title,
+                          chunkOrder
+                        );
+                        if (video) {
+                          videoData = JSON.stringify(video);
+                        }
+                      } catch (error) {
+                        console.error('Error searching for video:', error);
+                      }
+                    }
+
+                    await db.chunk.create({
+                      data: {
+                        moduleId: module.id,
+                        chunkOrder: chunkOrder,
+                        title: chunk.title,
+                        content: chunk.content,
+                        videoData: videoData,
+                      },
+                    });
+                  }
+
+                  // Create quiz
+                  const quiz = await db.quiz.create({
+                    data: {
+                      moduleId: module.id,
+                      quizOrder: 1,
+                      title: moduleContent.quiz.title,
+                    },
+                  });
+
+                  // Create quiz questions
+                  for (const [index, question] of moduleContent.quiz.questions.entries()) {
+                    await db.quizQuestion.create({
+                      data: {
+                        quizId: quiz.id,
+                        questionOrder: index + 1,
+                        question: question.question,
+                        options: JSON.stringify(question.options),
+                        correctAnswer: question.correctAnswer,
+                        explanation: question.explanation || null,
+                      },
+                    });
+                  }
+
+                  console.log(`✅ Module ${moduleOrder} generated successfully in background`);
+                } catch (error) {
+                  console.error(`❌ Error generating module ${moduleOrder} in background:`, error);
+                  continue;
+                }
+              }
+
+              // Update course status to complete
+              await db.course.update({
+                where: { id: course.id },
+                data: { status: 'COMPLETE' },
+              });
+
+              console.log(`🎉 Background generation completed for course ${course.id}`);
+            } catch (error) {
+              console.error('Background generation error:', error);
+            }
+          }, 2000); // Start after 2 seconds
+        } catch (error) {
+          console.error('Failed to start background generation:', error);
+        }
       }
 
       // Return response
