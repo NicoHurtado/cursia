@@ -5,8 +5,11 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
 const loginSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
+  username: z.string().min(3, 'Username must be at least 3 characters').optional(),
+  email: z.string().email('Invalid email address').optional(),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+}).refine(data => data.username || data.email, {
+  message: "Either username or email is required",
 });
 
 const registerSchema = z.object({
@@ -16,6 +19,9 @@ const registerSchema = z.object({
     .max(20, 'Username must be at most 20 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  name: z.string().min(1, 'Name is required').optional(),
+  level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']).optional(),
+  interests: z.array(z.string()).optional(),
 });
 
 export const authOptions: NextAuthOptions = {
@@ -28,7 +34,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) {
+        if (!credentials?.password || (!credentials?.username && !credentials?.email)) {
           return null;
         }
 
@@ -39,10 +45,16 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          const { username, password } = validatedFields.data;
+          const { username, email, password } = validatedFields.data;
 
-          const user = await db.user.findUnique({
-            where: { username },
+          // Find user by username or email
+          const user = await db.user.findFirst({
+            where: {
+              OR: [
+                ...(username ? [{ username }] : []),
+                ...(email ? [{ email }] : []),
+              ],
+            },
           });
 
           if (!user || !user.passwordHash) {
@@ -106,6 +118,9 @@ export async function registerUser(data: {
   username: string;
   email: string;
   password: string;
+  name?: string;
+  level?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  interests?: string[];
 }) {
   try {
     const validatedFields = registerSchema.safeParse(data);
@@ -117,7 +132,7 @@ export async function registerUser(data: {
       };
     }
 
-    const { username, email, password } = validatedFields.data;
+    const { username, email, password, name, level, interests } = validatedFields.data;
 
     // Check if user already exists by email or username
     const existingUserByEmail = await db.user.findUnique({
@@ -147,9 +162,11 @@ export async function registerUser(data: {
     const user = await db.user.create({
       data: {
         username,
-        name: username, // Use username as name
+        name: name || username, // Use provided name or fall back to username
         email,
         passwordHash,
+        level: level || 'BEGINNER',
+        interests: JSON.stringify(interests || []),
       },
     });
 

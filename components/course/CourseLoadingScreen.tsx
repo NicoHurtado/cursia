@@ -109,7 +109,7 @@ export function CourseLoadingScreen({ status = 'loading' }: CourseLoadingScreenP
         {/* Header */}
         <div className="text-center space-y-4 animate-fade-in-scale">
           <div className="relative animate-float">
-            <div className="w-16 h-16 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 mx-auto bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
               <BookOpen className="h-8 w-8 text-white" />
             </div>
             <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
@@ -135,7 +135,7 @@ export function CourseLoadingScreen({ status = 'loading' }: CourseLoadingScreenP
           </div>
           <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-500 ease-out"
+              className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${statusInfo.progress}%` }}
             />
           </div>
@@ -165,7 +165,7 @@ export function CourseLoadingScreen({ status = 'loading' }: CourseLoadingScreenP
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+              className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"
               style={{
                 animationDelay: `${i * 0.2}s`,
                 animationDuration: '1s',
@@ -195,7 +195,7 @@ export function CourseLoadingScreen({ status = 'loading' }: CourseLoadingScreenP
               onClick={() => setCurrentTip(index)}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 index === currentTip
-                  ? 'bg-blue-500 w-6'
+                  ? 'bg-blue-600 w-6'
                   : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
               }`}
             />

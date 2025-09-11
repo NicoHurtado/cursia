@@ -55,7 +55,7 @@ export default function CoursePage({ params }: CoursePageProps) {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
           <div className="relative">
-            <div className="w-16 h-16 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+            <div className="w-16 h-16 mx-auto bg-blue-600 rounded-full flex items-center justify-center shadow-lg animate-pulse">
               <Loader2 className="h-8 w-8 text-white animate-spin" />
             </div>
           </div>

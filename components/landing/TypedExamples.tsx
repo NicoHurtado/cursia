@@ -10,13 +10,22 @@ const examples = [
   'Finanzas personales para universitarios',
 ];
 
-export function TypedExamples() {
+interface TypedExamplesProps {
+  isUserTyping?: boolean;
+}
+
+export function TypedExamples({ isUserTyping = false }: TypedExamplesProps) {
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
   const [currentText, setCurrentText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
+    // Pause animation when user is typing
+    if (isUserTyping) {
+      return;
+    }
+
     const currentExample = examples[currentExampleIndex];
 
     if (isPaused) {
@@ -48,7 +57,7 @@ export function TypedExamples() {
     );
 
     return () => clearTimeout(timer);
-  }, [currentText, isDeleting, isPaused, currentExampleIndex]);
+  }, [currentText, isDeleting, isPaused, currentExampleIndex, isUserTyping]);
 
   // Check for reduced motion preference
   const [shouldAnimate, setShouldAnimate] = useState(true);

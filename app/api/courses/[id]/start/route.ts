@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { simpleAI } from '@/lib/ai/simple';
 import { ModuleContentSchema } from '@/lib/dto/course';
+import { UserPlan } from '@/lib/plans';
 
 export async function POST(
   request: NextRequest,
@@ -18,11 +19,36 @@ export async function POST(
 
     const { id: courseId } = await params;
 
-    // Verify the course belongs to the user
+    // Get user info to check plan
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { plan: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Check if user can access community courses
+    const canAccessCommunity = user.plan === UserPlan.EXPERTO || user.plan === UserPlan.MAESTRO;
+
+    // Verify the course can be accessed by the user
+    // Allow access if:
+    // 1. User owns the course, OR
+    // 2. Course is public (community course) and user has EXPERTO or MAESTRO plan
     const course = await db.course.findFirst({
       where: {
         id: courseId,
-        userId: session.user.id,
+        OR: [
+          { userId: session.user.id }, // User's own courses
+          ...(canAccessCommunity ? [
+            {
+              isPublic: true, // Public community courses
+              deletedAt: null, // Not deleted
+              userId: { not: session.user.id }, // Not owned by current user
+            }
+          ] : []),
+        ],
       },
     });
 

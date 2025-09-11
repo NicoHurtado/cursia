@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { UserPlan } from '@/lib/plans';
 
 export async function GET(
   request: NextRequest,
@@ -23,6 +24,19 @@ export async function GET(
       'user:',
       session.user.id
     );
+
+    // Get user info to check plan
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { plan: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Check if user can access community courses
+    const canAccessCommunity = user.plan === UserPlan.EXPERTO || user.plan === UserPlan.MAESTRO;
 
     // Get user progress for this course
     const userProgress = await db.userProgress.findFirst({
@@ -48,10 +62,22 @@ export async function GET(
     }
 
     // Calculate module progress
+    // Allow access if:
+    // 1. User owns the course, OR
+    // 2. Course is public (community course) and user has EXPERTO or MAESTRO plan
     const course = await db.course.findFirst({
       where: {
         id: courseId,
-        userId: session.user.id,
+        OR: [
+          { userId: session.user.id }, // User's own courses
+          ...(canAccessCommunity ? [
+            {
+              isPublic: true, // Public community courses
+              deletedAt: null, // Not deleted
+              userId: { not: session.user.id }, // Not owned by current user
+            }
+          ] : []),
+        ],
       },
       include: {
         modules: {
