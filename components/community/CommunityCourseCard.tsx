@@ -165,7 +165,10 @@ export function CommunityCourseCard({
         </div>
 
         {/* Author */}
-        <div className="flex items-center justify-between mb-4">
+        <div
+          className="flex items-center justify-between mb-4 cursor-pointer hover:bg-muted/40 rounded-md p-1"
+          onClick={() => router.push(`/u/${course.user.username}`)}
+        >
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
               <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
