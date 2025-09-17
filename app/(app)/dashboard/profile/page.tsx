@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, Mail, Trash2 } from 'lucide-react';
@@ -15,7 +15,6 @@ interface User {
 
 export default function ProfilePage() {
   const { data: session } = useSession();
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -65,12 +64,14 @@ export default function ProfilePage() {
       {/* Trash Button */}
       <div className="max-w-md">
         <Button
+          asChild
           variant="outline"
-          onClick={() => router.push('/dashboard/trash')}
           className="w-full justify-start text-muted-foreground hover:text-foreground"
         >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Ver Papelera
+          <Link href="/dashboard/trash" aria-label="Ver papelera de cursos">
+            <Trash2 className="h-4 w-4 mr-2" />
+            Ver Papelera
+          </Link>
         </Button>
       </div>
     </div>

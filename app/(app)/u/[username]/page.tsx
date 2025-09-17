@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { Calendar, Layers3, Users, Star } from 'lucide-react';
 import { CommunityCourseCard } from '@/components/community/CommunityCourseCard';
 
@@ -159,11 +160,7 @@ export default function UserProfilePage({ params }: PageParams) {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-          <span className="text-xl font-semibold text-blue-600 dark:text-blue-400">
-            {user.name?.charAt(0).toUpperCase()}
-          </span>
-        </div>
+        <UserAvatar name={user.name} size={64} />
         <div>
           <h1 className="text-2xl font-bold">{user.name}</h1>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
