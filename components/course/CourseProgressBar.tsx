@@ -5,8 +5,8 @@ import { BookOpen } from 'lucide-react';
 
 interface CourseProgressBarProps {
   completionPercentage: number;
-  totalChunks: number;
-  completedChunks: number;
+  totalChunks?: number;
+  completedChunks?: number;
 }
 
 export function CourseProgressBar({
@@ -20,19 +20,15 @@ export function CourseProgressBar({
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <BookOpen className="h-4 w-4" />
-            <span>Progress</span>
+            <span>Progreso del curso</span>
           </div>
 
           <div className="flex-1">
             <Progress
               value={completionPercentage}
               className="h-2"
-              aria-label={`Course progress: ${completionPercentage}%`}
+              aria-label={`Progreso del curso: ${completionPercentage}%`}
             />
-          </div>
-
-          <div className="text-sm font-medium text-muted-foreground">
-            {completedChunks}/{totalChunks} chunks
           </div>
 
           <div className="text-sm font-semibold">{completionPercentage}%</div>

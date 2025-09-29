@@ -3,20 +3,18 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  BookOpen,
-  Clock,
   User,
   CheckCircle2,
   Play,
   Loader2,
   ChevronLeft,
   ChevronRight,
+  BookOpen,
 } from 'lucide-react';
 import { VideoPlayer } from './VideoPlayer';
-import { MarkdownRenderer } from './MarkdownRenderer';
+import { StructuredContentRenderer } from './StructuredContentRenderer';
 
 interface Chunk {
   id: string;
@@ -47,6 +45,11 @@ interface ChunkReaderProps {
   canGoPrevious?: boolean;
   canGoNext?: boolean;
   courseTopic?: string;
+  onTakeQuiz?: () => void;
+  showQuizButton?: boolean;
+  quizCompleted?: boolean;
+  showFinishCourseButton?: boolean;
+  onFinishCourse?: () => void;
   className?: string;
 }
 
@@ -60,38 +63,55 @@ export function ChunkReader({
   canGoPrevious = false,
   canGoNext = false,
   courseTopic = '',
+  onTakeQuiz,
+  showQuizButton = false,
+  quizCompleted = false,
+  showFinishCourseButton = false,
+  onFinishCourse,
   className,
 }: ChunkReaderProps) {
   // Check if this is the second lesson of a module
   const isSecondLesson = chunk.chunkOrder === 2;
 
   // Parse video data from chunk
-  const video: YouTubeVideo | null = chunk.videoData
-    ? JSON.parse(chunk.videoData)
-    : null;
-  return (
-    <div className={cn('space-y-6', className)}>
-      {/* Chunk Header */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3 mb-2">
-            <Badge variant="outline" className="flex items-center gap-1">
-              <BookOpen className="h-3 w-3" />
-              Lección {chunk.chunkOrder}
-            </Badge>
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              ~5 min lectura
-            </Badge>
-          </div>
-          <CardTitle className="text-2xl font-bold leading-tight">
-            {chunk.title}
-          </CardTitle>
-        </CardHeader>
-      </Card>
+  let video: YouTubeVideo | null = null;
+  if (chunk.videoData) {
+    try {
+      video = JSON.parse(chunk.videoData);
+    } catch (error) {
+      console.error('❌ Error parsing video data:', error);
+      console.error('Raw video data:', chunk.videoData);
+    }
+  }
 
-      {/* Video Section - Only for second lesson */}
-      {isSecondLesson && (
+  // Debug logging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🎥 ChunkReader Debug:', {
+      chunkId: chunk.id,
+      chunkOrder: chunk.chunkOrder,
+      chunkTitle: chunk.title,
+      hasVideoData: !!chunk.videoData,
+      videoDataLength: chunk.videoData?.length || 0,
+      rawVideoData: chunk.videoData,
+      parsedVideo: video
+        ? {
+            id: video.id,
+            title: video.title,
+            embedUrl: video.embedUrl,
+          }
+        : null,
+      willShowVideo: !!video,
+    });
+  }
+  return (
+    <div className={cn('space-y-8 max-w-7xl mx-auto', className)}>
+      {/* Main Lesson Title - Separated from content */}
+      <div className="text-center py-8 border-b border-border">
+        <h1 className="text-4xl font-bold text-foreground">{chunk.title}</h1>
+      </div>
+
+      {/* Video Section - Show if video exists */}
+      {video && (
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -121,7 +141,7 @@ export function ChunkReader({
       {/* Chunk Content */}
       <Card>
         <CardContent className="p-6">
-          <MarkdownRenderer content={chunk.content} />
+          <StructuredContentRenderer content={chunk.content} />
         </CardContent>
       </Card>
 
@@ -186,9 +206,48 @@ export function ChunkReader({
 
             {/* Completion Status */}
             {isCompleted && (
-              <div className="flex items-center gap-3 px-8 py-4 text-lg font-medium bg-green-600 text-white rounded-lg shadow-lg min-w-[160px] justify-center">
-                <CheckCircle2 className="h-5 w-5" />
-                ¡Completada!
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 px-8 py-4 text-lg font-medium bg-green-600 text-white rounded-lg shadow-lg min-w-[160px] justify-center">
+                  <CheckCircle2 className="h-5 w-5" />
+                  ¡Completada!
+                </div>
+
+                {/* Quiz Button - Only show if it's the last lesson of the module and quiz is available */}
+                {showQuizButton && onTakeQuiz && (
+                  <div className="flex flex-col items-center gap-2">
+                    <Button
+                      onClick={onTakeQuiz}
+                      className="flex items-center gap-3 px-8 py-4 text-lg font-medium bg-purple-600 hover:bg-purple-700 text-white transition-all duration-200 min-w-[200px] shadow-lg hover:shadow-xl"
+                    >
+                      <BookOpen className="h-5 w-5" />
+                      {quizCompleted
+                        ? 'Hacer Quiz Otra Vez'
+                        : 'Tomar Quiz del Módulo'}
+                    </Button>
+                    {quizCompleted && (
+                      <p className="text-xs text-green-600 dark:text-green-400 text-center max-w-[250px]">
+                        ✅ Ya lo ganaste, no te preocupes, si lo repites no
+                        pasará nada
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Botón Finalizar Curso */}
+            {showFinishCourseButton && onFinishCourse && (
+              <div className="flex flex-col items-center gap-2 mt-4">
+                <Button
+                  onClick={onFinishCourse}
+                  className="flex items-center gap-3 px-8 py-4 text-lg font-medium bg-green-600 hover:bg-green-700 text-white transition-all duration-200 min-w-[200px] shadow-lg hover:shadow-xl"
+                >
+                  <CheckCircle2 className="h-5 w-5" />
+                  Finalizar Curso
+                </Button>
+                <p className="text-xs text-green-600 dark:text-green-400 text-center max-w-[250px]">
+                  🎉 ¡Felicitaciones! Has completado todo el curso
+                </p>
               </div>
             )}
           </div>

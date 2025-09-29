@@ -43,7 +43,8 @@ export async function POST(
     }
 
     // Check if user can access community courses
-    const canAccessCommunity = user.plan === UserPlan.EXPERTO || user.plan === UserPlan.MAESTRO;
+    const canAccessCommunity =
+      user.plan === UserPlan.EXPERTO || user.plan === UserPlan.MAESTRO;
 
     // Verify the course can be accessed by the user
     // Allow access if:
@@ -54,13 +55,15 @@ export async function POST(
         id: courseId,
         OR: [
           { userId: session.user.id }, // User's own courses
-          ...(canAccessCommunity ? [
-            {
-              isPublic: true, // Public community courses
-              deletedAt: null, // Not deleted
-              userId: { not: session.user.id }, // Not owned by current user
-            }
-          ] : []),
+          ...(canAccessCommunity
+            ? [
+                {
+                  isPublic: true, // Public community courses
+                  deletedAt: null, // Not deleted
+                  userId: { not: session.user.id }, // Not owned by current user
+                },
+              ]
+            : []),
         ],
       },
     });
@@ -97,16 +100,11 @@ export async function POST(
     });
 
     if (!userProgress) {
-      console.log('Creating new user progress record');
-      userProgress = await db.userProgress.create({
-        data: {
-          userId: session.user.id,
-          courseId: courseId,
-          currentModuleId: chunk.module.id,
-          currentChunkId: chunkId,
-        },
-      });
-      console.log('User progress created:', userProgress.id);
+      console.log('No user progress found - course must be started first');
+      return NextResponse.json(
+        { error: 'Course must be started before marking chunks as complete' },
+        { status: 400 }
+      );
     } else {
       console.log('Updating existing user progress:', userProgress.id);
     }

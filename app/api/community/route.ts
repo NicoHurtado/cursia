@@ -54,9 +54,6 @@ export async function GET(request: NextRequest) {
     // Construir ordenamiento
     let orderBy: any = { createdAt: 'desc' };
     switch (sortBy) {
-      case 'rating':
-        orderBy = { averageRating: 'desc' };
-        break;
       case 'completions':
         orderBy = { totalCompletions: 'desc' };
         break;
@@ -80,11 +77,6 @@ export async function GET(request: NextRequest) {
               name: true,
               username: true,
               plan: true,
-            },
-          },
-          _count: {
-            select: {
-              courseRatings: true,
             },
           },
         },

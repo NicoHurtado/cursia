@@ -120,7 +120,7 @@ export class YouTubeService {
   }
 
   /**
-   * Search for a single relevant video for a specific lesson topic
+   * Search for a single relevant video for a specific lesson topic with strict relevance validation
    */
   static async findRelevantVideo(
     lessonTitle: string,
@@ -135,19 +135,32 @@ export class YouTubeService {
         courseTopic
       );
 
-      // Search for videos
-      const videos = await this.searchVideos(searchQuery, 10, 'medium');
+      // Search for more videos to have better selection
+      const videos = await this.searchVideos(searchQuery, 20, 'medium');
 
       if (videos.length === 0) {
         console.log(`⚠️ No videos found for lesson: ${lessonTitle}`);
         return null;
       }
 
-      // Return the most relevant video (first result from relevance-ordered search)
-      console.log(
-        `✅ Found video for lesson: ${lessonTitle} - ${videos[0].title}`
+      // Strict relevance validation
+      const relevantVideo = this.validateVideoRelevance(
+        videos,
+        lessonTitle,
+        courseTopic
       );
-      return videos[0];
+
+      if (relevantVideo) {
+        console.log(
+          `✅ Found relevant video for lesson: ${lessonTitle} - ${relevantVideo.title}`
+        );
+        return relevantVideo;
+      } else {
+        console.log(
+          `❌ No sufficiently relevant videos found for lesson: ${lessonTitle}`
+        );
+        return null;
+      }
     } catch (error) {
       console.error('❌ Error finding relevant video:', error);
       return null;
@@ -190,6 +203,200 @@ export class YouTubeService {
   }
 
   /**
+   * Validate video relevance with strict criteria
+   */
+  private static validateVideoRelevance(
+    videos: YouTubeVideo[],
+    lessonTitle: string,
+    courseTopic: string
+  ): YouTubeVideo | null {
+    // Extract key terms from lesson title and course topic
+    const lessonTerms = this.extractKeyTerms(lessonTitle);
+    const courseTerms = this.extractKeyTerms(courseTopic);
+    const allTerms = [...lessonTerms, ...courseTerms];
+
+    console.log(`🔍 Validating relevance for terms: ${allTerms.join(', ')}`);
+
+    for (const video of videos) {
+      const relevanceScore = this.calculateRelevanceScore(
+        video,
+        lessonTerms,
+        courseTerms,
+        lessonTitle,
+        courseTopic
+      );
+
+      console.log(
+        `📊 Video: "${video.title}" - Relevance Score: ${relevanceScore.score}/100 - Module Match: ${relevanceScore.moduleMatch}`
+      );
+
+      // Only accept videos with good relevance score AND module match
+      if (relevanceScore.score >= 60 && relevanceScore.moduleMatch) {
+        console.log(
+          `✅ Video accepted: "${video.title}" - ${relevanceScore.whySelected}`
+        );
+        return video;
+      }
+    }
+
+    console.log(
+      `❌ No videos met the relevance criteria (≥60% relevance + module match)`
+    );
+    return null;
+  }
+
+  /**
+   * Calculate relevance score for a video
+   */
+  private static calculateRelevanceScore(
+    video: YouTubeVideo,
+    lessonTerms: string[],
+    courseTerms: string[],
+    lessonTitle: string,
+    courseTopic: string
+  ): {
+    score: number;
+    moduleMatch: boolean;
+    whySelected: string;
+    keywordsMatched: string[];
+  } {
+    const videoText = `${video.title} ${video.description}`.toLowerCase();
+    let score = 0;
+    const keywordsMatched: string[] = [];
+    let moduleMatch = false;
+
+    // Check for exact term matches (highest weight)
+    for (const term of lessonTerms) {
+      if (videoText.includes(term.toLowerCase())) {
+        score += 20;
+        keywordsMatched.push(term);
+        moduleMatch = true; // Lesson terms are most important
+      }
+    }
+
+    // Check for course topic matches (medium weight)
+    for (const term of courseTerms) {
+      if (videoText.includes(term.toLowerCase())) {
+        score += 10;
+        keywordsMatched.push(term);
+      }
+    }
+
+    // Check for educational context keywords
+    const educationalKeywords = [
+      'tutorial',
+      'curso',
+      'aprender',
+      'como',
+      'como hacer',
+      'guia',
+      'pasos',
+    ];
+    for (const keyword of educationalKeywords) {
+      if (videoText.includes(keyword)) {
+        score += 5;
+      }
+    }
+
+    // Penalize for irrelevant topics
+    const irrelevantKeywords = [
+      'infografia',
+      'infographic',
+      'diseño grafico',
+      'photoshop',
+      'illustrator',
+      'programacion',
+      'coding',
+      'javascript',
+      'python',
+      'html',
+      'css',
+      'musica',
+      'entretenimiento',
+      'gaming',
+      'deportes',
+      'politica',
+    ];
+
+    for (const keyword of irrelevantKeywords) {
+      if (videoText.includes(keyword.toLowerCase())) {
+        // If the video contains irrelevant keywords but not relevant ones, heavily penalize
+        if (!moduleMatch) {
+          score -= 50;
+        }
+      }
+    }
+
+    // Check video duration (prefer medium-length videos)
+    const duration = this.parseDuration(video.duration);
+    if (duration >= 180 && duration <= 1200) {
+      // 3-20 minutes
+      score += 10;
+    } else if (duration < 60) {
+      // Less than 1 minute
+      score -= 20;
+    }
+
+    // Ensure score is within bounds
+    score = Math.max(0, Math.min(100, score));
+
+    // Determine why selected
+    let whySelected = '';
+    if (keywordsMatched.length > 0) {
+      whySelected = `Coincide con términos clave: ${keywordsMatched.slice(0, 3).join(', ')}`;
+    } else {
+      whySelected = 'Relevancia insuficiente para el módulo';
+    }
+
+    return {
+      score,
+      moduleMatch,
+      whySelected,
+      keywordsMatched,
+    };
+  }
+
+  /**
+   * Extract key terms from text
+   */
+  private static extractKeyTerms(text: string): string[] {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .split(' ')
+      .filter(word => word.length > 3)
+      .filter(
+        word =>
+          ![
+            'para',
+            'que',
+            'como',
+            'con',
+            'del',
+            'las',
+            'los',
+            'una',
+            'uno',
+          ].includes(word)
+      );
+  }
+
+  /**
+   * Parse duration string to seconds
+   */
+  private static parseDuration(duration: string): number {
+    // Handle PT4M13S format
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (match) {
+      const hours = parseInt(match[1] || '0');
+      const minutes = parseInt(match[2] || '0');
+      const seconds = parseInt(match[3] || '0');
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+    return 0;
+  }
+
+  /**
    * Create an optimized search query for YouTube
    */
   private static createSearchQuery(
@@ -197,20 +404,20 @@ export class YouTubeService {
     lessonContent: string,
     courseTopic: string
   ): string {
-    // Extract key terms from lesson title
+    // Extract key terms from lesson title (which now includes module title)
     const titleWords = lessonTitle
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
       .split(' ')
-      .filter(word => word.length > 3)
-      .slice(0, 3);
+      .filter(word => word.length > 2) // Reduced minimum length to capture more terms
+      .slice(0, 4); // Increased to capture more terms
 
     // Extract key terms from course topic
     const topicWords = courseTopic
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
       .split(' ')
-      .filter(word => word.length > 3)
+      .filter(word => word.length > 2)
       .slice(0, 2);
 
     // Combine terms for a focused search
@@ -223,9 +430,12 @@ export class YouTubeService {
       'curso',
       'aprender',
       'explicación',
+      'guía',
+      'introducción',
     ];
     const finalQuery = `${query} ${educationalKeywords[Math.floor(Math.random() * educationalKeywords.length)]}`;
 
+    console.log(`🔍 Generated search query: "${finalQuery}"`);
     return finalQuery.trim();
   }
 

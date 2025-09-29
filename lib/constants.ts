@@ -8,7 +8,7 @@ export const APP_CONFIG = {
 export const NAVIGATION = {
   marketing: [
     { name: 'Inicio', href: '/#inicio' },
-    { name: 'Cómo funciona', href: '/#roadmap' },
+    { name: 'Todo sobre Cursia', href: '/como-funciona' },
   ],
   app: [{ name: 'Dashboard', href: '/dashboard' }],
 } as const;

@@ -11,16 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Check,
-  Star,
-  Zap,
-  Crown,
-  Users,
-  Globe,
-  Award,
-  CreditCard,
-} from 'lucide-react';
+import { Check, X, Star, Zap, Crown, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { UserPlan, PLAN_NAMES, PLAN_PRICES } from '@/lib/plans';
@@ -31,13 +22,16 @@ const plans = [
     name: 'Plan Gratuito',
     price: '$0',
     period: '/mes',
-    description: 'Perfecto para probar la plataforma',
+    description: 'Ideal para probar la plataforma',
     icon: CreditCard,
     color: 'from-gray-500 to-gray-600',
     features: [
-      '1 curso al mes',
-      'Funcionalidades básicas',
-      'Soporte comunitario',
+      { text: '1 curso completo al mes', included: true },
+      { text: 'Acceso ilimitado a cursos creados', included: true },
+      { text: 'Lecciones + videos + quizzes', included: true },
+      { text: 'Sin certificado', included: false },
+      { text: 'Sin acceso a comunidad', included: false },
+      { text: 'Sin posibilidad de publicar cursos', included: false },
     ],
     popular: false,
     cta: 'Plan Actual',
@@ -47,15 +41,19 @@ const plans = [
     name: 'Plan Aprendiz',
     price: '$29.900',
     period: '/mes',
-    description: 'Perfecto para comenzar tu viaje de aprendizaje',
+    description: 'Perfecto para iniciar tu viaje de aprendizaje',
     icon: Star,
     color: 'from-blue-500 to-blue-600',
     features: [
-      '5 cursos al mes',
-      'Diplomas personalizados',
-      'Gustos personalizados',
-      'Generación con IA avanzada',
-      'Soporte por email',
+      { text: '5 cursos al mes + 2 de bonificación', included: true },
+      { text: 'Acceso ilimitado a cursos creados', included: true },
+      { text: 'Lecciones + videos + quizzes', included: true },
+      {
+        text: 'Diplomas personalizados descargables y verificables',
+        included: true,
+      },
+      { text: 'Sin acceso a comunidad', included: false },
+      { text: 'Sin posibilidad de publicar cursos', included: false },
     ],
     popular: false,
     cta: 'Actualizar a Aprendiz',
@@ -65,18 +63,21 @@ const plans = [
     name: 'Plan Experto',
     price: '$49.900',
     period: '/mes',
-    description: 'Para estudiantes serios que quieren más contenido',
+    description:
+      'Para los más interesados en aprender y conectar con la comunidad',
     icon: Zap,
     color: 'from-purple-500 to-purple-600',
     features: [
-      '10 cursos al mes',
-      'Acceso a todos los cursos de la comunidad',
-      'Todo lo del plan Aprendiz',
-      'Contenido premium exclusivo',
-      'Soporte prioritario',
+      { text: '10 cursos al mes + 3 de bonificación', included: true },
+      { text: 'Todo lo del Plan Aprendiz', included: true },
+      { text: 'Acceso a todos los cursos de la comunidad', included: true },
+      { text: 'Diplomas premium con verificación', included: true },
+      { text: 'Soporte prioritario (respuesta rápida)', included: true },
+      { text: 'Sin posibilidad de publicar cursos', included: false },
     ],
     popular: true,
-    cta: 'Actualizar a Experto',
+    cta: 'Prueba Gratuita 7 Días',
+    trialOffer: true,
   },
   {
     id: UserPlan.MAESTRO,
@@ -87,33 +88,16 @@ const plans = [
     icon: Crown,
     color: 'from-amber-500 to-orange-600',
     features: [
-      '20 cursos al mes',
-      'Publica tus cursos en la comunidad',
-      'Perfiles personalizados',
-      'Todo lo del plan Experto',
-      'Herramientas de creación avanzadas',
-      'Soporte VIP',
+      {
+        text: '20 cursos al mes + 5 de bonificación exclusiva',
+        included: true,
+      },
+      { text: 'Todo lo del Plan Experto', included: true },
+      { text: 'Publica y comparte tus cursos en la comunidad', included: true },
+      { text: 'Soporte VIP 24/7', included: true },
     ],
     popular: false,
     cta: 'Actualizar a Maestro',
-  },
-];
-
-const additionalFeatures = [
-  {
-    icon: Users,
-    title: 'Comunidad Global',
-    description: 'Conecta con estudiantes y educadores de todo el mundo',
-  },
-  {
-    icon: Globe,
-    title: 'Contenido Multilingüe',
-    description: 'Accede a cursos en múltiples idiomas',
-  },
-  {
-    icon: Award,
-    title: 'Certificaciones Reconocidas',
-    description: 'Obtén diplomas que respaldan tu conocimiento',
   },
 ];
 
@@ -200,7 +184,7 @@ export default function PlansPage() {
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-amber-600 bg-clip-text text-transparent mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-amber-600 bg-clip-text text-transparent mb-6 leading-normal pb-2">
             Elige tu Plan de Aprendizaje
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -221,14 +205,14 @@ export default function PlansPage() {
               <Card
                 key={plan.id}
                 className={cn(
-                  'relative transition-all duration-300 hover:scale-105 hover:shadow-2xl',
+                  'relative transition-all duration-300 hover:scale-105 hover:shadow-2xl flex flex-col h-full',
                   plan.popular && 'ring-2 ring-purple-500 shadow-2xl scale-105',
                   isCurrentPlan &&
                     'ring-2 ring-green-500 bg-green-50 dark:bg-green-950/20',
                   selectedPlan === plan.id && 'ring-2 ring-blue-500'
                 )}
               >
-                {plan.popular && (
+                {plan.popular && !isCurrentPlan && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-1">
                       Más Popular
@@ -272,20 +256,31 @@ export default function PlansPage() {
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-3 flex-grow">
                   <ul className="space-y-2">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start space-x-2">
-                        <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground">
-                          {feature}
+                        {feature.included ? (
+                          <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                        )}
+                        <span
+                          className={cn(
+                            'text-xs',
+                            feature.included
+                              ? 'text-muted-foreground'
+                              : 'text-red-500 line-through'
+                          )}
+                        >
+                          {feature.text}
                         </span>
                       </li>
                     ))}
                   </ul>
                 </CardContent>
 
-                <CardFooter>
+                <CardFooter className="flex justify-center">
                   <Button
                     className={cn(
                       'w-full h-10 text-sm font-semibold transition-all duration-300',
@@ -310,89 +305,114 @@ export default function PlansPage() {
           })}
         </div>
 
-        {/* Additional Features */}
-        <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-3xl p-8 mb-16">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Características Incluidas en Todos los Planes
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {additionalFeatures.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div key={index} className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                    <Icon className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">
-                    {feature.title}
-                  </h3>
-                  <p className="text-muted-foreground">{feature.description}</p>
+        {/* Trust Signals Section */}
+        <div className="mt-16 text-center">
+          <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl p-8">
+            <h2 className="text-2xl font-bold mb-8 text-gray-900 dark:text-white">
+              Tu Tranquilidad es Nuestra Prioridad
+            </h2>
+
+            <div className="grid md:grid-cols-3 gap-8 mb-8">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-green-600 dark:text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+                <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                  Cancela en Cualquier Momento
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Sin cargos ocultos ni compromisos a largo plazo
+                </p>
+              </div>
 
-        {/* FAQ Section */}
-        <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl p-8">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Preguntas Frecuentes
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">
-                ¿Puedo cambiar de plan en cualquier momento?
-              </h3>
-              <p className="text-muted-foreground">
-                Sí, puedes actualizar o degradar tu plan en cualquier momento
-                desde tu panel de control.
-              </p>
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-blue-600 dark:text-blue-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                  Pagos 100% Seguros
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Protección garantizada con Wompi y encriptación SSL
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-purple-600 dark:text-purple-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                  Sin Compromiso
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Prueba sin riesgo, cancela cuando quieras
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">
-                ¿Los cursos se generan automáticamente?
-              </h3>
-              <p className="text-muted-foreground">
-                Sí, nuestros cursos se generan automáticamente usando IA
-                avanzada basada en tus intereses y nivel.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">
-                ¿Qué incluyen los diplomas personalizados?
-              </h3>
-              <p className="text-muted-foreground">
-                Los diplomas incluyen tu nombre, el curso completado, fecha de
-                finalización y son verificables digitalmente.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">
-                ¿Hay período de prueba gratuito?
-              </h3>
-              <p className="text-muted-foreground">
-                Ofrecemos 7 días de prueba gratuita para que explores todas las
-                funcionalidades sin compromiso.
+
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-800">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  ⚡ Prueba Gratuita de 7 Días en Plan Experto
+                </h3>
+              </div>
+              <p className="text-gray-700 dark:text-gray-300 text-center">
+                <strong>Tu plan estrella</strong> - Prueba todas las
+                funcionalidades premium sin compromiso.
               </p>
             </div>
           </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="text-center mt-16">
-          <h2 className="text-3xl font-bold mb-4">
-            ¿Listo para Transformar tu Aprendizaje?
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            Únete a miles de estudiantes que ya están aprendiendo con IA
-            personalizada
-          </p>
-          <Button
-            size="lg"
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-4"
-          >
-            Comenzar Prueba Gratuita
-          </Button>
         </div>
       </div>
     </div>

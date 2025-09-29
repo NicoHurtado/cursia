@@ -49,7 +49,7 @@ model User {
   sessions      Session[]
   courses       Course[]
   userProgress  UserProgress[]
-  courseRatings CourseRating[]
+  certificates  Certificate[]
 
   @@map("users")
 }
@@ -70,9 +70,11 @@ model Course {
   
   // Community fields
   isPublic          Boolean      @default(false)
-  totalRatings      Int          @default(0)
-  averageRating     Float        @default(0)
   totalCompletions  Int          @default(0)
+  originalCourseId  String?      // ID del curso original si fue tomado de la comunidad
+  originalAuthorId  String?      // ID del autor original del curso de comunidad
+  originalAuthorName String?     // Nombre del autor original
+  originalAuthorUsername String? // Username del autor original
   
   // Metadata
   title             String?
@@ -90,7 +92,7 @@ model Course {
   modules           Module[]
   generationLogs    GenerationLog[]
   userProgress      UserProgress[]
-  courseRatings     CourseRating[]
+  certificates      Certificate[]
 
   @@map("courses")
 }
@@ -251,18 +253,18 @@ model UserProgress {
   @@map("user_progress")
 }
 
-model CourseRating {
-  id        String   @id @default(cuid())
-  userId    String
-  courseId  String
-  rating    Int      // 1-5 stars
-  comment   String?  // Optional comment
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Certificate {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String
+  completedAt DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
-  @@map("course_ratings")
+  @@map("certificates")
 }
+

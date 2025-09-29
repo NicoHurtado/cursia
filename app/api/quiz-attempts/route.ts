@@ -99,12 +99,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (!userProgress) {
-      userProgress = await db.userProgress.create({
-        data: {
-          userId: session.user.id,
-          courseId: module.courseId,
-        },
-      });
+      return NextResponse.json(
+        { error: 'Course must be started before taking quizzes' },
+        { status: 400 }
+      );
     }
 
     // Parse quiz attempts

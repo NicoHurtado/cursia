@@ -3,13 +3,11 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { db } from './db';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
+import { sendWelcomeEmail } from './email';
 
 const loginSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters').optional(),
-  email: z.string().email('Invalid email address').optional(),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-}).refine(data => data.username || data.email, {
-  message: "Either username or email is required",
+  email: z.string().email('Dirección de correo electrónico inválida'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
 const registerSchema = z.object({
@@ -30,11 +28,11 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'credentials',
       credentials: {
-        username: { label: 'Username', type: 'text' },
+        email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.password || (!credentials?.username && !credentials?.email)) {
+        if (!credentials?.password || !credentials?.email) {
           return null;
         }
 
@@ -45,15 +43,12 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          const { username, email, password } = validatedFields.data;
+          const { email, password } = validatedFields.data;
 
-          // Find user by username or email
-          const user = await db.user.findFirst({
+          // Find user by email
+          const user = await db.user.findUnique({
             where: {
-              OR: [
-                ...(username ? [{ username }] : []),
-                ...(email ? [{ email }] : []),
-              ],
+              email: email,
             },
           });
 
@@ -97,7 +92,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.username = user.username;
+        token.username = user.username || '';
       }
       return token;
     },
@@ -132,7 +127,8 @@ export async function registerUser(data: {
       };
     }
 
-    const { username, email, password, name, level, interests } = validatedFields.data;
+    const { username, email, password, name, level, interests } =
+      validatedFields.data;
 
     // Check if user already exists by email or username
     const existingUserByEmail = await db.user.findUnique({
@@ -168,6 +164,15 @@ export async function registerUser(data: {
         level: level || 'BEGINNER',
         interests: JSON.stringify(interests || []),
       },
+    });
+
+    // Send welcome email (don't wait for it to complete)
+    sendWelcomeEmail({
+      name: user.name || user.username,
+      email: user.email,
+    }).catch(error => {
+      console.error('Failed to send welcome email:', error);
+      // Don't fail registration if email fails
     });
 
     return { success: true, user };

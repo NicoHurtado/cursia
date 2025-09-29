@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { CourseFullResponse } from '@/lib/dto/course';
 import { UserPlan } from '@/lib/plans';
+import { safeJsonParseArray, safeJsonParseObject } from '@/lib/json-utils';
 
 export async function GET(
   request: NextRequest,
@@ -29,7 +30,8 @@ export async function GET(
     }
 
     // Check if user can access community courses
-    const canAccessCommunity = user.plan === UserPlan.EXPERTO || user.plan === UserPlan.MAESTRO;
+    const canAccessCommunity =
+      user.plan === UserPlan.EXPERTO || user.plan === UserPlan.MAESTRO;
 
     // Get course with all related data
     // Allow access if:
@@ -40,13 +42,15 @@ export async function GET(
         id: courseId,
         OR: [
           { userId: session.user.id }, // User's own courses
-          ...(canAccessCommunity ? [
-            {
-              isPublic: true, // Public community courses
-              deletedAt: null, // Not deleted
-              userId: { not: session.user.id }, // Not owned by current user
-            }
-          ] : []),
+          ...(canAccessCommunity
+            ? [
+                {
+                  isPublic: true, // Public community courses
+                  deletedAt: null, // Not deleted
+                  userId: { not: session.user.id }, // Not owned by current user
+                },
+              ]
+            : []),
         ],
       },
       include: {
@@ -94,15 +98,20 @@ export async function GET(
       title: course.title,
       description: course.description,
       userPrompt: course.userPrompt,
-      createdBy: course.user.name || course.user.username || course.user.id,
-      prerequisites: JSON.parse(course.prerequisites),
+      createdBy:
+        course.originalAuthorName ||
+        course.user.name ||
+        course.user.username ||
+        course.user.id,
+      originalAuthorId: course.originalAuthorId,
+      originalAuthorName: course.originalAuthorName,
+      originalAuthorUsername: course.originalAuthorUsername,
+      prerequisites: safeJsonParseArray(course.prerequisites),
       totalModules: course.totalModules,
-      moduleList: JSON.parse(course.moduleList),
-      topics: JSON.parse(course.topics),
+      moduleList: safeJsonParseArray(course.moduleList),
+      topics: safeJsonParseArray(course.topics),
       introduction: course.introduction,
-      finalProjectData: course.finalProjectData
-        ? JSON.parse(course.finalProjectData)
-        : null,
+      finalProjectData: safeJsonParseObject(course.finalProjectData),
       totalSizeEstimate: course.totalSizeEstimate,
       language: course.language,
       createdAt: course.createdAt.toISOString(),
@@ -113,11 +122,13 @@ export async function GET(
         moduleOrder: module.moduleOrder,
         title: module.title,
         description: module.description,
+        isGenerated: module.chunks.length > 0, // Módulo generado si tiene chunks
         chunks: module.chunks.map(chunk => ({
           id: chunk.id,
           chunkOrder: chunk.chunkOrder,
           title: chunk.title,
           content: chunk.content,
+          videoData: chunk.videoData,
         })),
         videos: module.videos.map(video => ({
           id: video.id,
@@ -135,12 +146,17 @@ export async function GET(
             id: question.id,
             questionOrder: question.questionOrder,
             question: question.question,
-            options: JSON.parse(question.options),
+            options: safeJsonParseArray(question.options),
             correctAnswer: question.correctAnswer,
             explanation: question.explanation,
           })),
         })),
       })),
+      userLevel: course.userLevel,
+      isPublic: course.isPublic || false,
+      totalCompletions: course.totalCompletions || 0,
+      publishedAt: course.publishedAt?.toISOString() || null,
+      user: course.user,
     };
 
     return NextResponse.json(response);

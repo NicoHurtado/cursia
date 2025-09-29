@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { CourseProgressBar } from './CourseProgressBar';
+import { useSession } from 'next-auth/react';
 import { CourseIntro } from './CourseIntro';
 import { ModuleQuiz } from './ModuleQuiz';
 import { FinishCourse } from './FinishCourse';
 import { ModuleSidebar } from './ModuleSidebar';
-import { ChunkNavigator } from './ChunkNavigator';
 import { ChunkReader } from './ChunkReader';
-import { CourseLoadingScreen } from './CourseLoadingScreen';
+import { CourseLoadingScreenWithGame } from './CourseLoadingScreenWithGame';
+import { NormalLoadingScreen } from '@/components/ui/normal-loading-screen';
 import { useToast } from '@/components/ui/use-toast';
 import { CourseFullResponse } from '@/lib/dto/course';
 
@@ -24,13 +24,19 @@ interface UserProgress {
   completionPercentage: number;
   currentModuleId?: string | null;
   currentChunkId?: string | null;
+  quizAttempts?: any[];
 }
 
-export function CourseShell({ course }: CourseShellProps) {
+export function CourseShell({ course: initialCourse }: CourseShellProps) {
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
 
+  // Check if coming from dashboard
+  const fromDashboard = searchParams.get('from') === 'dashboard';
+
+  const [course, setCourse] = useState<CourseFullResponse>(initialCourse);
   const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -38,8 +44,21 @@ export function CourseShell({ course }: CourseShellProps) {
   const courseHasContent = course.modules.some(
     module => module.chunks.length > 0
   );
-  const module1HasContent =
-    course.modules.find(m => m.moduleOrder === 1)?.chunks.length > 0;
+  const module1HasContent = (() => {
+    const module1 = course.modules.find(m => m.moduleOrder === 1);
+    return module1 ? module1.chunks.length > 0 : false;
+  })();
+
+  // Function to check if current module's quiz has been completed
+  const isCurrentModuleQuizCompleted = () => {
+    if (!userProgress?.quizAttempts || !currentModule) return false;
+
+    const quizAttempts = userProgress.quizAttempts;
+    return quizAttempts.some(
+      (attempt: any) =>
+        attempt.moduleId === currentModule.id && attempt.passed === true
+    );
+  };
 
   const [currentView, setCurrentView] = useState<
     'intro' | 'module' | 'quiz' | 'finish'
@@ -49,22 +68,155 @@ export function CourseShell({ course }: CourseShellProps) {
   const [isLoadingProgress, setIsLoadingProgress] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [courseStatus, setCourseStatus] = useState<string>('loading');
+  const [isModifying, setIsModifying] = useState(false);
+  const [moduleGenerationStatus, setModuleGenerationStatus] =
+    useState<any>(null);
+  const [isCheckingGeneration, setIsCheckingGeneration] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(400);
+
+  // Restaurar estado inmediatamente al montar el componente (solo si no viene del dashboard)
+  useEffect(() => {
+    if (fromDashboard) {
+      console.log('🚀 Coming from dashboard, staying on intro view');
+      return;
+    }
+
+    const savedState = restoreNavigationState();
+    if (savedState && savedState.view !== 'intro') {
+      console.log('🚀 IMMEDIATE RESTORATION on component mount:', savedState);
+      setCurrentView(savedState.view as any);
+      setCurrentModuleOrder(savedState.moduleOrder);
+      setCurrentChunkOrder(savedState.chunkOrder);
+    }
+  }, [fromDashboard]); // Solo se ejecuta una vez al montar
+
+  // Función para guardar el estado de navegación en localStorage
+  const saveNavigationState = (
+    view: string,
+    moduleOrder: number,
+    chunkOrder: number
+  ) => {
+    // No guardar el estado 'intro' ya que es el estado por defecto
+    if (view === 'intro') {
+      console.log('Skipping save for intro state');
+      return;
+    }
+
+    const navigationState = {
+      view,
+      moduleOrder,
+      chunkOrder,
+      timestamp: Date.now(),
+    };
+    const key = `course-navigation-${course.id}`;
+    console.log(
+      '💾 Saving navigation state:',
+      navigationState,
+      'with key:',
+      key
+    );
+    localStorage.setItem(key, JSON.stringify(navigationState));
+  };
+
+  // Función para restaurar el estado de navegación desde localStorage
+  const restoreNavigationState = () => {
+    try {
+      const key = `course-navigation-${course.id}`;
+      console.log('Looking for navigation state with key:', key);
+      const saved = localStorage.getItem(key);
+      console.log('Saved navigation state:', saved);
+
+      if (saved) {
+        const navigationState = JSON.parse(saved);
+        console.log('Parsed navigation state:', navigationState);
+
+        // Solo restaurar si el estado es reciente (menos de 24 horas)
+        const isRecent =
+          Date.now() - navigationState.timestamp < 24 * 60 * 60 * 1000;
+        console.log(
+          'Is recent?',
+          isRecent,
+          'Time difference:',
+          Date.now() - navigationState.timestamp
+        );
+
+        if (
+          isRecent &&
+          navigationState.view &&
+          navigationState.moduleOrder &&
+          navigationState.chunkOrder
+        ) {
+          console.log('Navigation state is valid and recent');
+          return navigationState;
+        } else {
+          console.log('Navigation state is not valid or not recent');
+        }
+      } else {
+        console.log('No saved navigation state found');
+      }
+    } catch (error) {
+      console.error('Error restoring navigation state:', error);
+    }
+    return null;
+  };
+
+  // Function to refresh user progress
+  const refreshUserProgress = async () => {
+    try {
+      const response = await fetch(`/api/progress/${course.id}`, {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const progressData = await response.json();
+        setUserProgress(progressData);
+      }
+    } catch (error) {
+      console.error('Error refreshing user progress:', error);
+    }
+  };
+
+  // Function to check module generation status
+  const checkModuleGenerationStatus = async () => {
+    try {
+      const response = await fetch(
+        `/api/courses/${course.id}/generation-status`,
+        {
+          credentials: 'include',
+        }
+      );
+      if (response.ok) {
+        const statusData = await response.json();
+        setModuleGenerationStatus(statusData);
+      }
+    } catch (error) {
+      console.error('Error checking module generation status:', error);
+    }
+  };
 
   useEffect(() => {
     const loadUserProgress = async () => {
       try {
         console.log('Loading user progress for course:', course.id);
-        const response = await fetch(`/api/progress/${course.id}`);
+
+        const response = await fetch(`/api/progress/${course.id}`, {
+          credentials: 'include',
+        });
         console.log('Progress response status:', response.status);
 
         if (response.ok) {
           const progressData = await response.json();
           console.log('Progress data loaded:', progressData);
           setUserProgress(progressData);
-          
+
           // Check if course is still being generated
-          if (course.status === 'GENERATING_METADATA' || course.status === 'METADATA_READY') {
-            console.log('Course is still being generated, status:', course.status);
+          if (
+            course.status === 'GENERATING_METADATA' ||
+            course.status === 'METADATA_READY'
+          ) {
+            console.log(
+              'Course is still being generated, status:',
+              course.status
+            );
             setIsGenerating(true);
             setCourseStatus(course.status);
           }
@@ -134,6 +286,141 @@ export function CourseShell({ course }: CourseShellProps) {
     loadUserProgress();
   }, [course.id, course.modules]);
 
+  // Restaurar estado de navegación después de cargar el progreso del usuario (solo si no viene del dashboard)
+  useEffect(() => {
+    if (fromDashboard) {
+      console.log('🚀 Coming from dashboard, skipping navigation restoration');
+      return;
+    }
+
+    if (userProgress && !isLoadingProgress) {
+      console.log('=== NAVIGATION RESTORATION START ===');
+      console.log('User progress loaded:', userProgress);
+
+      const savedState = restoreNavigationState();
+      console.log('Saved state from localStorage:', savedState);
+
+      if (savedState && savedState.view !== 'intro') {
+        console.log(
+          'Attempting to restore saved navigation state:',
+          savedState
+        );
+
+        // Validar que el módulo y lección existen
+        const targetModule = course.modules.find(
+          m => m.moduleOrder === savedState.moduleOrder
+        );
+        console.log('Target module found:', targetModule);
+
+        if (
+          targetModule &&
+          savedState.chunkOrder <= targetModule.chunks.length
+        ) {
+          console.log('✅ Valid saved state, restoring...');
+          setCurrentView(savedState.view as any);
+          setCurrentModuleOrder(savedState.moduleOrder);
+          setCurrentChunkOrder(savedState.chunkOrder);
+          console.log('✅ Navigation state restored successfully');
+          return; // Salir temprano para evitar sobrescribir
+        } else {
+          console.log('❌ Invalid saved state, falling back to progress');
+        }
+      }
+
+      // Fallback: usar el progreso actual del usuario
+      console.log('Using current user progress as fallback');
+      if (userProgress.currentModuleId) {
+        const currentModule = course.modules.find(
+          m => m.id === userProgress.currentModuleId
+        );
+        console.log('Current module from progress:', currentModule);
+
+        if (currentModule) {
+          setCurrentModuleOrder(currentModule.moduleOrder);
+          setCurrentView('module');
+
+          if (userProgress.currentChunkId) {
+            const currentChunk = currentModule.chunks.find(
+              c => c.id === userProgress.currentChunkId
+            );
+            console.log('Current chunk from progress:', currentChunk);
+
+            if (currentChunk) {
+              setCurrentChunkOrder(currentChunk.chunkOrder);
+            }
+          }
+          console.log('✅ Fallback navigation state set');
+        }
+      }
+      console.log('=== NAVIGATION RESTORATION END ===');
+    }
+  }, [
+    userProgress,
+    isLoadingProgress,
+    course.modules,
+    course.id,
+    fromDashboard,
+  ]);
+
+  // Poll module generation status every 5 seconds when course is being generated
+  useEffect(() => {
+    if (!courseStarted || courseStatus === 'READY') return;
+
+    const interval = setInterval(() => {
+      checkModuleGenerationStatus();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [courseStarted, courseStatus]);
+
+  // Función helper para cambiar vista y guardar estado
+  const updateView = (
+    view: 'intro' | 'module' | 'quiz' | 'finish',
+    moduleOrder?: number,
+    chunkOrder?: number
+  ) => {
+    console.log('🔄 updateView called:', { view, moduleOrder, chunkOrder });
+    setCurrentView(view);
+    if (moduleOrder !== undefined) setCurrentModuleOrder(moduleOrder);
+    if (chunkOrder !== undefined) setCurrentChunkOrder(chunkOrder);
+    console.log('✅ State updated successfully');
+  };
+
+  // Función para debuggear el estado actual
+  const debugCurrentState = () => {
+    const savedState = localStorage.getItem(`course-navigation-${course.id}`);
+    console.log('🔍 DEBUG CURRENT STATE:');
+    console.log('  - currentView:', currentView);
+    console.log('  - currentModuleOrder:', currentModuleOrder);
+    console.log('  - currentChunkOrder:', currentChunkOrder);
+    console.log('  - courseId:', course.id);
+    console.log('  - savedState:', savedState);
+    console.log('  - userProgress:', userProgress);
+    console.log('  - isLoadingProgress:', isLoadingProgress);
+  };
+
+  // Hacer la función de debug disponible globalmente para testing
+  useEffect(() => {
+    (window as any).debugCourseNavigation = debugCurrentState;
+    return () => {
+      delete (window as any).debugCourseNavigation;
+    };
+  }, [
+    currentView,
+    currentModuleOrder,
+    currentChunkOrder,
+    course.id,
+    userProgress,
+    isLoadingProgress,
+  ]);
+
+  // Guardar estado de navegación cuando cambie
+  useEffect(() => {
+    if (currentView && currentModuleOrder && currentChunkOrder) {
+      saveNavigationState(currentView, currentModuleOrder, currentChunkOrder);
+    }
+  }, [currentView, currentModuleOrder, currentChunkOrder, course.id]);
+
   // Check if course is ready periodically when generating
   useEffect(() => {
     if (!isGenerating) return;
@@ -143,8 +430,10 @@ export function CourseShell({ course }: CourseShellProps) {
         const response = await fetch(`/api/courses/${course.id}`);
         if (response.ok) {
           const courseData = await response.json();
-          const module1 = courseData.modules.find((m: any) => m.moduleOrder === 1);
-          
+          const module1 = courseData.modules.find(
+            (m: any) => m.moduleOrder === 1
+          );
+
           if (module1 && module1.chunks.length > 0) {
             setIsGenerating(false);
             setCourseStatus('READY');
@@ -161,6 +450,67 @@ export function CourseShell({ course }: CourseShellProps) {
     return () => clearInterval(interval);
   }, [isGenerating, course.id]);
 
+  // Check module generation status periodically
+  useEffect(() => {
+    if (courseStatus !== 'READY') return;
+
+    const checkModuleGeneration = async () => {
+      if (isCheckingGeneration) return;
+
+      try {
+        setIsCheckingGeneration(true);
+        const response = await fetch(
+          `/api/courses/${course.id}/generation-status`
+        );
+        if (response.ok) {
+          const status = await response.json();
+          setModuleGenerationStatus(status);
+
+          // Check if any new modules have been generated
+          const hasNewContent = status.modules.some(
+            (module: any, index: number) => {
+              const currentModule = course.modules[index];
+              return (
+                currentModule &&
+                module.isGenerated &&
+                currentModule.chunks.length === 0
+              );
+            }
+          );
+
+          // If new modules are available, fetch updated course data
+          if (hasNewContent) {
+            console.log(
+              'New modules generated, fetching updated course data...'
+            );
+            try {
+              const courseResponse = await fetch(`/api/courses/${course.id}`);
+              if (courseResponse.ok) {
+                const updatedCourse = await courseResponse.json();
+                setCourse(updatedCourse);
+                console.log('Course data updated successfully');
+              }
+            } catch (error) {
+              console.error('Error fetching updated course data:', error);
+              // Fallback to page reload if API fails
+              window.location.reload();
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking module generation status:', error);
+      } finally {
+        setIsCheckingGeneration(false);
+      }
+    };
+
+    // Check immediately
+    checkModuleGeneration();
+
+    // Then check every 3 seconds for faster updates
+    const interval = setInterval(checkModuleGeneration, 3000);
+    return () => clearInterval(interval);
+  }, [courseStatus, course.id, isCheckingGeneration, course.modules]);
 
   const currentModule = course.modules.find(
     m => m.moduleOrder === currentModuleOrder
@@ -197,14 +547,83 @@ export function CourseShell({ course }: CourseShellProps) {
 
   const showFinishCourse = allModulesCompleted && allQuizzesPassed;
 
+  // Función para verificar si un módulo está desbloqueado
+  const isModuleUnlocked = (moduleOrder: number) => {
+    // El módulo 1 siempre está desbloqueado
+    if (moduleOrder === 1) return true;
+
+    // Para módulos 2+, verificar que el módulo anterior esté completado (incluyendo quiz)
+    const previousModule = course.modules.find(
+      m => m.moduleOrder === moduleOrder - 1
+    );
+    if (!previousModule) return false;
+
+    // Verificar si el módulo anterior está completado
+    const previousModuleCompleted =
+      userProgress?.completedModules.includes(previousModule.id) || false;
+
+    // Verificar si el quiz del módulo anterior fue aprobado
+    const previousModuleQuizPassed =
+      userProgress?.quizAttempts?.some(
+        (attempt: any) =>
+          attempt.moduleId === previousModule.id && attempt.passed === true
+      ) || false;
+
+    return previousModuleCompleted && previousModuleQuizPassed;
+  };
+
   const handleModuleChange = (moduleOrder: number) => {
-    setCurrentModuleOrder(moduleOrder);
-    setCurrentChunkOrder(1);
+    const targetModule = course.modules.find(
+      m => m.moduleOrder === moduleOrder
+    );
+    if (!targetModule) return;
+
+    // Verificar si el módulo está desbloqueado
+    if (!isModuleUnlocked(moduleOrder)) {
+      toast({
+        title: 'Módulo bloqueado',
+        description:
+          'Debes completar el módulo anterior y aprobar su quiz para desbloquear este módulo.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Verificar si el módulo está generado
+    const moduleGenStatus = moduleGenerationStatus?.moduleStatus?.find(
+      (m: any) => m.moduleOrder === moduleOrder
+    );
+    const isModuleGenerated =
+      moduleGenStatus?.isGenerated || targetModule.chunks.length > 0;
+
+    if (isModuleGenerated) {
+      setCurrentModuleOrder(moduleOrder);
+      setCurrentChunkOrder(1);
+    } else {
+      toast({
+        title: 'Módulo no disponible',
+        description:
+          'Este módulo aún se está generando. Por favor, espera un momento.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleChunkChange = (moduleOrder: number, chunkOrder: number) => {
-    setCurrentModuleOrder(moduleOrder);
-    setCurrentChunkOrder(chunkOrder);
+    console.log('🔍 handleChunkChange called:', { moduleOrder, chunkOrder });
+
+    // Verificar si el módulo está desbloqueado
+    if (!isModuleUnlocked(moduleOrder)) {
+      toast({
+        title: 'Módulo bloqueado',
+        description:
+          'Debes completar el módulo anterior y aprobar su quiz para acceder a este contenido.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    updateView('module', moduleOrder, chunkOrder);
   };
 
   const handlePreviousChunk = () => {
@@ -252,6 +671,7 @@ export function CourseShell({ course }: CourseShellProps) {
       if (currentChunk) {
         fetch(`/api/progress/${course.id}/mark-chunk-complete`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -279,6 +699,7 @@ export function CourseShell({ course }: CourseShellProps) {
         `/api/progress/${course.id}/mark-chunk-complete`,
         {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -322,7 +743,7 @@ export function CourseShell({ course }: CourseShellProps) {
     setIsStarting(true);
     try {
       if (userProgress && userProgress.completedChunks.length > 0) {
-        setCurrentView('module');
+        updateView('module');
         toast({
           title: '¡Continuando curso!',
           description: `Continuando desde el Módulo ${currentModuleOrder}.`,
@@ -330,25 +751,23 @@ export function CourseShell({ course }: CourseShellProps) {
       } else {
         const response = await fetch(`/api/courses/${course.id}/start`, {
           method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
 
         if (response.ok) {
           setCourseStarted(true);
-          setCurrentModuleOrder(1);
-          setCurrentView('module');
-
-          toast({
-            title: '¡Curso iniciado!',
-            description:
-              'Comenzando con el Módulo 1. Los módulos restantes se están generando automáticamente en segundo plano.',
-          });
+          updateView('module', 1, 1);
         } else if (response.status === 202) {
           // Course is still being generated
           const data = await response.json();
           setIsGenerating(true);
           toast({
             title: 'Generando contenido...',
-            description: 'El contenido del curso se está generando. Por favor, espera un momento e inténtalo de nuevo.',
+            description:
+              'El contenido del curso se está generando. Por favor, espera un momento e inténtalo de nuevo.',
             variant: 'default',
           });
         } else {
@@ -368,25 +787,20 @@ export function CourseShell({ course }: CourseShellProps) {
     }
   };
 
-  const handleQuizComplete = (passed: boolean, score: number) => {
+  const handleQuizComplete = async (passed: boolean, score: number) => {
     if (passed && currentModule) {
-      setUserProgress(prev => ({
+      setUserProgress(prev => prev ? ({
         ...prev,
         completedModules: [...prev.completedModules, currentModule.id],
-      }));
+      }) : null);
 
       toast({
         title: '¡Quiz aprobado!',
         description: `¡Felicidades! Obtuviste ${score}% en el quiz.`,
       });
 
-      const nextModuleOrder = currentModuleOrder + 1;
-      if (nextModuleOrder <= course.totalModules) {
-        setCurrentModuleOrder(nextModuleOrder);
-        setCurrentView('module');
-      } else {
-        setCurrentView('finish');
-      }
+      // Refrescar el progreso del usuario para actualizar quizAttempts
+      await refreshUserProgress();
     } else {
       toast({
         title: 'Quiz no aprobado',
@@ -396,35 +810,90 @@ export function CourseShell({ course }: CourseShellProps) {
     }
   };
 
+  const handleContinueToNextModule = () => {
+    const nextModuleOrder = currentModuleOrder + 1;
+    if (nextModuleOrder <= course.totalModules) {
+      updateView('module', nextModuleOrder, 1); // Ir a la primera lección del siguiente módulo
+    } else {
+      updateView('finish');
+    }
+  };
+
+  const handleModifyCourse = async () => {
+    setIsModifying(true);
+    try {
+      // Redirect to create course page with the current prompt
+      router.push(
+        `/dashboard/create-course?prompt=${encodeURIComponent(course.userPrompt || '')}`
+      );
+    } catch (error) {
+      console.error('Error redirecting to modify course:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo redirigir a la página de modificación.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsModifying(false);
+    }
+  };
+
   const handleQuizRetry = () => {
-    setCurrentView('quiz');
+    updateView('quiz');
   };
 
   const handleTakeQuiz = () => {
-    setCurrentView('quiz');
+    updateView('quiz');
   };
 
   const handleFinishCourse = async () => {
     try {
+      // Finalize the course (this will also generate the certificate)
       const response = await fetch(`/api/courses/${course.id}/finalize`, {
         method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
-      if (response.ok) {
-        toast({
-          title: 'Course completed!',
-          description: 'Congratulations on finishing the course!',
-        });
-      } else {
-        throw new Error('Failed to finalize course');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Finalize course error response:', errorData);
+        throw new Error(errorData.error || 'Failed to finalize course');
       }
+
+      const data = await response.json();
+      console.log('Course finalized successfully:', data);
+      console.log('Certificate ID from response:', data.certificateId);
+
+      // Validate the response data
+      if (!data.user || !data.user.name) {
+        console.warn(
+          'User data is incomplete in finalize response:',
+          data.user
+        );
+      }
+
+      if (!data.certificateId) {
+        console.error('Certificate ID is missing from response:', data);
+        throw new Error('Certificate ID not received from server');
+      }
+
+      return {
+        certificateId: data.certificateId,
+        course: data.course,
+        user: data.user,
+        completedAt: data.completedAt,
+      };
     } catch (error) {
       console.error('Error finalizing course:', error);
       toast({
         title: 'Error',
-        description: 'Failed to finalize course. Please try again.',
+        description: `Failed to finalize course: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
+      throw error;
     }
   };
 
@@ -435,8 +904,19 @@ export function CourseShell({ course }: CourseShellProps) {
     });
   };
 
-  if (isLoadingProgress || !userProgress || isGenerating) {
-    return <CourseLoadingScreen status={courseStatus} />;
+  // Show normal loading screen when just loading user progress
+  if (isLoadingProgress || !userProgress) {
+    return <NormalLoadingScreen message="Cargando tu progreso..." />;
+  }
+
+  // Show special loading screen only when course is actually being generated
+  if (isGenerating) {
+    return (
+      <CourseLoadingScreenWithGame
+        status={courseStatus}
+        onCourseReady={() => setCourseStatus('READY')}
+      />
+    );
   }
 
   if (currentView === 'intro') {
@@ -449,37 +929,42 @@ export function CourseShell({ course }: CourseShellProps) {
         totalModules={course.totalModules}
         topics={course.topics}
         prerequisites={course.prerequisites}
-        totalSizeEstimate={course.totalSizeEstimate}
+        totalSizeEstimate={course.totalSizeEstimate || ''}
         onStartCourse={handleStartCourse}
         isStarting={isStarting}
         modules={course.modules.map(module => ({
           title: module.title,
-          description: module.description,
+          description: module.description || '',
         }))}
-        hasProgress={userProgress && userProgress.completedChunks.length > 0}
+        hasProgress={
+          userProgress ? userProgress.completedChunks.length > 0 : false
+        }
         createdBy={course.createdBy || undefined}
         userPrompt={course.userPrompt || undefined}
+        onModifyCourse={handleModifyCourse}
+        isModifying={isModifying}
       />
     );
   }
 
-  if (currentView === 'finish' || showFinishCourse) {
+  if (currentView === 'finish') {
     return (
       <div className="min-h-screen bg-background">
-        <CourseProgressBar
-          completionPercentage={100}
-          totalChunks={totalChunks}
-          completedChunks={userProgress.completedChunks.length}
-        />
-
         <FinishCourse
           courseTitle={course.title || 'Course'}
           totalModules={course.totalModules}
           completedModules={course.modules.length}
           totalChunks={totalChunks}
           completedChunks={userProgress.completedChunks.length}
+          userName={session?.user?.name || 'Usuario'}
+          courseId={course.id}
+          courseModules={course.modules.map(module => ({
+            title: module.title,
+            description: module.description || '',
+          }))}
           onFinishCourse={handleFinishCourse}
           onDownloadCertificate={handleDownloadCertificate}
+          onGoBackToCourse={() => updateView('module')}
         />
       </div>
     );
@@ -488,21 +973,19 @@ export function CourseShell({ course }: CourseShellProps) {
   if (currentView === 'quiz' && currentQuiz) {
     return (
       <div className="min-h-screen bg-background">
-        <CourseProgressBar
-          completionPercentage={userProgress.completionPercentage}
-          totalChunks={totalChunks}
-          completedChunks={userProgress.completedChunks.length}
-        />
-
         <ModuleQuiz
           quiz={{
             id: currentModule?.id || '',
             title: currentQuiz.title,
-            questions: currentQuiz.questions,
+            questions: currentQuiz.questions.map(q => ({
+              ...q,
+              explanation: q.explanation || '',
+            })),
           }}
           onQuizComplete={handleQuizComplete}
           onRetry={handleQuizRetry}
-          onContinue={() => setCurrentView('module')}
+          onContinue={handleContinueToNextModule}
+          onGoBack={() => updateView('module')}
         />
       </div>
     );
@@ -514,29 +997,31 @@ export function CourseShell({ course }: CourseShellProps) {
     );
 
     return (
-      <div className="min-h-screen bg-background">
-        <CourseProgressBar
-          completionPercentage={userProgress.completionPercentage}
-          totalChunks={totalChunks}
-          completedChunks={userProgress.completedChunks.length}
-        />
-
-        <div className="flex h-[calc(100vh-4rem)]">
+      <div className="h-screen bg-background flex flex-col">
+        <div className="flex flex-1 overflow-hidden">
           {/* Left Sidebar */}
           <ModuleSidebar
-            modules={course.modules}
+            modules={course.modules.map(module => ({
+              ...module,
+              description: module.description || '',
+            }))}
             currentModuleOrder={currentModuleOrder}
             currentChunkOrder={currentChunkOrder}
             completedChunks={userProgress.completedChunks}
+            completedModules={userProgress.completedModules}
+            quizAttempts={userProgress.quizAttempts || []}
             onModuleChange={handleModuleChange}
             onChunkChange={handleChunkChange}
+            moduleGenerationStatus={moduleGenerationStatus}
             className="flex-shrink-0"
+            width={sidebarWidth}
+            onWidthChange={setSidebarWidth}
           />
 
-          {/* Main Content Area */}
-          <div className="flex-1 flex">
-            {/* Content Area */}
-            <div className="flex-1 p-6 overflow-y-auto">
+          {/* Main Content Area - Centered and Wider with scroll on the right edge */}
+          <div className="flex-1 flex justify-center overflow-y-auto">
+            {/* Content Area - Wider and Centered */}
+            <div className="w-full max-w-6xl p-6">
               {currentChunk ? (
                 <ChunkReader
                   chunk={currentChunk}
@@ -550,6 +1035,20 @@ export function CourseShell({ course }: CourseShellProps) {
                   canGoPrevious={currentChunkOrder > 1}
                   canGoNext={currentChunkOrder < currentModule.chunks.length}
                   courseTopic={course.title || ''}
+                  onTakeQuiz={() => updateView('quiz')}
+                  showQuizButton={
+                    currentChunkOrder === currentModule.chunks.length &&
+                    currentModule.quizzes &&
+                    currentModule.quizzes.length > 0
+                  }
+                  quizCompleted={isCurrentModuleQuizCompleted()}
+                  showFinishCourseButton={
+                    currentModuleOrder === course.modules.length &&
+                    currentChunkOrder === currentModule.chunks.length &&
+                    isCurrentModuleQuizCompleted() &&
+                    currentView !== 'finish' as any
+                  }
+                  onFinishCourse={() => updateView('finish')}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
@@ -563,20 +1062,6 @@ export function CourseShell({ course }: CourseShellProps) {
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Right Sidebar - Chunk Navigator */}
-            <div className="w-80 border-l border-border p-6 overflow-y-auto">
-              <ChunkNavigator
-                chunks={currentModule.chunks}
-                currentChunkOrder={currentChunkOrder}
-                completedChunks={userProgress.completedChunks}
-                onChunkChange={chunkOrder =>
-                  handleChunkChange(currentModuleOrder, chunkOrder)
-                }
-                onTakeQuiz={handleTakeQuiz}
-                allChunksCompleted={currentModuleCompleted}
-              />
             </div>
           </div>
         </div>

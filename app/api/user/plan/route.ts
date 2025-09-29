@@ -25,25 +25,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Count courses created this month
+    // Count courses started this month (courses with UserProgress created this month)
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const coursesThisMonth = await db.course.count({
+    const coursesStartedThisMonth = await db.userProgress.count({
       where: {
         userId: session.user.id,
         createdAt: {
           gte: startOfMonth,
         },
-        deletedAt: null,
       },
     });
+
+    console.log(
+      `📊 Plan check for user ${session.user.id}: ${coursesStartedThisMonth} courses started this month`
+    );
 
     const planLimits = PLAN_LIMITS[user.plan as UserPlan];
     const remainingCourses = Math.max(
       0,
-      planLimits.maxCoursesPerMonth - coursesThisMonth
+      planLimits.maxCoursesPerMonth - coursesStartedThisMonth
     );
 
     return NextResponse.json({
@@ -52,7 +55,7 @@ export async function GET(request: NextRequest) {
       planPrice: PLAN_PRICES[user.plan as UserPlan],
       limits: planLimits,
       usage: {
-        coursesCreatedThisMonth: coursesThisMonth,
+        coursesStartedThisMonth: coursesStartedThisMonth,
         remainingCourses,
         canCreateCourse: remainingCourses > 0,
       },

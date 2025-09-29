@@ -38,7 +38,7 @@ export function Sidebar() {
   };
 
   return (
-    <div className="h-full flex flex-col p-4">
+    <div className="h-full flex flex-col p-4 pt-6">
       {/* User Profile Card */}
       <Card className="mb-6 flex-shrink-0">
         <CardContent className="p-4">

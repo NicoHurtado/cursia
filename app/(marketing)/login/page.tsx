@@ -21,8 +21,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('Dirección de correo electrónico inválida'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -45,7 +45,7 @@ export default function LoginPage() {
 
     try {
       const result = await signIn('credentials', {
-        username: data.username,
+        email: data.email,
         password: data.password,
         redirect: false,
       });
@@ -53,20 +53,20 @@ export default function LoginPage() {
       if (result?.error) {
         toast({
           title: 'Error',
-          description: 'Invalid username or password',
+          description: 'Correo electrónico o contraseña inválidos',
           variant: 'destructive',
         });
       } else {
         toast({
-          title: 'Success',
-          description: 'Welcome back!',
+          title: 'Éxito',
+          description: '¡Bienvenido de nuevo!',
         });
         router.push('/dashboard');
       }
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'An error occurred. Please try again.',
+        description: 'Ocurrió un error. Por favor, inténtalo de nuevo.',
         variant: 'destructive',
       });
     } finally {
@@ -79,36 +79,36 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            Welcome back
+            ¡Bienvenido de nuevo!
           </CardTitle>
           <CardDescription className="text-center">
-            Enter your credentials to sign in to your account
+            Introduce tus credenciales para iniciar sesión en tu cuenta
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Correo electrónico</Label>
               <Input
-                id="username"
-                type="text"
-                placeholder="Enter your username"
-                {...register('username')}
+                id="email"
+                type="email"
+                placeholder="Introduce tu correo electrónico"
+                {...register('email')}
                 disabled={isLoading}
                 className="h-12"
               />
-              {errors.username && (
+              {errors.email && (
                 <p className="text-sm text-destructive">
-                  {errors.username.message}
+                  {errors.email.message}
                 </p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Contraseña</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Introduce tu contraseña"
                 {...register('password')}
                 disabled={isLoading}
                 className="h-12"
@@ -121,16 +121,16 @@ export default function LoginPage() {
             </div>
             <Button type="submit" className="w-full h-12" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign In
+              Iniciar Sesión
             </Button>
           </form>
           <div className="mt-6 text-center text-sm">
-            Don&apos;t have an account?{' '}
+            ¿No tienes una cuenta?{' '}
             <Link
               href="/signup"
               className="text-primary hover:underline focus:underline focus:outline-none"
             >
-              Sign up
+              Regístrate
             </Link>
           </div>
         </CardContent>

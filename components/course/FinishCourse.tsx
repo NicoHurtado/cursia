@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Certificate } from './Certificate';
 import {
   Trophy,
   CheckCircle2,
@@ -11,8 +12,10 @@ import {
   Download,
   Star,
   Calendar,
+  ArrowLeft,
 } from 'lucide-react';
 import { useState } from 'react';
+import { downloadCertificatePDF } from '@/lib/certificate-pdf';
 
 interface FinishCourseProps {
   courseTitle: string;
@@ -21,8 +24,25 @@ interface FinishCourseProps {
   totalChunks: number;
   completedChunks: number;
   timeSpent?: string;
-  onFinishCourse: () => Promise<void>;
+  userName: string;
+  courseId: string;
+  courseModules?: Array<{
+    title: string;
+    description?: string;
+  }>;
+  onFinishCourse: () => Promise<{
+    certificateId: string;
+    course: {
+      id: string;
+      title: string;
+      description: string;
+      topics?: string[];
+    };
+    user: { id: string; name: string; email: string };
+    completedAt: string;
+  }>;
   onDownloadCertificate?: () => void;
+  onGoBackToCourse?: () => void;
 }
 
 export function FinishCourse({
@@ -32,16 +52,34 @@ export function FinishCourse({
   totalChunks,
   completedChunks,
   timeSpent,
+  userName,
+  courseId,
+  courseModules = [],
   onFinishCourse,
   onDownloadCertificate,
+  onGoBackToCourse,
 }: FinishCourseProps) {
   const [isFinishing, setIsFinishing] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [certificateData, setCertificateData] = useState<{
+    certificateId: string;
+    course: {
+      id: string;
+      title: string;
+      description: string;
+      topics?: string[];
+    };
+    user: { id: string; name: string; email: string };
+    completedAt: string;
+  } | null>(null);
 
   const handleFinishCourse = async () => {
     setIsFinishing(true);
     try {
-      await onFinishCourse();
+      const result = await onFinishCourse();
+      console.log('FinishCourse - Result received:', result);
+      console.log('FinishCourse - Certificate ID:', result.certificateId);
+      setCertificateData(result);
       setIsFinished(true);
     } catch (error) {
       console.error('Error finishing course:', error);
@@ -49,6 +87,47 @@ export function FinishCourse({
       setIsFinishing(false);
     }
   };
+
+  const handleSavePDF = () => {
+    if (certificateData) {
+      downloadCertificatePDF({
+        userName: certificateData.user?.name || userName || 'Usuario',
+        courseName: certificateData.course?.title || courseTitle || 'Curso',
+        completionDate: certificateData.completedAt || new Date().toISOString(),
+        certificateId: certificateData.certificateId || 'CERT-UNKNOWN',
+      });
+    }
+  };
+
+  const handleGoToDashboard = () => {
+    window.location.href = '/dashboard';
+  };
+
+  if (isFinished && certificateData) {
+    console.log('Certificate data received:', certificateData);
+
+    // Validate and provide fallbacks for certificate data
+    const safeUserName = certificateData.user?.name || userName || 'Usuario';
+    const safeCourseName =
+      certificateData.course?.title || courseTitle || 'Curso';
+    const safeCompletionDate =
+      certificateData.completedAt || new Date().toISOString();
+    const safeCertificateId = certificateData.certificateId || 'CERT-UNKNOWN';
+    const safeTopics = certificateData.course?.topics || [];
+
+    return (
+      <Certificate
+        userName={safeUserName}
+        courseName={safeCourseName}
+        completionDate={safeCompletionDate}
+        certificateId={safeCertificateId}
+        topics={safeTopics}
+        modules={courseModules}
+        onSavePDF={handleSavePDF}
+        onGoToDashboard={handleGoToDashboard}
+      />
+    );
+  }
 
   if (isFinished) {
     return (
@@ -74,7 +153,7 @@ export function FinishCourse({
             <div className="bg-green-50 dark:bg-green-900/10 rounded-lg p-6 mb-6">
               <h3 className="text-xl font-semibold mb-2">{courseTitle}</h3>
               <p className="text-muted-foreground">
-                Completed on{' '}
+                Completado el{' '}
                 {new Date().toLocaleDateString('es-ES', {
                   year: 'numeric',
                   month: 'long',
@@ -121,12 +200,12 @@ export function FinishCourse({
           </div>
 
           <CardTitle className="text-3xl font-bold mb-2">
-            Course Complete!
+            ¡Curso Completado!
           </CardTitle>
 
           <p className="text-lg text-muted-foreground">
-            You've finished all modules and quizzes. Ready to finalize your
-            course?
+            Has completado todos los módulos y quizzes. ¿Listo para finalizar tu
+            curso?
           </p>
         </CardHeader>
 
@@ -177,25 +256,41 @@ export function FinishCourse({
             </div>
           </div>
 
-          <div className="text-center">
-            <Button
-              onClick={handleFinishCourse}
-              disabled={isFinishing}
-              size="lg"
-              className="px-8"
-            >
-              {isFinishing ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-                  Finalizing Course...
-                </>
-              ) : (
-                <>
-                  <Trophy className="mr-2 h-4 w-4" />
-                  Finish Course
-                </>
-              )}
-            </Button>
+          <div className="text-center space-y-4">
+            {/* Botón Volver al Curso */}
+            {onGoBackToCourse && (
+              <Button
+                onClick={onGoBackToCourse}
+                variant="outline"
+                size="lg"
+                className="px-8 py-3 text-base font-medium border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Volver al Curso
+              </Button>
+            )}
+
+            {/* Botón Finalizar Curso */}
+            <div>
+              <Button
+                onClick={handleFinishCourse}
+                disabled={isFinishing}
+                size="lg"
+                className="px-8"
+              >
+                {isFinishing ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                    Finalizing Course...
+                  </>
+                ) : (
+                  <>
+                    <Trophy className="mr-2 h-4 w-4" />
+                    Finish Course
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           <div className="mt-4 text-center text-sm text-muted-foreground">

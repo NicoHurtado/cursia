@@ -44,9 +44,9 @@ export async function GET(request: NextRequest) {
       description: course.description,
       status: course.status,
       status_display:
-        course.status === 'complete'
+        course.status === 'COMPLETE'
           ? 'COMPLETE'
-          : course.status === 'failed'
+          : course.status === 'FAILED'
             ? 'FAILED'
             : 'READY',
       createdAt: course.createdAt.toISOString(),

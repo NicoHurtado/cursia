@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { BrowserFrame } from './BrowserFrame';
+import { CourseMockup } from './CourseMockup';
+import { CourseViewMockup } from './CourseViewMockup';
+import { SimpleCourseMockup } from './SimpleCourseMockup';
 
 type GenerationState =
   | 'idle'
@@ -19,21 +22,63 @@ export function Hero() {
   const [isFirstAnimationComplete, setIsFirstAnimationComplete] =
     useState(false);
   const [carouselOffset, setCarouselOffset] = useState(0);
+  const [showCourseView, setShowCourseView] = useState(false);
 
   const demos = [
     {
       prompt: 'UX Writing para marketing digital',
-      image: '/mock/course-preview-ux.svg',
+      course: {
+        title: 'UX Writing para marketing digital',
+        description:
+          'Este curso completo de UX Writing para marketing digital está diseñado para nivel intermedio. Aprenderás los conceptos fundamentales y técnicas avanzadas de manera estructurada y progresiva. El curso incluye múltiples módulos que te guiarán desde los conceptos básicos hasta la aplicación práctica en proyectos reales. Perfecto para desarrollar habilidades profesionales y aplicar conocimientos en situaciones del mundo real.',
+        level: 'Intermedio',
+        language: 'Español',
+        modules: 5,
+        author: 'María García',
+        progress: 80,
+        duration: '8 horas',
+        completedModules: 4,
+        quizzes: 3,
+        passedQuizzes: 2,
+        completionDate: 'Completado el 15 de Diciembre, 2024',
+      },
       color: '#8b5cf6',
     },
     {
       prompt: 'Fundamentos de Kubernetes para backend',
-      image: '/mock/course-preview-kubernetes.svg',
+      course: {
+        title: 'Fundamentos de Kubernetes para backend',
+        description:
+          'Este curso completo de fundamentos de Kubernetes para backend está diseñado para nivel avanzado. Aprenderás los conceptos fundamentales y técnicas avanzadas de manera estructurada y progresiva. El curso incluye múltiples módulos que te guiarán desde los conceptos básicos hasta la aplicación práctica en proyectos reales. Perfecto para desarrollar habilidades profesionales y aplicar conocimientos en situaciones del mundo real.',
+        level: 'Avanzado',
+        language: 'Español',
+        modules: 5,
+        author: 'Carlos Rodríguez',
+        progress: 60,
+        duration: '12 horas',
+        completedModules: 3,
+        quizzes: 2,
+        passedQuizzes: 1,
+        completionDate: 'Completado el 18 de Diciembre, 2024',
+      },
       color: '#059669',
     },
     {
       prompt: 'Python desde cero en 7 días',
-      image: '/mock/course-preview-python.svg',
+      course: {
+        title: 'Python desde cero en 7 días',
+        description:
+          'Este curso completo de Python desde cero en 7 días está diseñado para nivel principiante. Aprenderás los conceptos fundamentales y técnicas avanzadas de manera estructurada y progresiva. El curso incluye múltiples módulos que te guiarán desde los conceptos básicos hasta la aplicación práctica en proyectos reales. Perfecto para desarrollar habilidades profesionales y aplicar conocimientos en situaciones del mundo real.',
+        level: 'Principiante',
+        language: 'Español',
+        modules: 7,
+        author: 'Ana Martínez',
+        progress: 45,
+        duration: '14 horas',
+        completedModules: 3,
+        quizzes: 4,
+        passedQuizzes: 2,
+      },
       color: '#3b82f6',
     },
   ];
@@ -81,11 +126,23 @@ export function Hero() {
       const generatingTimer = setTimeout(() => {
         setShowCourse(true);
         setState('complete');
+        setIsFirstAnimationComplete(true);
       }, 1500);
 
       return () => clearTimeout(generatingTimer);
     }
   }, [state]);
+
+  // Toggle between intro and course view
+  useEffect(() => {
+    if (showCourse && isFirstAnimationComplete) {
+      const toggleTimer = setTimeout(() => {
+        setShowCourseView(!showCourseView);
+      }, 4000);
+
+      return () => clearTimeout(toggleTimer);
+    }
+  }, [showCourse, isFirstAnimationComplete, showCourseView]);
 
   // Handle first animation completion and start carousel
   useEffect(() => {
@@ -225,10 +282,16 @@ export function Hero() {
           {!isFirstAnimationComplete ? (
             // First animation sequence
             <div
-              className={`transition-all duration-1000 ${showCourse ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'}`}
+              className={`transition-all duration-700 ease-out ${showCourse ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-98'}`}
             >
               {showCourse && (
-                <div className="animate-fade-in-up">
+                <div
+                  className="animate-fade-in-up"
+                  style={{
+                    animationDuration: '600ms',
+                    animationTimingFunction: 'ease-out',
+                  }}
+                >
                   <div className="text-center mb-6">
                     <div className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-xl px-4 py-2">
                       <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
@@ -237,7 +300,7 @@ export function Hero() {
                       </span>
                     </div>
                   </div>
-                  <BrowserFrame imageSrc={currentDemo.image} />
+                  <SimpleCourseMockup course={currentDemo.course} />
                 </div>
               )}
             </div>
@@ -260,7 +323,7 @@ export function Hero() {
                           </span>
                         </div>
                       </div>
-                      <BrowserFrame imageSrc={demo.image} />
+                      <SimpleCourseMockup course={demo.course} />
                     </div>
                   ))}
                 </div>

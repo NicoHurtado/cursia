@@ -1,5 +1,11 @@
 import { generateCourseMetadata, generateModuleContent } from './anthropic';
+import { fallbackAI } from './fallback';
 import { CourseMetadataSchema, ModuleContentSchema } from '@/lib/dto/course';
+import {
+  ContentDocument,
+  ContentContractValidator,
+  CONTENT_CONTRACT_VERSION,
+} from '@/lib/content-contract';
 
 /**
  * Simple AI System - No Redis, Direct Calls Only
@@ -39,20 +45,64 @@ export class SimpleAI {
         level,
         interests
       );
-      // Clean the JSON string to remove control characters
-      const cleanedJson = this.cleanJsonString(metadataJson);
-      const metadata = this.parseJsonWithFallback(
-        cleanedJson,
+      // Debug log raw AI metadata
+      try {
+        console.log(
+          '📝 [AI][Metadata] Raw response length:',
+          metadataJson.length
+        );
+        console.log(
+          '📝 [AI][Metadata] Raw response preview:',
+          metadataJson.substring(0, 300) + '...'
+        );
+      } catch (_) {}
+
+      // First try as ContentDocument
+      try {
+        const contractStr = this.cleanJsonString(metadataJson);
+        const doc: ContentDocument = JSON.parse(contractStr);
+        const validation = ContentContractValidator.validateDocument(doc);
+        if (!validation.isValid) {
+          throw new Error(
+            'Contract validation failed: ' + validation.errors.join('; ')
+          );
+        }
+        console.log(
+          '✅ [AI][Metadata] Detected ContentDocument. Blocks:',
+          doc.blocks?.length || 0
+        );
+        const metadata = this.convertContractToCourseMetadata(doc);
+
+        this.setCache(cacheKey, metadata);
+        return metadata;
+      } catch (e) {
+        // Legacy path
+        const cleanedJson = this.cleanJsonString(metadataJson);
+        const metadata = this.parseJsonWithFallback(
+          cleanedJson,
+          CourseMetadataSchema
+        );
+
+        this.setCache(cacheKey, metadata);
+        return metadata;
+      }
+    } catch (error) {
+      console.error(
+        '❌ Course metadata generation failed with Anthropic, using fallback:',
+        error
+      );
+      // Use fallback AI when Anthropic fails
+      const fallbackJson = await fallbackAI.generateCourseMetadata(
+        prompt,
+        level,
+        interests
+      );
+      const fallbackMetadata = this.parseJsonWithFallback(
+        fallbackJson,
         CourseMetadataSchema
       );
-
-      // Cache the result
-      this.setCache(cacheKey, metadata);
-
-      return metadata;
-    } catch (error) {
-      console.error('Course metadata generation failed:', error);
-      throw new Error(`Failed to generate course metadata: ${error}`);
+      this.setCache(cacheKey, fallbackMetadata);
+      return fallbackMetadata;
     }
   }
 
@@ -90,40 +140,64 @@ export class SimpleAI {
         courseDescription
       );
 
-      // Clean the JSON string to remove control characters
-      const cleanedJson = this.cleanJsonString(moduleJson);
+      // Debug: Log raw AI response
+      console.log('📝 Raw AI response length:', moduleJson.length);
+      console.log(
+        '📝 Raw AI response preview:',
+        moduleJson.substring(0, 200) + '...'
+      );
 
-      let moduleContent;
+      // First attempt: parse as ContentContract and convert deterministically
       try {
-        moduleContent = this.parseJsonWithFallback(
+        const contractStr = this.cleanJsonString(moduleJson);
+        const doc: ContentDocument = JSON.parse(contractStr);
+        const validation = ContentContractValidator.validateDocument(doc);
+        if (!validation.isValid) {
+          throw new Error(
+            'Contract validation failed: ' + validation.errors.join('; ')
+          );
+        }
+        let moduleContent = this.convertContractToModuleContent(
+          doc,
+          moduleTitle
+        );
+        console.log('✅ Converted ContentDocument to ModuleContent');
+
+        // No further post-processing needed when using contract blocks
+        // Cache and return early
+        this.setCache(cacheKey, moduleContent);
+        return moduleContent;
+      } catch (error) {
+        console.warn(
+          'Contract path failed, trying legacy ModuleContent parsing:',
+          error
+        );
+
+        // Legacy path: parse as ModuleContent JSON and normalize markdown
+        const cleanedJson = this.cleanJsonString(moduleJson);
+        let rawContent = this.parseJsonWithFallback(
           cleanedJson,
           ModuleContentSchema,
           moduleTitle
         );
-      } catch (error) {
-        console.warn('Schema validation failed, attempting to fix:', error);
 
-        // Try to fix the module content with fallback parsing
-        const rawContent = this.parseJsonWithFallback(
-          cleanedJson,
-          null,
-          moduleTitle
-        );
+        // Post-process the raw content
+        const processedContent = this.postProcessModuleContent(rawContent);
 
         // Ensure we have a proper quiz structure
-        if (!rawContent.quiz) {
-          rawContent.quiz = {
+        if (!processedContent.quiz) {
+          processedContent.quiz = {
             title: `Quiz: ${moduleTitle}`,
             questions: [],
           };
         }
 
         if (
-          !rawContent.quiz.questions ||
-          rawContent.quiz.questions.length < 5
+          !processedContent.quiz.questions ||
+          processedContent.quiz.questions.length < 5
         ) {
           console.warn(
-            `Only ${rawContent.quiz.questions?.length || 0} questions generated, adding fallback questions`
+            `Only ${processedContent.quiz.questions?.length || 0} questions generated, adding fallback questions`
           );
 
           // Add high-quality fallback questions
@@ -190,26 +264,262 @@ export class SimpleAI {
             },
           ];
 
-          const currentQuestions = rawContent.quiz.questions || [];
+          const currentQuestions = processedContent.quiz.questions || [];
           const neededQuestions = Math.max(0, 5 - currentQuestions.length);
-          rawContent.quiz.questions = [
+          processedContent.quiz.questions = [
             ...currentQuestions,
             ...fallbackQuestions.slice(0, neededQuestions),
           ];
         }
 
         // Try parsing again
-        moduleContent = ModuleContentSchema.parse(rawContent);
+        const moduleContent = ModuleContentSchema.parse(processedContent);
+
+        // Cache the result and return
+        this.setCache(cacheKey, moduleContent);
+        return moduleContent;
       }
-
-      // Cache the result
-      this.setCache(cacheKey, moduleContent);
-
-      return moduleContent;
     } catch (error) {
-      console.error('Module content generation failed:', error);
-      throw new Error(`Failed to generate module content: ${error}`);
+      console.error(
+        '❌ Module content generation failed with Anthropic, using fallback:',
+        error
+      );
+      // Use fallback AI when Anthropic fails
+      const fallbackJson = await fallbackAI.generateModuleContent(
+        courseTitle,
+        moduleTitle,
+        moduleOrder,
+        totalModules,
+        courseDescription
+      );
+      const fallbackContent = this.parseJsonWithFallback(
+        fallbackJson,
+        ModuleContentSchema,
+        moduleTitle
+      );
+      this.setCache(cacheKey, fallbackContent);
+      return fallbackContent;
     }
+  }
+
+  // Convert a ContentDocument (blocks) into CourseMetadata structure
+  private convertContractToCourseMetadata(doc: ContentDocument): any {
+    const blocks = doc.blocks || [];
+
+    // Find the course description paragraph (after "Información del Curso" heading)
+    let description = doc.meta.topic; // fallback to topic
+
+    // Look for the paragraph that comes after "Información del Curso" heading
+    for (let i = 0; i < blocks.length - 1; i++) {
+      const currentBlock = blocks[i];
+      const nextBlock = blocks[i + 1];
+
+      if (
+        currentBlock.type === 'heading' &&
+        (currentBlock.data as any)?.text === 'Información del Curso' &&
+        nextBlock.type === 'paragraph'
+      ) {
+        description = (nextBlock.data as any)?.text || doc.meta.topic;
+        break;
+      }
+    }
+
+    // If not found, use the first paragraph as fallback
+    if (description === doc.meta.topic) {
+      const paragraphs = blocks.filter(b => b.type === 'paragraph') as any[];
+      description = paragraphs[0]?.data?.text || doc.meta.topic;
+    }
+
+    const finalDescription = description.slice(0, 500);
+
+    // Extract module list from numbered lists
+    const moduleList: string[] = [];
+    const lists = blocks.filter(
+      b => b.type === 'list' && (b.data as any)?.style === 'numbered'
+    ) as any[];
+    if (lists.length > 0) {
+      const listItems = (lists[0].data as any)?.items || [];
+      moduleList.push(...listItems);
+    }
+
+    return {
+      title: doc.meta.topic,
+      description: finalDescription,
+      moduleList,
+    };
+  }
+
+  // Convert a ContentDocument (blocks) into ModuleContent structure
+  private convertContractToModuleContent(
+    doc: ContentDocument,
+    moduleTitle: string
+  ): any {
+    // Minimal deterministic conversion:
+    // - title/description from meta + first paragraph
+    // - chunks: split blocks roughly into 6 groups
+    const blocks = doc.blocks || [];
+    const paragraphs = blocks.filter(b => b.type === 'paragraph') as any[];
+    const firstParagraph = paragraphs[0]?.data?.text || moduleTitle;
+
+    const description = firstParagraph.slice(0, 500);
+
+    // Build 6 chunks evenly (store ContentDocument JSON per chunk to render perfectly)
+    const chunks: { title: string; content: string }[] = [];
+    const groupSize = Math.max(1, Math.ceil(blocks.length / 6));
+    for (let i = 0; i < 6; i++) {
+      const start = i * groupSize;
+      const group = blocks.slice(start, start + groupSize);
+      if (group.length === 0 && chunks.length > 0) {
+        // duplicate last if not enough content
+        chunks.push({
+          title: `${moduleTitle} - Sección ${i + 1}`,
+          content: chunks[chunks.length - 1].content,
+        });
+        continue;
+      }
+      // Title from first heading in group (prefer level 2/3)
+      const heading =
+        group.find(
+          (b: any) =>
+            b.type === 'heading' &&
+            b.data &&
+            (b.data as any).level &&
+            ((b.data as any).level === 2 || (b.data as any).level === 3)
+        ) || group.find((b: any) => b.type === 'heading');
+      const chunkTitle =
+        heading && (heading as any).data && (heading as any).data.text
+          ? String((heading as any).data.text).trim()
+          : `${moduleTitle} - Sección ${i + 1}`;
+
+      // Create a mini ContentDocument per chunk
+      const chunkDoc: ContentDocument = {
+        version: '1.0.0',
+        locale: 'es',
+        content_id: `chunk-${Date.now()}-${Math.random()}`,
+        meta: { ...doc.meta },
+        blocks: group,
+      };
+      chunks.push({ title: chunkTitle, content: JSON.stringify(chunkDoc) });
+    }
+
+    // Convert quiz from ContentDocument if available
+    let quiz;
+    if (doc.quiz && doc.quiz.questions && doc.quiz.questions.length > 0) {
+      // Use quiz from ContentDocument
+      quiz = {
+        title: doc.quiz.title,
+        questions: doc.quiz.questions.map(q => ({
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          explanation: q.explanation,
+        })),
+      };
+    } else {
+      // Fallback quiz if not provided
+      quiz = {
+        title: `Quiz: ${moduleTitle}`,
+        questions: new Array(7).fill(0).map((_, idx) => ({
+          question: `Pregunta ${idx + 1} sobre ${moduleTitle}`,
+          options: ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
+          correctAnswer: 0,
+          explanation: undefined,
+        })),
+      };
+    }
+
+    return {
+      title: moduleTitle,
+      description,
+      chunks,
+      quiz,
+      total_chunks: 6,
+    };
+  }
+
+  // Deterministic block→markdown mapping used for legacy compatibility
+  private blocksToMarkdown(blocks: any[]): string {
+    const lines: string[] = [];
+    for (const b of blocks) {
+      switch (b.type) {
+        case 'heading': {
+          const level = Math.min(3, Math.max(1, b.data?.level || 2));
+          lines.push(`${'#'.repeat(level)} ${b.data?.text || ''}`);
+          lines.push('');
+          break;
+        }
+        case 'paragraph':
+          lines.push(b.data?.text || '');
+          lines.push('');
+          break;
+        case 'list': {
+          const style = b.data?.style;
+          const items: string[] = b.data?.items || [];
+          for (let i = 0; i < items.length; i++) {
+            lines.push(
+              style === 'numbered' ? `${i + 1}. ${items[i]}` : `- ${items[i]}`
+            );
+          }
+          lines.push('');
+          break;
+        }
+        case 'table': {
+          const headers: string[] = b.data?.headers || [];
+          const rows: string[][] = b.data?.rows || [];
+          if (headers.length) {
+            lines.push(`| ${headers.join(' | ')} |`);
+            lines.push(`| ${headers.map(() => '---').join(' | ')} |`);
+            for (const row of rows) {
+              lines.push(`| ${row.join(' | ')} |`);
+            }
+            lines.push('');
+          }
+          break;
+        }
+        case 'code': {
+          const lang = b.data?.language || 'text';
+          lines.push('```' + lang);
+          lines.push(b.data?.snippet || '');
+          lines.push('```');
+          lines.push('');
+          break;
+        }
+        case 'callout': {
+          const type = b.data?.type || 'info';
+          const title = b.data?.title || '';
+          const content = b.data?.content || '';
+          lines.push(`> ${type.toUpperCase()}: ${title}`);
+          lines.push(`> ${content}`);
+          lines.push('');
+          break;
+        }
+        case 'quote': {
+          const text = b.data?.text || '';
+          lines.push(`> ${text}`);
+          lines.push('');
+          break;
+        }
+        case 'divider':
+          lines.push('');
+          lines.push('---');
+          lines.push('');
+          break;
+        case 'link': {
+          const text = b.data?.text || 'link';
+          const url = b.data?.url || '#';
+          lines.push(`[${text}](${url})`);
+          lines.push('');
+          break;
+        }
+        case 'highlight':
+          lines.push(`**${b.data?.text || ''}**`);
+          lines.push('');
+          break;
+        default:
+          break;
+      }
+    }
+    return this.normalizeMarkdownLegacy(lines.join('\n'));
   }
 
   // Rate Limiting
@@ -275,6 +585,17 @@ export class SimpleAI {
     try {
       // Remove any leading/trailing whitespace
       let cleaned = jsonString.trim();
+
+      // Extract JSON between explicit markers if present
+      const startMarker = '<<<JSON>>>';
+      const endMarker = '<<<END>>>';
+      const startIdx = cleaned.indexOf(startMarker);
+      const endIdx = cleaned.indexOf(endMarker);
+      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        cleaned = cleaned
+          .substring(startIdx + startMarker.length, endIdx)
+          .trim();
+      }
 
       // Remove any markdown code blocks if present
       cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
@@ -841,16 +1162,216 @@ Antes de continuar, tómate un momento para reflexionar:
 
         return result;
       } catch (error) {
-        console.warn(`Strategy ${i + 1} failed:`, error.message);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.warn(`Strategy ${i + 1} failed:`, errorMessage);
         if (i === strategies.length - 1) {
           throw new Error(
-            `All JSON parsing strategies failed. Last error: ${error.message}`
+            `All JSON parsing strategies failed. Last error: ${errorMessage}`
           );
         }
       }
     }
 
     throw new Error('All parsing strategies failed');
+  }
+
+  // Post-process module content to ensure proper markdown structure
+  private postProcessModuleContent(content: any): any {
+    if (!content || !content.chunks) {
+      return content;
+    }
+
+    console.log('🔧 Processing', content.chunks.length, 'chunks...');
+
+    // Process each chunk to ensure proper markdown structure
+    content.chunks = content.chunks.map((chunk: any, index: number) => {
+      if (chunk.content) {
+        console.log(`📝 Processing chunk ${index + 1}: "${chunk.title}"`);
+        const originalContent = chunk.content;
+        chunk.content = this.normalizeMarkdownContent(chunk.content);
+
+        // Validate chunk structure
+        this.validateChunkStructure(chunk, index + 1);
+      }
+      return chunk;
+    });
+
+    console.log('✅ All chunks processed successfully');
+    return content;
+  }
+
+  // Validate chunk structure to ensure proper organization
+  private validateChunkStructure(chunk: any, chunkNumber: number): void {
+    const content = chunk.content;
+    const issues: string[] = [];
+
+    // Check for main heading (##)
+    if (!content.includes('##')) {
+      issues.push('Missing main heading (##)');
+    }
+
+    // Check for subheadings (###)
+    const subheadings = (content.match(/###/g) || []).length;
+    if (subheadings < 2) {
+      issues.push(`Only ${subheadings} subheadings found (recommended: 3-4)`);
+    }
+
+    // Check for lists
+    const lists = (content.match(/^[-*+]\s/gm) || []).length;
+    if (lists < 3) {
+      issues.push(`Only ${lists} list items found (recommended: 5+)`);
+    }
+
+    // Check for paragraphs
+    const paragraphs = content
+      .split('\n\n')
+      .filter(
+        (p: string) =>
+          p.trim() &&
+          !p.match(/^#{1,6}\s/) &&
+          !p.match(/^[-*+]\s/) &&
+          !p.match(/^>\s/)
+      ).length;
+    if (paragraphs < 3) {
+      issues.push(`Only ${paragraphs} paragraphs found (recommended: 5+)`);
+    }
+
+    // Check for blockquotes
+    const blockquotes = (content.match(/^>\s/gm) || []).length;
+    if (blockquotes === 0) {
+      issues.push('No blockquotes found (recommended: 1-2 for tips)');
+    }
+
+    if (issues.length > 0) {
+      console.warn(`⚠️ Chunk ${chunkNumber} structure issues:`, issues);
+    } else {
+      console.log(`✅ Chunk ${chunkNumber} structure looks good`);
+    }
+  }
+
+  // Enhanced content processing with tagged content support
+  private normalizeMarkdownContent(raw: string): string {
+    if (!raw) return '';
+
+    console.log('🔍 Processing content...');
+    console.log('📏 Original length:', raw.length);
+
+    // Check if content uses the new tagging system
+    const hasTags = /^\[[A-Z_]+\]\s/.test(raw);
+
+    if (hasTags) {
+      console.log('🏷️ Detected tagged content, using new parser...');
+
+      // Import ContentParser dynamically to avoid circular dependencies
+      const { ContentParser } = require('@/lib/content-parser');
+
+      // Parse tagged content
+      const elements = ContentParser.parseTaggedContent(raw);
+      console.log('📊 Parsed elements:', elements.length);
+
+      // Convert to markdown
+      const markdown = ContentParser.convertToMarkdown(elements);
+      console.log('✅ Converted to markdown');
+
+      return markdown;
+    } else {
+      console.log('📝 Using legacy normalization...');
+      return this.normalizeMarkdownLegacy(raw);
+    }
+  }
+
+  // Legacy markdown normalization (fallback)
+  private normalizeMarkdownLegacy(raw: string): string {
+    if (!raw) return '';
+
+    console.log('🔍 Normalizing markdown content (legacy)...');
+    console.log('📏 Original length:', raw.length);
+
+    let text = raw.replace(/\r\n/g, '\n');
+
+    // Step 1: Fix common AI concatenation issues
+    text = text
+      // Fix common concatenations like "ProgramaciónAsí" -> "Programación\n\nAsí"
+      .replace(/([a-záéíóúñ0-9\)])([A-ZÁÉÍÓÚÑ])/g, '$1\n\n$2')
+      // Fix concatenations with common words
+      .replace(/([a-záéíóúñ])([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)/g, '$1\n\n$2')
+      // Fix concatenations with numbers
+      .replace(/([a-záéíóúñ])(\d+)/g, '$1\n\n$2')
+      .replace(/(\d+)([A-ZÁÉÍÓÚÑ])/g, '$1\n\n$2');
+
+    // Step 2: Ensure proper heading structure
+    text = text
+      // Ensure headings start on their own line
+      .replace(/(?<!^|\n)(#{1,6}\s)/g, '\n\n$1')
+      .replace(/\s*(#{1,6}\s)/g, '\n$1')
+      // Fix headings that might be concatenated
+      .replace(/(#{1,6})\s*([A-ZÁÉÍÓÚÑ][^#\n]*?)(#{1,6})/g, '$1 $2\n\n$3');
+
+    // Step 3: Fix list structures
+    text = text
+      // Fix unordered lists
+      .replace(/(?<!\n)-\s/g, '\n- ')
+      .replace(/:\s*-\s/g, ':\n- ')
+      // Fix ordered lists
+      .replace(/(?<!\n)(\d+)\.\s/g, '\n$1. ')
+      // Fix nested lists
+      .replace(/(\n- [^\n]+)\n([A-ZÁÉÍÓÚÑ])/g, '$1\n\n$2');
+
+    // Step 4: Fix blockquotes
+    text = text
+      .replace(/(?<!\n)>\s/g, '\n> ')
+      .replace(/([^\n])\n(>\s)/g, '$1\n\n$2');
+
+    // Step 5: Fix code blocks
+    text = text
+      .replace(/(?<!\n)```/g, '\n```')
+      .replace(/```(?<!\n)/g, '```\n')
+      // Ensure code blocks have proper spacing
+      .replace(/([^\n])\n(```)/g, '$1\n\n$2')
+      .replace(/(```[^\n]*\n[^`]*```)([^\n])/g, '$1\n\n$2');
+
+    // Step 6: Fix tables
+    text = text
+      .replace(/(?<!\n)\|/g, '\n|')
+      .replace(/([^\n])\n(\|)/g, '$1\n\n$2');
+
+    // Step 7: Fix paragraph breaks
+    text = text
+      // Ensure paragraphs are separated
+      .replace(/([.!?])\s*([A-ZÁÉÍÓÚÑ])/g, '$1\n\n$2')
+      // Fix sentences that should be separate paragraphs
+      .replace(/([.!?])\s+([A-ZÁÉÍÓÚÑ][^.!?]*[.!?])/g, '$1\n\n$2');
+
+    // Step 8: Clean up excessive whitespace
+    text = text
+      // Collapse multiple newlines to maximum of 2
+      .replace(/\n{3,}/g, '\n\n')
+      // Remove leading/trailing whitespace from lines
+      .replace(/^\s+|\s+$/gm, '')
+      // Remove empty lines at start/end
+      .replace(/^\n+|\n+$/g, '');
+
+    // Step 9: Final structure validation
+    text = text
+      // Ensure proper spacing around headings
+      .replace(/(\n#{1,6}[^\n]+)\n([^#\n])/g, '$1\n\n$2')
+      // Ensure proper spacing around lists
+      .replace(/(\n[-*+]\s[^\n]+)\n([^-\n*+\n])/g, '$1\n\n$2')
+      // Ensure proper spacing around code blocks
+      .replace(/(\n```[^\n]*\n[^`]*```)\n([^`\n])/g, '$1\n\n$2');
+
+    const result = text.trim();
+    console.log('📏 Normalized length:', result.length);
+    console.log('📊 Headings found:', (result.match(/#{1,6}\s/g) || []).length);
+    console.log('📋 Lists found:', (result.match(/^[-*+]\s/gm) || []).length);
+    console.log('💬 Blockquotes found:', (result.match(/^>\s/gm) || []).length);
+    console.log(
+      '💻 Code blocks found:',
+      (result.match(/```/g) || []).length / 2
+    );
+
+    return result;
   }
 
   // Cleanup

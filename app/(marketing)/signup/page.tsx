@@ -97,19 +97,24 @@ export default function SignupPage() {
       }
 
       // Auto sign in after successful registration
+      console.log('Attempting auto sign in with:', { email: data.email });
       const signInResult = await signIn('credentials', {
-        username: data.username,
+        email: data.email,
         password: data.password,
         redirect: false,
       });
 
+      console.log('Sign in result:', signInResult);
+
       if (signInResult?.error) {
+        console.error('Sign in error:', signInResult.error);
         toast({
           title: 'Success',
           description: 'Account created successfully! Please sign in.',
         });
         router.push('/login');
       } else {
+        console.log('Sign in successful, redirecting to dashboard');
         toast({
           title: 'Success',
           description: 'Account created and signed in successfully!',
@@ -143,20 +148,20 @@ export default function SignupPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            Create account
+            Crear cuenta
           </CardTitle>
           <CardDescription className="text-center">
-            Enter your information to create your account
+            Introduce tu información para crear tu cuenta
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">Nombre de usuario</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="Enter your username"
+                placeholder="Introduce tu nombre de usuario"
                 {...register('username')}
                 disabled={isLoading}
                 className="h-12"
@@ -168,11 +173,11 @@ export default function SignupPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Correo electrónico</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Introduce tu correo electrónico"
                 {...register('email')}
                 disabled={isLoading}
                 className="h-12"
@@ -184,11 +189,11 @@ export default function SignupPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Contraseña</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Introduce tu contraseña"
                 {...register('password')}
                 disabled={isLoading}
                 className="h-12"
@@ -200,11 +205,11 @@ export default function SignupPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="Confirm your password"
+                placeholder="Confirma tu contraseña"
                 {...register('confirmPassword')}
                 disabled={isLoading}
                 className="h-12"
@@ -217,16 +222,16 @@ export default function SignupPage() {
             </div>
             <Button type="submit" className="w-full h-12" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Account
+              Crear Cuenta
             </Button>
           </form>
           <div className="mt-6 text-center text-sm">
-            Already have an account?{' '}
+            ¿Ya tienes una cuenta?{' '}
             <Link
               href="/login"
               className="text-primary hover:underline focus:underline focus:outline-none"
             >
-              Sign in
+              Iniciar Sesión
             </Link>
           </div>
         </CardContent>

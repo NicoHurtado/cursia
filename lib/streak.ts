@@ -53,12 +53,12 @@ export function touchStreak(): StreakData {
   const last = new Date(prev.lastDate + 'T00:00:00');
   const nextDate = new Date(last);
   nextDate.setDate(last.getDate() + 1);
-  const isConsecutive = getTodayKey() === `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}-${String(nextDate.getDate()).padStart(2, '0')}`;
+  const isConsecutive =
+    getTodayKey() ===
+    `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}-${String(nextDate.getDate()).padStart(2, '0')}`;
 
   const count = isConsecutive ? prev.count + 1 : 1;
   const next = { count, lastDate: today };
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   return next;
 }
-
-

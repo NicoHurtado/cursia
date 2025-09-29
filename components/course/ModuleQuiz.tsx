@@ -36,6 +36,7 @@ interface ModuleQuizProps {
   onQuizComplete: (passed: boolean, score: number) => void;
   onRetry: () => void;
   onContinue: () => void;
+  onGoBack?: () => void;
 }
 
 type QuizState = 'not-started' | 'in-progress' | 'completed';
@@ -60,6 +61,7 @@ export function ModuleQuiz({
   onQuizComplete,
   onRetry,
   onContinue,
+  onGoBack,
 }: ModuleQuizProps) {
   const [state, setState] = useState<QuizState>('not-started');
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -149,61 +151,18 @@ export function ModuleQuiz({
   if (showCelebration && result) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md mx-4 text-center relative overflow-hidden">
-          {/* Confetti animation */}
-          <div className="absolute inset-0 pointer-events-none">
-            {[...Array(20)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-2 h-2 bg-yellow-400 rounded-full animate-bounce"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 2}s`,
-                  animationDuration: `${1 + Math.random() * 2}s`,
-                }}
-              />
-            ))}
-          </div>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md mx-4 text-center">
+          <h2 className="text-4xl font-bold text-green-600 dark:text-green-400 mb-6 animate-bounce">
+            ¡Felicitaciones! 🎉
+          </h2>
 
-          {/* Main content */}
-          <div className="relative z-10">
-            <div className="w-24 h-24 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-              <Trophy className="h-12 w-12 text-white" />
-            </div>
+          <p className="text-xl text-gray-800 dark:text-gray-200 mb-4 font-medium">
+            ¡Completaste el módulo!
+          </p>
 
-            <h2 className="text-3xl font-bold text-green-600 dark:text-green-400 mb-4 animate-bounce">
-              ¡Felicitaciones! 🎉
-            </h2>
-
-            <div className="text-4xl font-bold text-gray-800 dark:text-gray-200 mb-2">
-              {result.score}%
-            </div>
-
-            <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
-              ¡Has aprobado el quiz! 🎊
-            </p>
-
-            <div className="flex justify-center gap-2 mb-6">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className="h-6 w-6 text-yellow-400 fill-current animate-pulse"
-                  style={{ animationDelay: `${i * 0.1}s` }}
-                />
-              ))}
-            </div>
-
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Preparando el siguiente módulo...
-            </p>
-
-            <div className="mt-4">
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full animate-pulse"></div>
-              </div>
-            </div>
-          </div>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            ¡Excelente trabajo! 🎊
+          </p>
         </div>
       </div>
     );
@@ -236,13 +195,25 @@ export function ModuleQuiz({
               </div>
             </div>
 
-            <Button
-              onClick={() => setState('in-progress')}
-              size="lg"
-              className="px-8"
-            >
-              Start Quiz
-            </Button>
+            <div className="flex gap-4 justify-center">
+              {onGoBack && (
+                <Button
+                  onClick={onGoBack}
+                  variant="outline"
+                  size="lg"
+                  className="px-8"
+                >
+                  ← Volver al Curso
+                </Button>
+              )}
+              <Button
+                onClick={() => setState('in-progress')}
+                size="lg"
+                className="px-8"
+              >
+                Start Quiz
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -443,7 +414,7 @@ export function ModuleQuiz({
             <CardTitle className="text-xl">
               Question {currentQuestion + 1} of {quiz.questions.length}
             </CardTitle>
-            <Badge variant="outline">{Math.round(progress)}% Complete</Badge>
+            <Badge variant="outline">{Math.round(progress)}% Completado</Badge>
           </div>
 
           <Progress value={progress} className="mb-4" />
@@ -478,9 +449,8 @@ export function ModuleQuiz({
                         <div className="w-2 h-2 rounded-full bg-current" />
                       )}
                     </div>
-                    <span className="font-medium">Option {index + 1}</span>
+                    <span className="font-medium text-base">{option}</span>
                   </div>
-                  <p className="mt-2 text-muted-foreground">{option}</p>
                 </button>
               ))}
             </div>
@@ -492,7 +462,7 @@ export function ModuleQuiz({
               onClick={handlePrevious}
               disabled={currentQuestion === 0}
             >
-              Previous
+              Anterior
             </Button>
 
             <div className="flex gap-2">
@@ -502,14 +472,14 @@ export function ModuleQuiz({
                   disabled={!allQuestionsAnswered || isSubmitting}
                   className="px-8"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Quiz'}
+                  {isSubmitting ? 'Enviando...' : 'Enviar Quiz'}
                 </Button>
               ) : (
                 <Button
                   onClick={handleNext}
                   disabled={answers[currentQuestion] === -1}
                 >
-                  Next
+                  Siguiente
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}

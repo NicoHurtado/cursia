@@ -33,8 +33,6 @@ interface Course {
   description: string;
   userLevel: string;
   totalModules: number;
-  averageRating: number;
-  totalRatings: number;
   totalCompletions: number;
   createdAt: string;
   user: {
@@ -42,9 +40,6 @@ interface Course {
     name: string;
     username: string;
     plan: string;
-  };
-  _count: {
-    courseRatings: number;
   };
 }
 
@@ -63,6 +58,7 @@ interface CommunityCoursesResponse {
 export default function CommunityPage() {
   const { data: session } = useSession();
   const { toast } = useToast();
+
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -71,7 +67,6 @@ export default function CommunityPage() {
   const [page, setPage] = useState(1);
   const [userPlan, setUserPlan] = useState<string>('');
   const [canAccessCommunity, setCanAccessCommunity] = useState(false);
-  const [userRatings, setUserRatings] = useState<Record<string, number>>({});
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -82,6 +77,13 @@ export default function CommunityPage() {
   const fetchCourses = async () => {
     try {
       setLoading(true);
+
+      // Verificar que la sesión esté cargada
+      if (!session?.user?.id) {
+        setLoading(false);
+        return;
+      }
+
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '12',
@@ -97,6 +99,10 @@ export default function CommunityPage() {
         setPagination(data.pagination);
         setUserPlan(data.userPlan);
         setCanAccessCommunity(data.canAccessCommunity);
+      } else {
+        console.error('❌ Error en API:', response.status, response.statusText);
+        const errorData = await response.text();
+        console.error('❌ Error data:', errorData);
       }
     } catch (error) {
       console.error('Error fetching courses:', error);
@@ -105,50 +111,11 @@ export default function CommunityPage() {
     }
   };
 
-  const handleRateCourse = async (courseId: string, rating: number) => {
-    try {
-      const response = await fetch('/api/community/rate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ courseId, rating }),
-      });
-
-      if (response.ok) {
-        // Actualizar la calificación local
-        setUserRatings(prev => ({ ...prev, [courseId]: rating }));
-
-        // Actualizar el curso en la lista
-        setCourses(prev =>
-          prev.map(course =>
-            course.id === courseId
-              ? { ...course, totalRatings: course.totalRatings + 1 }
-              : course
-          )
-        );
-
-        toast({
-          title: 'Calificación guardada',
-          description: 'Tu calificación se ha guardado exitosamente.',
-        });
-      } else {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to rate course');
-      }
-    } catch (error) {
-      console.error('Error rating course:', error);
-      toast({
-        title: 'Error',
-        description: 'No se pudo guardar la calificación. Inténtalo de nuevo.',
-        variant: 'destructive',
-      });
-    }
-  };
-
   useEffect(() => {
-    fetchCourses();
-  }, [page, search, level, sortBy]);
+    if (session?.user?.id) {
+      fetchCourses();
+    }
+  }, [session?.user?.id, page, search, level, sortBy]);
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -163,20 +130,6 @@ export default function CommunityPage() {
   const handleSortChange = (value: string) => {
     setSortBy(value);
     setPage(1);
-  };
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={cn(
-          'h-4 w-4',
-          i < Math.floor(rating)
-            ? 'fill-yellow-400 text-yellow-400'
-            : 'text-gray-300'
-        )}
-      />
-    ));
   };
 
   const formatDate = (dateString: string) => {
@@ -206,6 +159,18 @@ export default function CommunityPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Comunidad de Cursos</h1>
           <p>Inicia sesión para acceder a la comunidad</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar loading mientras se carga la sesión
+  if (!session) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>
     );
@@ -290,7 +255,6 @@ export default function CommunityPage() {
               <SelectContent>
                 <SelectItem value="newest">Más recientes</SelectItem>
                 <SelectItem value="oldest">Más antiguos</SelectItem>
-                <SelectItem value="rating">Mejor calificados</SelectItem>
                 <SelectItem value="completions">Más completados</SelectItem>
               </SelectContent>
             </Select>
@@ -339,8 +303,6 @@ export default function CommunityPage() {
                 course={course}
                 currentUserId={session?.user?.id}
                 userPlan={userPlan}
-                onRate={handleRateCourse}
-                userRating={userRatings[course.id] || 0}
               />
             ))}
           </div>

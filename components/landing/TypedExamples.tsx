@@ -21,8 +21,9 @@ export function TypedExamples({ isUserTyping = false }: TypedExamplesProps) {
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    // Pause animation when user is typing
+    // Clear text and pause animation when user is typing
     if (isUserTyping) {
+      setCurrentText('');
       return;
     }
 

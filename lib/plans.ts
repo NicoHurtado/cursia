@@ -89,16 +89,16 @@ export function getPlanLimits(plan: UserPlan): PlanLimits {
 
 export function canCreateCourse(
   userPlan: UserPlan,
-  coursesCreatedThisMonth: number
+  coursesStartedThisMonth: number
 ): boolean {
   const limits = getPlanLimits(userPlan);
-  return coursesCreatedThisMonth < limits.maxCoursesPerMonth;
+  return coursesStartedThisMonth < limits.maxCoursesPerMonth;
 }
 
 export function getRemainingCourses(
   userPlan: UserPlan,
-  coursesCreatedThisMonth: number
+  coursesStartedThisMonth: number
 ): number {
   const limits = getPlanLimits(userPlan);
-  return Math.max(0, limits.maxCoursesPerMonth - coursesCreatedThisMonth);
+  return Math.max(0, limits.maxCoursesPerMonth - coursesStartedThisMonth);
 }

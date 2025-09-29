@@ -18,13 +18,15 @@ export function Footer() {
             </p>
             <div className="flex space-x-4">
               <Link
-                href="https://instagram.com/cursia"
+                href="https://www.instagram.com/cursia.labs/"
                 className="text-muted-foreground hover:text-foreground transition-colors"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <Instagram className="h-5 w-5" />
               </Link>
               <Link
-                href="mailto:hola@cursia.app"
+                href="mailto:prompt2course@gmail.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Mail className="h-5 w-5" />
@@ -45,10 +47,18 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/#roadmap"
+                  href="/como-funciona"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Cómo funciona
+                  Todo sobre Cursia
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/legal"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Información legal
                 </Link>
               </li>
             </ul>

@@ -69,7 +69,6 @@ export const ModuleContentSchema = z.object({
 export const CourseCreateRequestSchema = z.object({
   prompt: z.string().min(10, 'Prompt must be at least 10 characters'),
   level: z.enum(['principiante', 'intermedio', 'avanzado']),
-  interests: z.array(z.string()).max(10, 'Maximum 10 interests allowed').optional().default([]),
 });
 
 export const CourseCreateResponseSchema = z.object({
@@ -95,6 +94,9 @@ export const CourseFullResponseSchema = z.object({
   description: z.string().nullable(),
   userPrompt: z.string().nullable().optional(),
   createdBy: z.string().nullable().optional(),
+  originalAuthorId: z.string().nullable().optional(),
+  originalAuthorName: z.string().nullable().optional(),
+  originalAuthorUsername: z.string().nullable().optional(),
   prerequisites: z.array(z.string()),
   totalModules: z.number(),
   moduleList: z.array(z.string()),
@@ -113,18 +115,32 @@ export const CourseFullResponseSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   completedAt: z.string().nullable(),
+  userLevel: z.string().optional(),
+  isPublic: z.boolean().optional(),
+  totalCompletions: z.number().optional(),
+  publishedAt: z.string().nullable(),
+  user: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      username: z.string(),
+      plan: z.string(),
+    })
+    .optional(),
   modules: z.array(
     z.object({
       id: z.string(),
       moduleOrder: z.number(),
       title: z.string(),
       description: z.string().nullable(),
+      isGenerated: z.boolean().optional(),
       chunks: z.array(
         z.object({
           id: z.string(),
           chunkOrder: z.number(),
           title: z.string(),
           content: z.string(),
+          videoData: z.string().nullable().optional(),
         })
       ),
       videos: z.array(

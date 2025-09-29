@@ -23,6 +23,10 @@ interface Course {
   completedAt: string | null;
   totalModules: number;
   completedModules: number;
+  completionPercentage: number;
+  totalChunks: number;
+  completedChunks: number;
+  isPublic?: boolean;
 }
 
 export default function CoursesPage() {
@@ -77,6 +81,21 @@ export default function CoursesPage() {
     fetchUserPlan();
   }, []);
 
+  // Refresh data when page becomes visible (user returns from course)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchCourses();
+        fetchUserPlan();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   const handleCreateCourse = () => {
     router.push('/create-course');
   };
@@ -125,22 +144,40 @@ export default function CoursesPage() {
             course.id === courseId ? { ...course, isPublic: true } : course
           )
         );
-
-        toast({
-          title: 'Curso publicado',
-          description: 'El curso se ha publicado exitosamente en la comunidad.',
-        });
       } else {
         const error = await response.json();
         throw new Error(error.error || 'Failed to publish course');
       }
     } catch (error) {
       console.error('Error publishing course:', error);
-      toast({
-        title: 'Error',
-        description: 'No se pudo publicar el curso. Inténtalo de nuevo.',
-        variant: 'destructive',
+      throw error; // Re-throw to let the dialog handle the toast
+    }
+  };
+
+  const handleUnpublishCourse = async (courseId: string) => {
+    try {
+      const response = await fetch('/api/community/unpublish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ courseId }),
       });
+
+      if (response.ok) {
+        // Update the course in local state to mark it as not public
+        setCourses(prev =>
+          prev.map(course =>
+            course.id === courseId ? { ...course, isPublic: false } : course
+          )
+        );
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to unpublish course');
+      }
+    } catch (error) {
+      console.error('Error unpublishing course:', error);
+      throw error; // Re-throw to let the dialog handle the toast
     }
   };
 
@@ -203,6 +240,7 @@ export default function CoursesPage() {
               course={course}
               onDelete={handleDeleteCourse}
               onPublish={handlePublishCourse}
+              onUnpublish={handleUnpublishCourse}
               userPlan={userPlan}
             />
           ))}

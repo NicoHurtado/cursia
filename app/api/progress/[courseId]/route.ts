@@ -36,7 +36,8 @@ export async function GET(
     }
 
     // Check if user can access community courses
-    const canAccessCommunity = user.plan === UserPlan.EXPERTO || user.plan === UserPlan.MAESTRO;
+    const canAccessCommunity =
+      user.plan === UserPlan.EXPERTO || user.plan === UserPlan.MAESTRO;
 
     // Get user progress for this course
     const userProgress = await db.userProgress.findFirst({
@@ -58,6 +59,7 @@ export async function GET(
         completionPercentage: 0,
         currentModuleId: null,
         currentChunkId: null,
+        quizAttempts: [],
       });
     }
 
@@ -70,13 +72,15 @@ export async function GET(
         id: courseId,
         OR: [
           { userId: session.user.id }, // User's own courses
-          ...(canAccessCommunity ? [
-            {
-              isPublic: true, // Public community courses
-              deletedAt: null, // Not deleted
-              userId: { not: session.user.id }, // Not owned by current user
-            }
-          ] : []),
+          ...(canAccessCommunity
+            ? [
+                {
+                  isPublic: true, // Public community courses
+                  deletedAt: null, // Not deleted
+                  userId: { not: session.user.id }, // Not owned by current user
+                },
+              ]
+            : []),
         ],
       },
       include: {
@@ -95,6 +99,7 @@ export async function GET(
     // Parse the JSON strings from the database
     const completedChunksArray = JSON.parse(userProgress.completedChunks);
     const completedModulesArray = JSON.parse(userProgress.completedModules);
+    const quizAttemptsArray = JSON.parse(userProgress.quizAttempts);
 
     const moduleProgress: { [key: number]: number } = {};
 
@@ -125,6 +130,7 @@ export async function GET(
       completionPercentage,
       currentModuleId: userProgress.currentModuleId,
       currentChunkId: userProgress.currentChunkId,
+      quizAttempts: quizAttemptsArray,
     });
   } catch (error) {
     console.error('Error fetching user progress:', error);

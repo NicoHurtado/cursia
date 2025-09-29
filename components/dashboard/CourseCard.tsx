@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserPlan } from '@/lib/plans';
+import { PublishCourseDialog } from '@/components/course/PublishCourseDialog';
 
 interface Course {
   id: string;
@@ -32,6 +33,9 @@ interface Course {
   completedAt: string | null;
   totalModules: number;
   completedModules: number;
+  completionPercentage: number;
+  totalChunks: number;
+  completedChunks: number;
   isPublic?: boolean;
 }
 
@@ -39,6 +43,7 @@ interface CourseCardProps {
   course: Course;
   onDelete?: (courseId: string) => void;
   onPublish?: (courseId: string) => void;
+  onUnpublish?: (courseId: string) => void;
   userPlan?: UserPlan | null;
 }
 
@@ -46,11 +51,13 @@ export function CourseCard({
   course,
   onDelete,
   onPublish,
+  onUnpublish,
   userPlan,
 }: CourseCardProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -82,13 +89,12 @@ export function CourseCard({
     });
   };
 
-  const progressPercentage =
-    course.totalModules > 0
-      ? Math.round((course.completedModules / course.totalModules) * 100)
-      : 0;
+  // Use the real completion percentage from the API
+  const progressPercentage = course.completionPercentage;
 
   const handleOpenCourse = () => {
-    router.push(`/courses/${course.id}`);
+    // Navigate to course intro page when coming from dashboard
+    router.push(`/courses/${course.id}?from=dashboard`);
   };
 
   const handleDelete = async () => {
@@ -104,6 +110,10 @@ export function CourseCard({
     }
   };
 
+  const handlePublishClick = () => {
+    setShowPublishDialog(true);
+  };
+
   const handlePublish = async () => {
     if (!onPublish) return;
 
@@ -112,6 +122,19 @@ export function CourseCard({
       await onPublish(course.id);
     } catch (error) {
       console.error('Error publishing course:', error);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const handleUnpublish = async () => {
+    if (!onUnpublish) return;
+
+    setIsPublishing(true);
+    try {
+      await onUnpublish(course.id);
+    } catch (error) {
+      console.error('Error unpublishing course:', error);
     } finally {
       setIsPublishing(false);
     }
@@ -155,13 +178,11 @@ export function CourseCard({
 
       <CardContent className="pt-0">
         {/* Progress */}
-        {course.totalModules > 0 && (
+        {course.totalChunks > 0 && (
           <div className="mb-4">
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="text-muted-foreground">Progreso</span>
-              <span className="font-medium">
-                {course.completedModules}/{course.totalModules} módulos
-              </span>
+              <span className="font-medium text-lg">{progressPercentage}%</span>
             </div>
             <Progress value={progressPercentage} className="h-2" />
           </div>
@@ -192,35 +213,26 @@ export function CourseCard({
             {course.status === 'complete' ? 'Ver Curso' : 'Abrir Curso'}
           </Button>
 
-          {/* Publish Button - Green if MAESTRO and not published, Gray if not MAESTRO or already published */}
+          {/* Publish Button - Soft green if MAESTRO and not published, Gray if not MAESTRO or already published */}
           {onPublish && (
             <Button
-              onClick={handlePublish}
+              onClick={handlePublishClick}
               className={cn(
                 'w-full',
-                userPlan === UserPlan.MAESTRO && !course.isPublic
-                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                userPlan === UserPlan.MAESTRO
+                  ? course.isPublic
+                    ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                    : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                   : 'bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed'
               )}
-              disabled={
-                isPublishing || userPlan !== UserPlan.MAESTRO || course.isPublic
-              }
+              disabled={userPlan !== UserPlan.MAESTRO}
             >
-              {isPublishing ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Publicando...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  {course.isPublic
-                    ? 'Ya Publicado'
-                    : userPlan === UserPlan.MAESTRO
-                      ? 'Publicar en Comunidad'
-                      : 'Plan MAESTRO Requerido'}
-                </>
-              )}
+              <Upload className="h-4 w-4 mr-2" />
+              {course.isPublic
+                ? 'Gestionar Publicación'
+                : userPlan === UserPlan.MAESTRO
+                  ? 'Publicar en Comunidad'
+                  : 'Plan MAESTRO Requerido'}
             </Button>
           )}
 
@@ -233,6 +245,17 @@ export function CourseCard({
           )}
         </div>
       </CardContent>
+
+      {/* Publish Dialog */}
+      <PublishCourseDialog
+        isOpen={showPublishDialog}
+        onClose={() => setShowPublishDialog(false)}
+        courseTitle={course.title}
+        isPublished={course.isPublic || false}
+        onPublish={handlePublish}
+        onUnpublish={handleUnpublish}
+        isProcessing={isPublishing}
+      />
     </Card>
   );
 }

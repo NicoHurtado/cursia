@@ -1,19 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Crown,
-  Star,
-  Zap,
-  CreditCard,
-  CheckCircle,
-  XCircle,
-} from 'lucide-react';
-import { UserPlan, PLAN_NAMES, PLAN_PRICES } from '@/lib/plans';
-import { useRouter } from 'next/navigation';
+import { Crown, Star, Zap, CreditCard } from 'lucide-react';
+import { UserPlan } from '@/lib/plans';
 
 interface PlanStatusProps {
   className?: string;
@@ -22,23 +11,11 @@ interface PlanStatusProps {
 interface PlanData {
   currentPlan: UserPlan;
   planName: string;
-  planPrice: number;
   limits: {
     maxCoursesPerMonth: number;
-    hasCommunityAccess: boolean;
-    canPublishCourses: boolean;
-    hasCustomProfiles: boolean;
-    hasAdvancedAI: boolean;
-    hasEmailSupport: boolean;
-    hasPrioritySupport: boolean;
-    hasVIPSupport: boolean;
-    hasCustomDiplomas: boolean;
-    hasPersonalizedInterests: boolean;
   };
   usage: {
-    coursesCreatedThisMonth: number;
-    remainingCourses: number;
-    canCreateCourse: boolean;
+    coursesStartedThisMonth: number;
   };
 }
 
@@ -59,10 +36,23 @@ const planColors = {
 export function PlanStatus({ className }: PlanStatusProps) {
   const [planData, setPlanData] = useState<PlanData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     fetchPlanData();
+  }, []);
+
+  // Refresh data when page becomes visible (user returns from course)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchPlanData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const fetchPlanData = async () => {
@@ -79,20 +69,13 @@ export function PlanStatus({ className }: PlanStatusProps) {
     }
   };
 
-  const handleUpgrade = () => {
-    router.push('/dashboard/plans');
-  };
-
   if (isLoading) {
     return (
-      <Card className={className}>
-        <CardContent className="p-6">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className={className}>
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+        </div>
+      </div>
     );
   }
 
@@ -104,120 +87,21 @@ export function PlanStatus({ className }: PlanStatusProps) {
   const colorClass = planColors[planData.currentPlan];
 
   return (
-    <Card className={className}>
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div
-              className={`w-10 h-10 ${colorClass} rounded-lg flex items-center justify-center`}
-            >
-              <Icon className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">{planData.planName}</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {planData.planPrice > 0
-                  ? `$${planData.planPrice.toLocaleString()}/mes`
-                  : 'Gratuito'}
-              </p>
-            </div>
+    <div className={className}>
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center space-x-2">
+          <div
+            className={`w-6 h-6 ${colorClass} rounded flex items-center justify-center`}
+          >
+            <Icon className="h-3 w-3 text-white" />
           </div>
-          {planData.currentPlan !== UserPlan.MAESTRO && (
-            <Button onClick={handleUpgrade} size="sm" variant="outline">
-              Actualizar
-            </Button>
-          )}
+          <span className="font-medium">{planData.planName}</span>
         </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Usage Stats */}
-        <div className="bg-muted/50 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Cursos este mes</span>
-            <Badge
-              variant={
-                planData.usage.canCreateCourse ? 'default' : 'destructive'
-              }
-            >
-              {planData.usage.coursesCreatedThisMonth}/
-              {planData.limits.maxCoursesPerMonth}
-            </Badge>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className={`h-2 rounded-full transition-all duration-300 ${
-                planData.usage.canCreateCourse ? 'bg-blue-500' : 'bg-red-500'
-              }`}
-              style={{
-                width: `${Math.min(100, (planData.usage.coursesCreatedThisMonth / planData.limits.maxCoursesPerMonth) * 100)}%`,
-              }}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            {planData.usage.remainingCourses} cursos restantes
-          </p>
-        </div>
-
-        {/* Key Features */}
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium">Características incluidas:</h4>
-          <div className="grid grid-cols-1 gap-1">
-            {planData.limits.hasAdvancedAI && (
-              <div className="flex items-center space-x-2 text-xs">
-                <CheckCircle className="h-3 w-3 text-green-500" />
-                <span>IA Avanzada</span>
-              </div>
-            )}
-            {planData.limits.hasCustomDiplomas && (
-              <div className="flex items-center space-x-2 text-xs">
-                <CheckCircle className="h-3 w-3 text-green-500" />
-                <span>Diplomas Personalizados</span>
-              </div>
-            )}
-            {planData.limits.hasPersonalizedInterests && (
-              <div className="flex items-center space-x-2 text-xs">
-                <CheckCircle className="h-3 w-3 text-green-500" />
-                <span>Gustos Personalizados</span>
-              </div>
-            )}
-            {planData.limits.hasCommunityAccess && (
-              <div className="flex items-center space-x-2 text-xs">
-                <CheckCircle className="h-3 w-3 text-green-500" />
-                <span>Acceso a Comunidad</span>
-              </div>
-            )}
-            {planData.limits.canPublishCourses && (
-              <div className="flex items-center space-x-2 text-xs">
-                <CheckCircle className="h-3 w-3 text-green-500" />
-                <span>Publicar Cursos</span>
-              </div>
-            )}
-            {planData.limits.hasCustomProfiles && (
-              <div className="flex items-center space-x-2 text-xs">
-                <CheckCircle className="h-3 w-3 text-green-500" />
-                <span>Perfiles Personalizados</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Support Level */}
-        <div className="pt-2 border-t">
-          <div className="flex items-center justify-between text-xs">
-            <span>Soporte:</span>
-            <span className="text-muted-foreground">
-              {planData.limits.hasVIPSupport
-                ? 'VIP'
-                : planData.limits.hasPrioritySupport
-                  ? 'Prioritario'
-                  : planData.limits.hasEmailSupport
-                    ? 'Email'
-                    : 'Básico'}
-            </span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        <span className="text-xs text-muted-foreground">
+          {planData.usage.coursesStartedThisMonth}/
+          {planData.limits.maxCoursesPerMonth}
+        </span>
+      </div>
+    </div>
   );
 }

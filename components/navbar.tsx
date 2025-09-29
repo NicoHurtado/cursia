@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Menu, X, Home, Flame } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X, Home } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -20,16 +20,6 @@ export function Navbar({ variant = 'marketing' }: NavbarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const navigation = NAVIGATION[variant];
-  const [streak, setStreak] = useState<number>(0);
-
-  // Lazy import to avoid SSR localStorage issues
-  if (typeof window !== 'undefined') {
-    try {
-      const { touchStreak } = require('@/lib/streak');
-      const data = touchStreak();
-      if (streak !== data.count) setStreak(data.count);
-    } catch {}
-  }
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -71,10 +61,10 @@ export function Navbar({ variant = 'marketing' }: NavbarProps) {
           {variant === 'marketing' ? (
             <div className="hidden md:flex items-center space-x-4">
               <Button variant="ghost" asChild>
-                <Link href="/login">Sign In</Link>
+                <Link href="/login">Iniciar Sesión</Link>
               </Button>
               <Button asChild>
-                <Link href="/signup">Get Started</Link>
+                <Link href="/signup">Empezar</Link>
               </Button>
             </div>
           ) : (
@@ -84,20 +74,15 @@ export function Navbar({ variant = 'marketing' }: NavbarProps) {
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/dashboard/courses">
                     <Home className="h-4 w-4 mr-2" />
-                    Dashboard
+                    Panel
                   </Link>
                 </Button>
               )}
-              {/* Streak button */}
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/streak" className="flex items-center">
-                  <Flame className="h-4 w-4 text-orange-500 mr-1" />
-                  <span className="text-sm font-medium">{streak} días</span>
-                </Link>
-              </Button>
               {/* Profile */}
               <Button variant="outline" size="sm" asChild>
-                <Link href="/dashboard/profile">{session?.user?.name || 'Perfil'}</Link>
+                <Link href="/dashboard/profile">
+                  {session?.user?.name || 'Perfil'}
+                </Link>
               </Button>
             </div>
           )}
@@ -135,10 +120,10 @@ export function Navbar({ variant = 'marketing' }: NavbarProps) {
                 ))}
                 <div className="flex flex-col space-y-2 pt-4 border-t">
                   <Button variant="ghost" asChild>
-                    <Link href="/login">Sign In</Link>
+                    <Link href="/login">Iniciar Sesión</Link>
                   </Button>
                   <Button asChild>
-                    <Link href="/signup">Get Started</Link>
+                    <Link href="/signup">Empezar</Link>
                   </Button>
                 </div>
               </>
@@ -158,17 +143,19 @@ export function Navbar({ variant = 'marketing' }: NavbarProps) {
                     </Link>
                   </Button>
                 )}
-                <Button variant="ghost" asChild className="w-full justify-start">
-                  <Link href="/streak">
-                    <Flame className="h-4 w-4 mr-2 text-orange-500" />
-                    {streak} días de racha
+                <Button
+                  variant="outline"
+                  asChild
+                  className="w-full justify-start"
+                >
+                  <Link href="/dashboard/profile">
+                    {session?.user?.name || 'Perfil'}
                   </Link>
                 </Button>
-                <Button variant="outline" asChild className="w-full justify-start">
-                  <Link href="/dashboard/profile">{session?.user?.name || 'Perfil'}</Link>
-                </Button>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">Tema</span>
+                  <span className="text-sm font-medium text-foreground">
+                    Tema
+                  </span>
                   <ThemeToggle />
                 </div>
               </div>
