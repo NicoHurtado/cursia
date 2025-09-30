@@ -191,3 +191,6 @@ El contenido se renderiza con:
 - **Tablas** con estilos profesionales
 
 Este sistema garantiza que el contenido se vea consistente y profesional en todos los cursos.
+
+
+
