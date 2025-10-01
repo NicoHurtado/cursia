@@ -70,7 +70,7 @@ export const PLAN_LIMITS: Record<UserPlan, PlanLimits> = {
 };
 
 export const PLAN_NAMES: Record<UserPlan, string> = {
-  [UserPlan.FREE]: 'Plan Gratuito',
+  [UserPlan.FREE]: 'Plan de prueba',
   [UserPlan.APRENDIZ]: 'Plan Aprendiz',
   [UserPlan.EXPERTO]: 'Plan Experto',
   [UserPlan.MAESTRO]: 'Plan Maestro',

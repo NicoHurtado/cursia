@@ -66,7 +66,7 @@ export default function ComoFuncionaPage() {
     {
       question: '¿Cursia es gratis?',
       answer:
-        'Sí, con el plan gratuito puedes crear 1 curso al mes y acceder a todos los cursos creados. Los planes pagos incluyen más cursos, certificados y acceso a la comunidad.',
+        'Sí, puedes crear 1 curso gratis y acceder a tus cursos creados. Los planes pagos incluyen más cursos, certificados y acceso a la comunidad.',
     },
     {
       question: '¿Qué incluye cada plan?',
@@ -554,7 +554,7 @@ export default function ComoFuncionaPage() {
                     price: '$0',
                     period: '/mes',
                     features: [
-                      '1 curso al mes',
+                      'Crear 1 curso gratis',
                       'Acceso a cursos creados',
                       'Lecciones + videos + quizzes',
                     ],

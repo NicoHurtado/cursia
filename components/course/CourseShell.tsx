@@ -25,6 +25,8 @@ interface UserProgress {
   currentModuleId?: string | null;
   currentChunkId?: string | null;
   quizAttempts?: any[];
+  userPlan?: string;
+  allowedMaxModules?: number;
 }
 
 export function CourseShell({ course: initialCourse }: CourseShellProps) {
@@ -578,6 +580,20 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
     );
     if (!targetModule) return;
 
+    // Client-side gating for trial plan (Plan de prueba): only modules 1 and 2
+    if (
+      userProgress?.userPlan === 'FREE' &&
+      moduleOrder > (userProgress.allowedMaxModules || 2)
+    ) {
+      toast({
+        title: 'Disponible en planes de pago',
+        description:
+          'El plan de prueba permite acceder solo a los primeros 2 módulos. Actualiza tu plan para continuar.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     // Verificar si el módulo está desbloqueado
     if (!isModuleUnlocked(moduleOrder)) {
       toast({
@@ -611,6 +627,20 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
 
   const handleChunkChange = (moduleOrder: number, chunkOrder: number) => {
     console.log('🔍 handleChunkChange called:', { moduleOrder, chunkOrder });
+
+    // Client-side gating for trial plan
+    if (
+      userProgress?.userPlan === 'FREE' &&
+      moduleOrder > (userProgress.allowedMaxModules || 2)
+    ) {
+      toast({
+        title: 'Disponible en planes de pago',
+        description:
+          'El plan de prueba permite acceder solo a los primeros 2 módulos. Actualiza tu plan para continuar.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     // Verificar si el módulo está desbloqueado
     if (!isModuleUnlocked(moduleOrder)) {

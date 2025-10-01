@@ -124,6 +124,8 @@ export async function GET(
         : 0;
 
     return NextResponse.json({
+      userPlan: user.plan,
+      allowedMaxModules: user.plan === UserPlan.FREE ? 2 : undefined,
       completedChunks: completedChunksArray,
       completedModules: completedModulesArray,
       moduleProgress,

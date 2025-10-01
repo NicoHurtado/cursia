@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { DeleteAccountModal } from '@/components/auth/DeleteAccountModal';
+import { PlanStatus } from '@/components/dashboard/PlanStatus';
 
 interface User {
   id: string;
@@ -152,6 +153,16 @@ export default function ProfilePage() {
           Gestiona tu información personal
         </p>
       </div>
+
+      {/* Plan Status Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tu plan y uso mensual</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PlanStatus />
+        </CardContent>
+      </Card>
 
       {/* Profile Info */}
       <Card>

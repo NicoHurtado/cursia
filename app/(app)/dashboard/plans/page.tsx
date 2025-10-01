@@ -19,15 +19,15 @@ import { UserPlan, PLAN_NAMES, PLAN_PRICES } from '@/lib/plans';
 const plans = [
   {
     id: UserPlan.FREE,
-    name: 'Plan Gratuito',
+    name: 'Plan de prueba',
     price: '$0',
     period: '/mes',
-    description: 'Ideal para probar la plataforma',
+    description: 'Prueba Cursia: 1 curso y 2 módulos disponibles',
     icon: CreditCard,
     color: 'from-gray-500 to-gray-600',
     features: [
-      { text: '1 curso completo al mes', included: true },
-      { text: 'Acceso ilimitado a cursos creados', included: true },
+      { text: 'Crear 1 curso al mes', included: true },
+      { text: 'Acceso solo a módulos 1 y 2 del curso', included: true },
       { text: 'Lecciones + videos + quizzes', included: true },
       { text: 'Sin certificado', included: false },
       { text: 'Sin acceso a comunidad', included: false },
@@ -76,8 +76,7 @@ const plans = [
       { text: 'Sin posibilidad de publicar cursos', included: false },
     ],
     popular: true,
-    cta: 'Prueba Gratuita 7 Días',
-    trialOffer: true,
+    cta: 'Actualizar a Experto',
   },
   {
     id: UserPlan.MAESTRO,
@@ -305,7 +304,7 @@ export default function PlansPage() {
           })}
         </div>
 
-        {/* Trust Signals Section */}
+        {/* Trust Signals Section (sin prueba gratuita) */}
         <div className="mt-16 text-center">
           <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl p-8">
             <h2 className="text-2xl font-bold mb-8 text-gray-900 dark:text-white">
@@ -386,32 +385,7 @@ export default function PlansPage() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-800">
-              <div className="flex items-center justify-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                  ⚡ Prueba Gratuita de 7 Días en Plan Experto
-                </h3>
-              </div>
-              <p className="text-gray-700 dark:text-gray-300 text-center">
-                <strong>Tu plan estrella</strong> - Prueba todas las
-                funcionalidades premium sin compromiso.
-              </p>
-            </div>
+            {/* Se removió la tarjeta de prueba gratuita */}
           </div>
         </div>
       </div>

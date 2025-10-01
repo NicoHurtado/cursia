@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!user) {
+      console.warn('[Plan API] User not found for session id:', session.user.id);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 

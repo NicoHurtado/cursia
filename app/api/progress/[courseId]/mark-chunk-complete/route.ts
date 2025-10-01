@@ -109,8 +109,24 @@ export async function POST(
       console.log('Updating existing user progress:', userProgress.id);
     }
 
-    // Parse completed chunks
+    // Parse completed chunks and enforce trial plan module cap
     const completedChunks = JSON.parse(userProgress.completedChunks);
+
+    // Enforce: FREE (Plan de prueba) can only progress through modules 1 and 2
+    if (user.plan === UserPlan.FREE) {
+      const moduleOrder = chunk.module.moduleOrder;
+      if (moduleOrder > 2 && !updatePosition) {
+        return NextResponse.json(
+          {
+            error:
+              'Tu plan de prueba permite acceder solo a los primeros 2 módulos de cada curso.',
+            upgradeRequired: true,
+            maxModulesAllowed: 2,
+          },
+          { status: 403 }
+        );
+      }
+    }
 
     // Add chunk if not already completed (only if not just updating position)
     if (!updatePosition && !completedChunks.includes(chunkId)) {

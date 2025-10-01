@@ -20,6 +20,7 @@ import { Loader2, Sparkles, BookOpen, Target, Zap } from 'lucide-react';
 import { MemoryGame } from '@/components/loading/MemoryGame';
 import { CourseLoadingScreen } from '@/components/course/CourseLoadingScreen';
 import { ContentBlockedDialog } from '@/components/content/ContentBlockedDialog';
+import { PlanStatus } from '@/components/dashboard/PlanStatus';
 
 const courseSchema = z.object({
   prompt: z
@@ -277,6 +278,15 @@ export default function CreateCoursePage() {
 
       <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="max-w-4xl mx-auto">
+          {/* Plan Status above form */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Tu plan y uso mensual</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PlanStatus />
+            </CardContent>
+          </Card>
           {/* Header */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-6 shadow-lg animate-pulse">
