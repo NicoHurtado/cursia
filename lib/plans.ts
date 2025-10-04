@@ -102,3 +102,32 @@ export function getRemainingCourses(
   const limits = getPlanLimits(userPlan);
   return Math.max(0, limits.maxCoursesPerMonth - coursesStartedThisMonth);
 }
+
+// Plan hierarchy for upgrades/downgrades
+export const PLAN_HIERARCHY: Record<UserPlan, number> = {
+  [UserPlan.FREE]: 0,
+  [UserPlan.APRENDIZ]: 1,
+  [UserPlan.EXPERTO]: 2,
+  [UserPlan.MAESTRO]: 3,
+};
+
+export function isUpgrade(currentPlan: UserPlan, newPlan: UserPlan): boolean {
+  return PLAN_HIERARCHY[newPlan] > PLAN_HIERARCHY[currentPlan];
+}
+
+export function isDowngrade(currentPlan: UserPlan, newPlan: UserPlan): boolean {
+  return PLAN_HIERARCHY[newPlan] < PLAN_HIERARCHY[currentPlan];
+}
+
+export function isSamePlan(currentPlan: UserPlan, newPlan: UserPlan): boolean {
+  return PLAN_HIERARCHY[currentPlan] === PLAN_HIERARCHY[newPlan];
+}
+
+export function canUpgrade(currentPlan: UserPlan, newPlan: UserPlan): boolean {
+  return isUpgrade(currentPlan, newPlan);
+}
+
+export function canDowngrade(currentPlan: UserPlan, newPlan: UserPlan): boolean {
+  // Allow downgrades only to FREE plan or if user explicitly wants to downgrade
+  return newPlan === UserPlan.FREE || isDowngrade(currentPlan, newPlan);
+}

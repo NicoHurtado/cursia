@@ -50,6 +50,7 @@ model User {
   courses       Course[]
   userProgress  UserProgress[]
   certificates  Certificate[]
+  subscriptions Subscription[]
 
   @@map("users")
 }
@@ -266,5 +267,33 @@ model Certificate {
 
   @@unique([userId, courseId])
   @@map("certificates")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  PAUSED
+  FAILED
+}
+
+model Subscription {
+  id                    String             @id @default(cuid())
+  userId                String
+  wompiSubscriptionId   String             @unique
+  plan                  UserPlan
+  status                SubscriptionStatus @default(ACTIVE)
+  amountInCents         Int
+  currency              String             @default("COP")
+  reference             String             @unique
+  nextPaymentDate       DateTime?
+  lastPaymentDate       DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  cancelledAt           DateTime?
+
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
 }
 

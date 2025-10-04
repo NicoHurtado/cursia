@@ -15,6 +15,7 @@ import {
   Check,
   X,
   AlertTriangle,
+  CreditCard,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { DeleteAccountModal } from '@/components/auth/DeleteAccountModal';
@@ -24,6 +25,18 @@ interface User {
   id: string;
   name: string;
   email: string;
+}
+
+interface Subscription {
+  id: string;
+  plan: string;
+  status: string;
+  amountInCents: number;
+  currency: string;
+  nextPaymentDate: string;
+  lastPaymentDate?: string;
+  createdAt: string;
+  cancelledAt?: string;
 }
 
 export default function ProfilePage() {
@@ -37,6 +50,8 @@ export default function ProfilePage() {
   const [editedEmail, setEditedEmail] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userSubscription, setUserSubscription] = useState<Subscription | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     if (session?.user) {
@@ -46,6 +61,7 @@ export default function ProfilePage() {
         email: session.user.email || '',
       });
       fetchUserProfile();
+      fetchUserSubscription();
     }
   }, [session]);
 
@@ -60,6 +76,18 @@ export default function ProfilePage() {
       console.error('Error fetching user profile:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchUserSubscription = async () => {
+    try {
+      const response = await fetch('/api/subscriptions');
+      if (response.ok) {
+        const data = await response.json();
+        setUserSubscription(data.subscription);
+      }
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
     }
   };
 
@@ -128,6 +156,43 @@ export default function ProfilePage() {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!userSubscription || !confirm('¿Estás seguro de que quieres cancelar tu suscripción? Mantendrás acceso hasta el final del período pagado, pero no se renovará automáticamente.')) {
+      return;
+    }
+
+    try {
+      setIsCancelling(true);
+
+      const response = await fetch(`/api/subscriptions/${userSubscription.id}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to cancel subscription');
+      }
+
+      toast({
+        title: 'Suscripción cancelada',
+        description: 'Tu suscripción ha sido cancelada. Mantienes acceso hasta el final del período pagado.',
+      });
+
+      fetchUserSubscription(); // Refresh subscription data
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo cancelar la suscripción. Por favor, intenta de nuevo.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -207,6 +272,23 @@ export default function ProfilePage() {
                   placeholder="tu@email.com"
                 />
               </div>
+              
+              {/* Cancel Subscription Button - Only show when editing and user has active subscription */}
+              {userSubscription && userSubscription.status === 'ACTIVE' && (
+                <div className="pt-4 border-t">
+                  <Button
+                    variant="destructive"
+                    onClick={handleCancelSubscription}
+                    disabled={isCancelling || isSaving}
+                    className="w-full justify-start"
+                    size="sm"
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    {isCancelling ? 'Cancelando...' : 'Cancelar Suscripción'}
+                  </Button>
+                </div>
+              )}
+              
               <div className="flex gap-2">
                 <Button
                   onClick={handleSaveProfile}
@@ -264,23 +346,27 @@ export default function ProfilePage() {
         </Button>
       </div>
 
-      {/* Delete Account Button */}
-      <div className="max-w-md">
-        <Button
-          variant="destructive"
-          onClick={() => setShowDeleteModal(true)}
-          className="w-full justify-start bg-red-600 hover:bg-red-700"
-        >
-          <AlertTriangle className="h-4 w-4 mr-2" />
-          Eliminar Cuenta
-        </Button>
-      </div>
+      {/* Delete Account Button - DISABLED */}
+      {false && (
+        <div className="max-w-md">
+          <Button
+            variant="destructive"
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full justify-start bg-red-600 hover:bg-red-700"
+          >
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            Eliminar Cuenta
+          </Button>
+        </div>
+      )}
 
-      {/* Delete Account Modal */}
-      <DeleteAccountModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-      />
+      {/* Delete Account Modal - DISABLED */}
+      {false && (
+        <DeleteAccountModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+        />
+      )}
     </div>
   );
 }
