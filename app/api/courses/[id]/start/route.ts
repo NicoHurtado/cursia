@@ -1124,11 +1124,33 @@ function repairMalformedJson(jsonString: string): string | null {
     // Intentar reparar problemas comunes de JSON malformado
     let repaired = jsonString;
 
+    // 0. Quitar fences de markdown y quedarnos con el bloque JSON más grande
+    repaired = repaired.replace(/```json[\s\S]*?```/gi, (m) => m.replace(/```json|```/gi, ''));
+    const fenceFree = repaired.match(/\{[\s\S]*\}/);
+    if (fenceFree) repaired = fenceFree[0];
+
+    // 0.1 Normalizar comillas “smart” y apóstrofes a comillas rectas
+    repaired = repaired
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'");
+
     // 1. Limpiar caracteres de control problemáticos
     repaired = repaired.replace(/[\x00-\x1F\x7F]/g, '');
 
     // 2. Escapar caracteres problemáticos en strings
     repaired = repaired.replace(/\\(?!["\\/bfnrt])/g, '\\\\');
+
+    // 2.1 Escapar comillas internas no escapadas en valores de campos propensos
+    const escapeInnerQuotes = (text: string) =>
+      text.replace(/(?<!\\)\"/g, '\\"');
+
+    const fields = ['explanation', 'question', 'title', 'text'];
+    for (const field of fields) {
+      const regex = new RegExp(`(\"${field}\"\s*:\s*\")(.*?)(\")`, 'gs');
+      repaired = repaired.replace(regex, (_m, p1, content, p3) => {
+        return `${p1}${escapeInnerQuotes(content)}${p3}`;
+      });
+    }
 
     // 3. Cerrar strings no terminados
     repaired = repaired.replace(/"([^"]*)$/gm, '"$1"');

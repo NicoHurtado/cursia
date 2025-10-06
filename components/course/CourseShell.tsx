@@ -10,6 +10,8 @@ import { ModuleSidebar } from './ModuleSidebar';
 import { ChunkReader } from './ChunkReader';
 import { CourseLoadingScreenWithGame } from './CourseLoadingScreenWithGame';
 import { NormalLoadingScreen } from '@/components/ui/normal-loading-screen';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { CourseFullResponse } from '@/lib/dto/course';
 
@@ -75,6 +77,16 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
     useState<any>(null);
   const [isCheckingGeneration, setIsCheckingGeneration] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(400);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  // If the course is already READY on first render, enable READY mode to start polling
+  useEffect(() => {
+    if (course.status === 'READY' && courseStatus !== 'READY') {
+      setCourseStatus('READY');
+      // Kick an immediate status check to pull freshly generated modules/chunks
+      checkModuleGenerationStatus().catch(() => {});
+    }
+  }, [course.status, courseStatus]);
 
   // Restaurar estado inmediatamente al montar el componente (solo si no viene del dashboard)
   useEffect(() => {
@@ -634,11 +646,12 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
       moduleOrder > (userProgress.allowedMaxModules || 2)
     ) {
       toast({
-        title: 'Disponible en planes de pago',
+        title: 'Contenido bloqueado por tu plan',
         description:
           'El plan de prueba permite acceder solo a los primeros 2 módulos. Actualiza tu plan para continuar.',
         variant: 'destructive',
       });
+      setShowUpgradeModal(true);
       return;
     }
 
@@ -755,6 +768,23 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
           description: 'Has marcado esta lección como completada.',
         });
       } else {
+        if (response.status === 403) {
+          try {
+            const err = await response.json();
+            if (err.upgradeRequired) {
+              toast({
+                title: 'Contenido bloqueado por tu plan',
+                description:
+                  err.error || 'Tu plan de prueba permite solo los primeros 2 módulos.',
+                variant: 'destructive',
+              });
+              setShowUpgradeModal(true);
+              return;
+            }
+          } catch (_) {
+            // ignore JSON parse error and fallthrough
+          }
+        }
         throw new Error('Failed to mark chunk complete');
       }
     } catch (error) {
@@ -1027,6 +1057,7 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
     );
 
     return (
+      <>
       <div className="h-screen bg-background flex flex-col">
         <div className="flex flex-1 overflow-hidden">
           {/* Left Sidebar */}
@@ -1096,6 +1127,33 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
           </div>
         </div>
       </div>
+      {/* Upgrade Modal for FREE plan gating */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Desbloquea todos los módulos</DialogTitle>
+            <DialogDescription>
+              Tu plan de prueba permite acceder solo a los módulos 1 y 2. Actualiza tu plan para continuar con el curso completo y obtener certificado.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setShowUpgradeModal(false)}
+            >
+              Seguir explorando
+            </Button>
+            <Button
+              className="w-full sm:w-auto"
+              onClick={() => router.push('/dashboard/plans')}
+            >
+              Ver planes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      </>
     );
   }
 
