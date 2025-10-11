@@ -19,10 +19,20 @@ export async function GET(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado' },
-        { status: 404 }
-      );
+      // Responder con datos vacíos para no romper el dashboard si el usuario no existe
+      const page = 1;
+      const limit = 10;
+      return NextResponse.json({
+        courses: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+        },
+        userPlan: 'FREE',
+        canAccessCommunity: false,
+      });
     }
 
     const { searchParams } = new URL(request.url);

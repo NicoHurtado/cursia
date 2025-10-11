@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { UserPlan } from '@/lib/plans';
+const isDev = process.env.NODE_ENV !== 'production';
 
 export async function POST(
   request: NextRequest,
@@ -10,20 +11,21 @@ export async function POST(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    console.log('Session in mark-chunk-complete:', session?.user?.id);
+    if (isDev) console.log('Session in mark-chunk-complete:', session?.user?.id);
 
     if (!session?.user?.id) {
-      console.log('No session found in mark-chunk-complete');
+      if (isDev) console.log('No session found in mark-chunk-complete');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { courseId } = await params;
     const { chunkId, updatePosition = false } = await request.json();
-    console.log('Marking chunk complete:', {
-      courseId,
-      chunkId,
-      updatePosition,
-    });
+    if (isDev)
+      console.log('Marking chunk complete:', {
+        courseId,
+        chunkId,
+        updatePosition,
+      });
 
     if (!chunkId) {
       return NextResponse.json(
@@ -100,13 +102,13 @@ export async function POST(
     });
 
     if (!userProgress) {
-      console.log('No user progress found - course must be started first');
+      if (isDev) console.log('No user progress found - course must be started first');
       return NextResponse.json(
         { error: 'Course must be started before marking chunks as complete' },
         { status: 400 }
       );
     } else {
-      console.log('Updating existing user progress:', userProgress.id);
+      if (isDev) console.log('Updating existing user progress:', userProgress.id);
     }
 
     // Parse completed chunks and enforce trial plan module cap

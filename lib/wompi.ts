@@ -138,8 +138,9 @@ export function createSubscriptionReference(userId: string, plan: UserPlan): str
 export function parseWompiWebhook(body: string, signature: string): WompiWebhookEvent {
   // Verify webhook signature using the Events secret
   const crypto = require('crypto');
+  const secret = process.env.WOMPI_EVENTS_SECRET || WOMPI_CONFIG.webhookSecret;
   const expectedSignature = crypto
-    .createHmac('sha256', WOMPI_CONFIG.webhookSecret)
+    .createHmac('sha256', secret)
     .update(body)
     .digest('hex');
 

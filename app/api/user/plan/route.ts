@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { UserPlan, PLAN_LIMITS, PLAN_NAMES, PLAN_PRICES } from '@/lib/plans';
+const isDev = process.env.NODE_ENV !== 'production';
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,9 +41,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log(
-      `📊 Plan check for user ${session.user.id}: ${coursesStartedThisMonth} courses started this month`
-    );
+    if (isDev)
+      console.log(
+        `📊 Plan check for user ${session.user.id}: ${coursesStartedThisMonth} courses started this month`
+      );
 
     const planLimits = PLAN_LIMITS[user.plan as UserPlan];
     const remainingCourses = Math.max(
@@ -81,10 +83,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { plan } = body;
 
-    console.log('Received plan update request:', {
-      userId: session.user.id,
-      plan,
-    });
+    if (isDev)
+      console.log('Received plan update request:', {
+        userId: session.user.id,
+        plan,
+      });
 
     // Validate plan
     const validPlans = Object.values(UserPlan);
@@ -106,7 +109,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    console.log('Updating user plan from', existingUser.plan, 'to', plan);
+    if (isDev) console.log('Updating user plan from', existingUser.plan, 'to', plan);
 
     // Update user plan
     const updatedUser = await db.user.update({
@@ -119,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     const planLimits = PLAN_LIMITS[plan as UserPlan];
 
-    console.log('Plan updated successfully:', updatedUser.plan);
+    if (isDev) console.log('Plan updated successfully:', updatedUser.plan);
 
     return NextResponse.json({
       success: true,

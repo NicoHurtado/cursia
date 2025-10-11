@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { CourseFullResponse } from '@/lib/dto/course';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 interface CourseShellProps {
   course: CourseFullResponse;
 }
@@ -91,7 +93,7 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
   // Restaurar estado inmediatamente al montar el componente (solo si no viene del dashboard)
   useEffect(() => {
     if (fromDashboard) {
-      console.log('🚀 Coming from dashboard, staying on intro view');
+      if (isDev) console.log('🚀 Coming from dashboard, staying on intro view');
       return;
     }
 
@@ -112,7 +114,7 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
   ) => {
     // No guardar el estado 'intro' ya que es el estado por defecto
     if (view === 'intro') {
-      console.log('Skipping save for intro state');
+      if (isDev) console.log('Skipping save for intro state');
       return;
     }
 
@@ -123,12 +125,13 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
       timestamp: Date.now(),
     };
     const key = `course-navigation-${course.id}`;
-    console.log(
-      '💾 Saving navigation state:',
-      navigationState,
-      'with key:',
-      key
-    );
+    if (isDev)
+      console.log(
+        '💾 Saving navigation state:',
+        navigationState,
+        'with key:',
+        key
+      );
     localStorage.setItem(key, JSON.stringify(navigationState));
   };
 
@@ -136,23 +139,24 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
   const restoreNavigationState = () => {
     try {
       const key = `course-navigation-${course.id}`;
-      console.log('Looking for navigation state with key:', key);
+      if (isDev) console.log('Looking for navigation state with key:', key);
       const saved = localStorage.getItem(key);
-      console.log('Saved navigation state:', saved);
+      if (isDev) console.log('Saved navigation state:', saved);
 
       if (saved) {
         const navigationState = JSON.parse(saved);
-        console.log('Parsed navigation state:', navigationState);
+        if (isDev) console.log('Parsed navigation state:', navigationState);
 
         // Solo restaurar si el estado es reciente (menos de 24 horas)
         const isRecent =
           Date.now() - navigationState.timestamp < 24 * 60 * 60 * 1000;
-        console.log(
-          'Is recent?',
-          isRecent,
-          'Time difference:',
-          Date.now() - navigationState.timestamp
-        );
+        if (isDev)
+          console.log(
+            'Is recent?',
+            isRecent,
+            'Time difference:',
+            Date.now() - navigationState.timestamp
+          );
 
         if (
           isRecent &&
@@ -160,13 +164,13 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
           navigationState.moduleOrder &&
           navigationState.chunkOrder
         ) {
-          console.log('Navigation state is valid and recent');
+          if (isDev) console.log('Navigation state is valid and recent');
           return navigationState;
         } else {
-          console.log('Navigation state is not valid or not recent');
+          if (isDev) console.log('Navigation state is not valid or not recent');
         }
       } else {
-        console.log('No saved navigation state found');
+        if (isDev) console.log('No saved navigation state found');
       }
     } catch (error) {
       console.error('Error restoring navigation state:', error);
@@ -215,11 +219,11 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
         const response = await fetch(`/api/progress/${course.id}`, {
           credentials: 'include',
         });
-        console.log('Progress response status:', response.status);
+        if (isDev) console.log('Progress response status:', response.status);
 
         if (response.ok) {
           const progressData = await response.json();
-          console.log('Progress data loaded:', progressData);
+          if (isDev) console.log('Progress data loaded:', progressData);
           setUserProgress(progressData);
 
           // Check if course is still being generated
@@ -227,10 +231,11 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
             course.status === 'GENERATING_METADATA' ||
             course.status === 'METADATA_READY'
           ) {
-            console.log(
-              'Course is still being generated, status:',
-              course.status
-            );
+            if (isDev)
+              console.log(
+                'Course is still being generated, status:',
+                course.status
+              );
             setIsGenerating(true);
             setCourseStatus(course.status);
           }
@@ -240,10 +245,11 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
               m => m.id === progressData.currentModuleId
             );
             if (currentModule) {
-              console.log(
-                'Setting current module to:',
-                currentModule.moduleOrder
-              );
+              if (isDev)
+                console.log(
+                  'Setting current module to:',
+                  currentModule.moduleOrder
+                );
               setCurrentModuleOrder(currentModule.moduleOrder);
             }
           }
@@ -257,20 +263,21 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
                 c => c.id === progressData.currentChunkId
               );
               if (currentChunk) {
-                console.log(
-                  'Setting current chunk to:',
-                  currentChunk.chunkOrder
-                );
+                if (isDev)
+                  console.log(
+                    'Setting current chunk to:',
+                    currentChunk.chunkOrder
+                  );
                 setCurrentChunkOrder(currentChunk.chunkOrder);
               }
             }
           }
         } else {
-          console.log('Failed to load progress, status:', response.status);
+          if (isDev) console.log('Failed to load progress, status:', response.status);
           const errorData = await response.json();
-          console.log('Error data:', errorData);
+          if (isDev) console.log('Error data:', errorData);
 
-          console.log('Initializing with empty progress');
+          if (isDev) console.log('Initializing with empty progress');
           setUserProgress({
             completedChunks: [],
             completedModules: [],
@@ -283,7 +290,7 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
       } catch (error) {
         console.error('Error loading user progress:', error);
 
-        console.log('Initializing with empty progress due to error');
+        if (isDev) console.log('Initializing with empty progress due to error');
         setUserProgress({
           completedChunks: [],
           completedModules: [],
@@ -303,51 +310,52 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
   // Restaurar estado de navegación después de cargar el progreso del usuario (solo si no viene del dashboard)
   useEffect(() => {
     if (fromDashboard) {
-      console.log('🚀 Coming from dashboard, skipping navigation restoration');
+      if (isDev) console.log('🚀 Coming from dashboard, skipping navigation restoration');
       return;
     }
 
     if (userProgress && !isLoadingProgress) {
-      console.log('=== NAVIGATION RESTORATION START ===');
-      console.log('User progress loaded:', userProgress);
+      if (isDev) console.log('=== NAVIGATION RESTORATION START ===');
+      if (isDev) console.log('User progress loaded:', userProgress);
 
       const savedState = restoreNavigationState();
-      console.log('Saved state from localStorage:', savedState);
+      if (isDev) console.log('Saved state from localStorage:', savedState);
 
       if (savedState && savedState.view !== 'intro') {
-        console.log(
-          'Attempting to restore saved navigation state:',
-          savedState
-        );
+        if (isDev)
+          console.log(
+            'Attempting to restore saved navigation state:',
+            savedState
+          );
 
         // Validar que el módulo y lección existen
         const targetModule = course.modules.find(
           m => m.moduleOrder === savedState.moduleOrder
         );
-        console.log('Target module found:', targetModule);
+        if (isDev) console.log('Target module found:', targetModule);
 
         if (
           targetModule &&
           savedState.chunkOrder <= targetModule.chunks.length
         ) {
-          console.log('✅ Valid saved state, restoring...');
+          if (isDev) console.log('✅ Valid saved state, restoring...');
           setCurrentView(savedState.view as any);
           setCurrentModuleOrder(savedState.moduleOrder);
           setCurrentChunkOrder(savedState.chunkOrder);
-          console.log('✅ Navigation state restored successfully');
+          if (isDev) console.log('✅ Navigation state restored successfully');
           return; // Salir temprano para evitar sobrescribir
         } else {
-          console.log('❌ Invalid saved state, falling back to progress');
+          if (isDev) console.log('❌ Invalid saved state, falling back to progress');
         }
       }
 
       // Fallback: usar el progreso actual del usuario
-      console.log('Using current user progress as fallback');
+      if (isDev) console.log('Using current user progress as fallback');
       if (userProgress.currentModuleId) {
         const currentModule = course.modules.find(
           m => m.id === userProgress.currentModuleId
         );
-        console.log('Current module from progress:', currentModule);
+        if (isDev) console.log('Current module from progress:', currentModule);
 
         if (currentModule) {
           setCurrentModuleOrder(currentModule.moduleOrder);
@@ -357,16 +365,16 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
             const currentChunk = currentModule.chunks.find(
               c => c.id === userProgress.currentChunkId
             );
-            console.log('Current chunk from progress:', currentChunk);
+            if (isDev) console.log('Current chunk from progress:', currentChunk);
 
             if (currentChunk) {
               setCurrentChunkOrder(currentChunk.chunkOrder);
             }
           }
-          console.log('✅ Fallback navigation state set');
+          if (isDev) console.log('✅ Fallback navigation state set');
         }
       }
-      console.log('=== NAVIGATION RESTORATION END ===');
+      if (isDev) console.log('=== NAVIGATION RESTORATION END ===');
     }
   }, [
     userProgress,
@@ -393,24 +401,26 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
     moduleOrder?: number,
     chunkOrder?: number
   ) => {
-    console.log('🔄 updateView called:', { view, moduleOrder, chunkOrder });
+    if (isDev) console.log('🔄 updateView called:', { view, moduleOrder, chunkOrder });
     setCurrentView(view);
     if (moduleOrder !== undefined) setCurrentModuleOrder(moduleOrder);
     if (chunkOrder !== undefined) setCurrentChunkOrder(chunkOrder);
-    console.log('✅ State updated successfully');
+    if (isDev) console.log('✅ State updated successfully');
   };
 
   // Función para debuggear el estado actual
   const debugCurrentState = () => {
     const savedState = localStorage.getItem(`course-navigation-${course.id}`);
-    console.log('🔍 DEBUG CURRENT STATE:');
-    console.log('  - currentView:', currentView);
-    console.log('  - currentModuleOrder:', currentModuleOrder);
-    console.log('  - currentChunkOrder:', currentChunkOrder);
-    console.log('  - courseId:', course.id);
-    console.log('  - savedState:', savedState);
-    console.log('  - userProgress:', userProgress);
-    console.log('  - isLoadingProgress:', isLoadingProgress);
+    if (isDev) {
+      console.log('🔍 DEBUG CURRENT STATE:');
+      console.log('  - currentView:', currentView);
+      console.log('  - currentModuleOrder:', currentModuleOrder);
+      console.log('  - currentChunkOrder:', currentChunkOrder);
+      console.log('  - courseId:', course.id);
+      console.log('  - savedState:', savedState);
+      console.log('  - userProgress:', userProgress);
+      console.log('  - isLoadingProgress:', isLoadingProgress);
+    }
   };
 
   // Hacer la función de debug disponible globalmente para testing
@@ -494,15 +504,16 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
 
           // If new modules are available, fetch updated course data
           if (hasNewContent) {
-            console.log(
-              'New modules generated, fetching updated course data...'
-            );
+            if (isDev)
+              console.log(
+                'New modules generated, fetching updated course data...'
+              );
             try {
               const courseResponse = await fetch(`/api/courses/${course.id}`);
               if (courseResponse.ok) {
                 const updatedCourse = await courseResponse.json();
                 setCourse(updatedCourse);
-                console.log('Course data updated successfully');
+                if (isDev) console.log('Course data updated successfully');
               }
             } catch (error) {
               console.error('Error fetching updated course data:', error);

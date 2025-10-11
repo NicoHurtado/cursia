@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { parseWompiWebhook } from '@/lib/wompi';
 import { UserPlan } from '@/lib/plans';
+const isDev = process.env.NODE_ENV !== 'production';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +12,8 @@ export async function POST(request: NextRequest) {
     // Parse and verify webhook
     const webhookEvent = parseWompiWebhook(body, signature);
 
-    console.log('Wompi webhook received:', webhookEvent.event, webhookEvent.data);
+    if (isDev)
+      console.log('Wompi webhook received:', webhookEvent.event, webhookEvent.data);
 
     const { event, data } = webhookEvent;
 
@@ -37,7 +39,7 @@ export async function POST(request: NextRequest) {
         break;
       
       default:
-        console.log('Unhandled webhook event:', event);
+        if (isDev) console.log('Unhandled webhook event:', event);
     }
 
     return NextResponse.json({ received: true });
@@ -60,7 +62,7 @@ async function handleTransactionCreated(data: any) {
   });
 
   if (!subscription) {
-    console.log('Subscription not found for reference:', transaction.reference);
+    if (isDev) console.log('Subscription not found for reference:', transaction.reference);
     return;
   }
 

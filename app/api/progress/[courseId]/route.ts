@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { UserPlan } from '@/lib/plans';
+const isDev = process.env.NODE_ENV !== 'production';
 
 export async function GET(
   request: NextRequest,
@@ -10,7 +11,7 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    console.log('Session in progress endpoint:', session?.user?.id);
+    if (isDev) console.log('Session in progress endpoint:', session?.user?.id);
 
     if (!session?.user?.id) {
       console.log('No session found, returning unauthorized');
@@ -18,12 +19,13 @@ export async function GET(
     }
 
     const { courseId } = await params;
-    console.log(
-      'Getting progress for course:',
-      courseId,
-      'user:',
-      session.user.id
-    );
+    if (isDev)
+      console.log(
+        'Getting progress for course:',
+        courseId,
+        'user:',
+        session.user.id
+      );
 
     // Get user info to check plan
     const user = await db.user.findUnique({
@@ -47,10 +49,10 @@ export async function GET(
       },
     });
 
-    console.log('User progress found:', userProgress);
+    if (isDev) console.log('User progress found:', userProgress);
 
     if (!userProgress) {
-      console.log('No user progress found, returning empty progress');
+      if (isDev) console.log('No user progress found, returning empty progress');
       // Return empty progress if no progress exists
       return NextResponse.json({
         completedChunks: [],

@@ -23,7 +23,8 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    console.log(`Found ${expiredSubscriptions.length} expired subscriptions to process`);
+    if (process.env.NODE_ENV !== 'production')
+      console.log(`Found ${expiredSubscriptions.length} expired subscriptions to process`);
 
     // Downgrade users to FREE plan
     const userIds = expiredSubscriptions.map(sub => sub.userId);
@@ -40,7 +41,8 @@ export async function GET(request: NextRequest) {
         }
       });
 
-      console.log(`Downgraded ${userIds.length} users to FREE plan`);
+      if (process.env.NODE_ENV !== 'production')
+        console.log(`Downgraded ${userIds.length} users to FREE plan`);
     }
 
     return NextResponse.json({

@@ -18,6 +18,11 @@ export const metadata: Metadata = {
   keywords: ['Next.js', 'React', 'TypeScript', 'TailwindCSS'],
   authors: [{ name: 'Cursia Team' }],
   creator: 'Cursia',
+  icons: {
+    icon: '/logo2.png',
+    shortcut: '/logo2.png',
+    apple: '/logo2.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
