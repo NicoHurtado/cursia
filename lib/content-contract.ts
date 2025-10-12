@@ -146,15 +146,15 @@ export class ContentContractValidator {
   private static readonly PARAGRAPH_MIN_WORDS = 60; // advisory
   private static readonly PARAGRAPH_MAX_WORDS = 180; // advisory
   private static readonly LIST_MIN_ITEMS = 1; // Más flexible para listas cortas
-  private static readonly LIST_MAX_ITEMS = 7;
+  private static readonly LIST_MAX_ITEMS = 20; // Aumentado para permitir listas más largas
   private static readonly ITEM_MIN_WORDS = 6;
-  private static readonly ITEM_MAX_WORDS = 18;
+  private static readonly ITEM_MAX_WORDS = 30; // Aumentado para items más descriptivos
   private static readonly TABLE_MIN_COLS = 2;
   private static readonly TABLE_MAX_COLS = 6;
   private static readonly TABLE_MIN_ROWS = 1;
   private static readonly TABLE_MAX_ROWS = 25;
-  private static readonly MIN_BLOCKS_RECOMMENDED = 8;
-  private static readonly MAX_BLOCKS_RECOMMENDED = 14;
+  private static readonly MIN_BLOCKS_RECOMMENDED = 10; // Balance entre profundidad y velocidad
+  private static readonly MAX_BLOCKS_RECOMMENDED = 25; // Suficiente para lecciones completas
 
   /**
    * Valida que un documento cumpla el contrato

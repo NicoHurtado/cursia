@@ -626,6 +626,7 @@ La salida siempre es un único ContentDocument válido.`;
       lessonTitle?: string;
       lessonNumber?: number;
       totalLessons?: number;
+      existingTopics?: string[];
     }
   ): string {
     const topic = context.topic || context.moduleTitle || 'Lección';
@@ -638,14 +639,36 @@ La salida siempre es un único ContentDocument válido.`;
     const lessonTitle = context.lessonTitle || 'Lección';
     const lessonNumber = context.lessonNumber || 1;
     const totalLessons = context.totalLessons || 5;
+    const existingTopics = context.existingTopics || [];
+
+    let existingTopicsWarning = '';
+    if (existingTopics.length > 0) {
+      existingTopicsWarning = `
+
+⚠️ EVITA REPETIR ESTOS TEMAS (ya cubiertos en lecciones anteriores):
+${existingTopics.map((t, i) => `${i + 1}. "${t}"`).join('\n')}
+
+DEBES ABORDAR UN ASPECTO ÚNICO Y DIFERENTE. Si estás en la lección ${lessonNumber}, profundiza en aspectos más específicos o avanzados que no se hayan cubierto antes.`;
+    }
 
     return `Tema: ${topic}
 Lección: ${lessonTitle} (${lessonNumber}/${totalLessons})
-Nivel: ${level}
+⚠️ NIVEL: ${level.toUpperCase()} ${level === 'beginner' ? '- PRINCIPIANTE ABSOLUTO (NO asumas conocimiento previo)' : level === 'intermediate' ? '- INTERMEDIO (asume conocimientos básicos)' : '- AVANZADO (asume dominio de fundamentos)'}
 Audiencia: ${audience}
-Intereses: ${interestLine}
+Intereses: ${interestLine}${existingTopicsWarning}
 
 IMPORTANTE: Genera UNA LECCIÓN COMPLETA Y AUTÓNOMA que aborde el tema de inicio a fin.
+${level === 'beginner' ? `
+⚠️ CRÍTICO PARA NIVEL BEGINNER:
+- Esta lección debe explicar UN SOLO concepto fundamental
+- NO asumas que el estudiante sabe NADA sobre este tema
+- Explica CADA término técnico la primera vez que lo uses
+- Usa ANALOGÍAS de la vida cotidiana para conceptos abstractos
+- Progresión PASO A PASO, sin saltos
+- Múltiples EJEMPLOS SIMPLES antes de pasar a algo más complejo
+- Si es programación: muestra CADA LÍNEA de código explicada
+- El estudiante debe sentir que puede seguirlo sin frustrarse
+` : ''}
 
 CONTEXTO CRÍTICO:
 - El curso es sobre: ${topic}
@@ -655,22 +678,24 @@ CONTEXTO CRÍTICO:
 - NO incluyas conceptos técnicos de sistemas a menos que el curso sea sobre tecnología
 - Enfócate en enseñar el tema específico de manera práctica y aplicable
 
-REQUISITOS OBLIGATORIOS PARA LECCIÓN COMPLETA:
-- Mínimo 8-12 bloques de contenido (lección completa pero concisa)
-- Párrafos de 60-120 palabras cada uno
-- Estructura completa: introducción + desarrollo + ejemplos + resumen
-- Usa variedad de bloques: listas, tablas, callouts, highlights, quotes
-- Cada lección debe ser AUTÓNOMA - no depende de otras lecciones
-- Contenido preciso y directo que enseñe el tema específico
-- Evita contenido genérico, superficial o cortado
+REQUISITOS DE CALIDAD:
+- Mínimo 10-15 bloques de contenido por lección
+- Párrafos de 70-120 palabras - contenido claro
+- 2 ejemplos prácticos concretos
+- Incluye: listas, callouts
+- Estructura: intro + 2 temas principales (con subtemas H3) + ejemplos + resumen
 
-ESTRUCTURA OBLIGATORIA DE LECCIÓN:
-1. Título principal (heading level 1)
-2. Introducción clara del tema (1-2 párrafos)
-3. Conceptos fundamentales (1-2 párrafos + lista)
-4. Ejemplos prácticos (1-2 párrafos + tabla si aplica)
-5. Resumen y conclusiones (1 párrafo)
-6. Elementos visuales: listas, tablas, callouts, highlights
+PROGRESIÓN POR NIVEL:
+${level === 'beginner' ? '⚠️ BEGINNER: UN concepto por lección, paso a paso, sin asumir conocimiento previo' : level === 'intermediate' ? 'INTERMEDIATE: Combina 2-3 conceptos relacionados, asume conocimientos básicos' : 'ADVANCED: Múltiples conceptos complejos, asume dominio de fundamentos'}
+
+ESTRUCTURA:
+1. Título H1
+2. Intro (1-2 párrafos)
+3. Conceptos principales (H2 con subtemas H3)
+4. Ejemplos prácticos
+5. Resumen
+
+INCLUYE: 2 listas, 1-2 callouts, highlights
 
 FORMATO JSON ESTRICTO:
 - Genera ÚNICAMENTE JSON válido, sin texto adicional
@@ -679,6 +704,6 @@ FORMATO JSON ESTRICTO:
 - No incluyas caracteres de escape innecesarios
 - Verifica que el JSON sea sintácticamente correcto antes de responder
 
-Genera un único ContentDocument JSON válido (sin texto adicional). Debe cumplir estrictamente el contrato indicado en el sistema (version, locale, content_id, meta{topic,audience,level,created_at}, blocks[] con tipos permitidos; sin HTML/Markdown). Usa español claro y profesional.`;
+Genera un único ContentDocument JSON válido (sin texto adicional). Usa español claro y profesional.`;
   }
 }

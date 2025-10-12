@@ -18,7 +18,7 @@ async function generateSpecificLessonTitles(
   try {
     console.log('🤖 Generating specific lesson titles using AI...');
 
-    const systemPrompt = `Eres un experto en diseño de contenido educativo. Tu tarea es generar 5 títulos de lecciones específicas y únicas para un módulo.
+    const systemPrompt = `Eres un experto en diseño de contenido educativo. Tu tarea es generar 5 títulos de lecciones específicas y únicas para un módulo, RESPETANDO EL NIVEL del estudiante.
 
 REGLAS CRÍTICAS:
 - Cada lección debe ser ÚNICA y específica del módulo
@@ -27,6 +27,13 @@ REGLAS CRÍTICAS:
 - Evita títulos vagos o genéricos
 - Las lecciones deben cubrir subtemas distintos sin solaparse
 - Cada lección debe mapearse directamente al tema del módulo
+- ⚠️ RESPETA EL NIVEL: La progresión debe ser apropiada para el nivel del estudiante
+
+PROGRESIÓN SEGÚN NIVEL:
+
+🟢 BEGINNER: UN concepto/lección, progresión gradual
+🔵 INTERMEDIATE: 2-3 conceptos relacionados
+🔴 ADVANCED: Múltiples conceptos complejos
 
 FORMATO DE SALIDA:
 Responde SOLO con un JSON válido que contenga un array de 5 títulos:
@@ -40,14 +47,11 @@ Responde SOLO con un JSON válido que contenga un array de 5 títulos:
   ]
 }
 
-EJEMPLOS BUENOS:
-- Para "Manipulación de datos": ["Manejo de errores básicos en pipelines", "Técnicas de limpieza y normalización", "Preparación de datos para modelos", "Tratamiento de valores nulos", "Optimización de rendimiento en procesamiento"]
-- Para "Cocina saludable": ["Selección y almacenamiento de ingredientes frescos", "Técnicas de cocción que preservan nutrientes", "Combinación de sabores y texturas", "Adaptación de recetas tradicionales", "Planificación de menús equilibrados"]
-
-EJEMPLOS MALOS (NO USAR):
-- "Fundamentos", "Introducción", "Conclusión", "¿Para qué es necesario?", "Conceptos básicos"`;
+⚠️ CRÍTICO: Si el nivel es "beginner", la progresión debe ser EXTREMADAMENTE gradual. NO saltes conceptos.`;
 
     const userPrompt = `Genera 5 títulos de lecciones específicas y únicas para el módulo "${moduleTitle}" del curso sobre "${courseTopic}" (nivel: ${level}).
+
+⚠️ NIVEL: ${level.toUpperCase()} - ${level === 'beginner' ? 'PROGRESIÓN MUY GRADUAL' : level === 'intermediate' ? 'PROGRESIÓN MODERADA' : 'PROGRESIÓN RÁPIDA'}
 
 IMPORTANTE:
 - Los títulos deben ser específicos del tema del módulo
@@ -55,6 +59,7 @@ IMPORTANTE:
 - No uses plantillas genéricas
 - Cada lección debe abordar un subtema distinto
 - Los títulos deben reflejar el contenido específico que se enseñará
+${level === 'beginner' ? '- ⚠️ CRÍTICO: Este es nivel BEGINNER - cada lección debe introducir UN SOLO concepto básico\n- NO asumas conocimiento previo\n- La progresión debe ser paso a paso, muy gradual' : ''}
 
 MÓDULO: ${moduleTitle}
 CURSO: ${courseTopic}
@@ -181,6 +186,7 @@ async function generateCompleteLessonsForModule(
   // Importar dependencias dinámicamente para evitar duplicaciones
   const { normalizeToContract } = await import('@/lib/content-normalizer');
   const { ContentContractValidator } = await import('@/lib/content-contract');
+  const { parseAIJsonRobust, repairContentDocument } = await import('@/lib/json-parser-robust');
 
   const lessons = [];
   // Generate specific lesson titles for this module
@@ -216,26 +222,58 @@ async function generateCompleteLessonsForModule(
         user: userPrompt,
       });
 
-      // Parsear y normalizar la respuesta
+      // Parsear y normalizar la respuesta usando el parser robusto
       let lessonDoc;
       try {
-        lessonDoc = JSON.parse(aiResponse);
+        console.log('🔧 Parsing AI response with robust parser...');
+        lessonDoc = parseAIJsonRobust(aiResponse);
+
+        // Reparar documento si es necesario
+        lessonDoc = repairContentDocument(lessonDoc);
+
+        console.log('✅ JSON parsed and repaired successfully');
       } catch (parseError) {
         console.error('❌ JSON parse error for lesson:', parseError);
-        console.log('🔧 Attempting to repair JSON...');
+        console.log('🔄 Retrying lesson generation with stricter JSON instructions...');
 
-        // Intentar reparar JSON
-        const repairedJson = repairMalformedJson(aiResponse);
-        if (repairedJson) {
-          try {
-            lessonDoc = JSON.parse(repairedJson);
-            console.log('✅ JSON repaired successfully');
-          } catch (repairError) {
-            console.error('❌ Repaired JSON still invalid:', repairError);
-            throw new Error('No valid JSON found in AI response');
-          }
-        } else {
-          throw new Error('Could not repair malformed JSON');
+        // RETRY: Intentar una vez más con instrucciones más estrictas
+        try {
+          const retryPrompt = ContractPromptBuilder.buildUserPrompt('chunk', {
+            topic: courseTopic,
+            level: level as 'beginner' | 'intermediate' | 'advanced',
+            interests: [],
+            lessonTitle: lessonTitles[lessonNumber - 1],
+            lessonNumber: lessonNumber,
+            totalLessons: 5,
+          });
+
+          const stricterPrompt = `${retryPrompt}
+
+⚠️ CRÍTICO - FORMATO JSON ESTRICTO:
+- Verifica que TODAS las comillas estén cerradas
+- Verifica que TODAS las comas estén presentes
+- Verifica que TODOS los corchetes [] y llaves {} estén balanceados
+- NO incluyas saltos de línea dentro de strings
+- USA comillas dobles " no simples '
+- Después de CADA propiedad debe haber una coma, excepto la última
+
+Revisa el JSON ANTES de responder. Debe ser 100% válido.`;
+
+          const retryResponse = await generateCourseMetadata(
+            stricterPrompt,
+            level,
+            []
+          );
+
+          console.log('🔧 Parsing retry response...');
+          lessonDoc = parseAIJsonRobust(retryResponse);
+          lessonDoc = repairContentDocument(lessonDoc);
+          console.log('✅ Retry successful!');
+
+        } catch (retryError) {
+          console.error('❌ Retry also failed:', retryError);
+          console.error('AI Response preview:', aiResponse.substring(0, 500));
+          throw new Error(`No valid JSON found after retry: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
         }
       }
 
@@ -1117,82 +1155,6 @@ async function generateRemainingModulesDirectly(courseId: string, course: any) {
     console.log('⚠️ Continuing despite error in module generation');
   }
 }
-
-// Función para reparar JSON malformado
-function repairMalformedJson(jsonString: string): string | null {
-  try {
-    // Intentar reparar problemas comunes de JSON malformado
-    let repaired = jsonString;
-
-    // 0. Quitar fences de markdown y quedarnos con el bloque JSON más grande
-    repaired = repaired.replace(/```json[\s\S]*?```/gi, (m) => m.replace(/```json|```/gi, ''));
-    const fenceFree = repaired.match(/\{[\s\S]*\}/);
-    if (fenceFree) repaired = fenceFree[0];
-
-    // 0.1 Normalizar comillas “smart” y apóstrofes a comillas rectas
-    repaired = repaired
-      .replace(/[“”]/g, '"')
-      .replace(/[‘’]/g, "'");
-
-    // 1. Limpiar caracteres de control problemáticos
-    repaired = repaired.replace(/[\x00-\x1F\x7F]/g, '');
-
-    // 2. Escapar caracteres problemáticos en strings
-    repaired = repaired.replace(/\\(?!["\\/bfnrt])/g, '\\\\');
-
-    // 2.1 Escapar comillas internas no escapadas en valores de campos propensos
-    const escapeInnerQuotes = (text: string) =>
-      text.replace(/(?<!\\)\"/g, '\\"');
-
-    const fields = ['explanation', 'question', 'title', 'text'];
-    for (const field of fields) {
-      const regex = new RegExp(`(\"${field}\"\s*:\s*\")(.*?)(\")`, 'gs');
-      repaired = repaired.replace(regex, (_m, p1, content, p3) => {
-        return `${p1}${escapeInnerQuotes(content)}${p3}`;
-      });
-    }
-
-    // 3. Cerrar strings no terminados
-    repaired = repaired.replace(/"([^"]*)$/gm, '"$1"');
-
-    // 4. Cerrar arrays no terminados
-    const openBrackets = (repaired.match(/\[/g) || []).length;
-    const closeBrackets = (repaired.match(/\]/g) || []).length;
-    if (openBrackets > closeBrackets) {
-      repaired += ']'.repeat(openBrackets - closeBrackets);
-    }
-
-    // 5. Cerrar objetos no terminados
-    const openBraces = (repaired.match(/\{/g) || []).length;
-    const closeBraces = (repaired.match(/\}/g) || []).length;
-    if (openBraces > closeBraces) {
-      repaired += '}'.repeat(openBraces - closeBraces);
-    }
-
-    // 6. Agregar comas faltantes entre elementos de array
-    repaired = repaired.replace(/"\s*\n\s*"/g, '",\n"');
-    repaired = repaired.replace(/}\s*\n\s*{/g, '},\n{');
-    repaired = repaired.replace(/]\s*\n\s*\[/g, '],\n[');
-
-    // 7. Agregar comas faltantes antes de cierre de array/objeto
-    repaired = repaired.replace(/([^,}\]])\s*([}\]])/g, '$1,$2');
-
-    // 8. Limpiar comas duplicadas
-    repaired = repaired.replace(/,+/g, ',');
-    repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
-
-    // 9. Limpiar saltos de línea problemáticos en strings
-    repaired = repaired.replace(/"([^"]*)\n([^"]*)"/g, '"$1 $2"');
-
-    // Verificar que el JSON reparado sea válido
-    JSON.parse(repaired);
-    return repaired;
-  } catch (error) {
-    console.error('❌ JSON repair failed:', error);
-    return null;
-  }
-}
-
 // Función para generar contenido de módulo usando IA
 async function generateModuleContentWithAI(
   moduleTitle: string,

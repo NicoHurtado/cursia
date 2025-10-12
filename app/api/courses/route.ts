@@ -24,6 +24,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { UserPlan, canCreateCourse } from '@/lib/plans';
 import { CourseStatus } from '@prisma/client';
 import { ContentValidator } from '@/lib/content-validator';
+import { parseAIJsonRobust, repairContentDocument } from '@/lib/json-parser-robust';
 
 // Enhanced rate limiting
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
@@ -532,18 +533,32 @@ async function generateSpecificModuleTitles(
   try {
     console.log('🤖 Generating specific module titles using AI...');
 
-    const systemPrompt = `Eres un experto en educación y diseño de cursos. Tu tarea es generar 5 títulos específicos y descriptivos para los módulos de un curso.
+    const systemPrompt = `Eres un experto en educación y diseño de cursos. Tu tarea es generar 5 títulos específicos y descriptivos para los módulos de un curso, RESPETANDO EL NIVEL del estudiante.
 
 REGLAS IMPORTANTES:
 - Cada título debe ser específico y descriptivo del contenido del módulo
 - NO uses títulos genéricos como "Tema 1", "Módulo 2", etc.
 - Los títulos deben ser diferentes entre sí y cubrir aspectos únicos del tema
 - Cada título debe ser de 3-8 palabras
-- Los títulos deben seguir un orden lógico de progresión (básico a avanzado)
+- Los títulos deben seguir un orden lógico de progresión apropiado para el nivel
 - Usa un lenguaje claro y profesional en español
 
+PROGRESIÓN SEGÚN NIVEL:
+
+🟢 NIVEL BEGINNER (Principiante ABSOLUTO):
+- Progresión MUY gradual entre módulos
+- Módulo 1: Conceptos básicos y primeros pasos
+- Módulo 2: Segundo grupo de conceptos fundamentales
+- Módulo 3: Tercer grupo de conceptos básicos
+- Módulo 4: Integración de conceptos básicos
+- Módulo 5: Primeras aplicaciones prácticas simples
+- NO incluir términos avanzados en los primeros módulos
+
+EJEMPLO "PROGRAMACIÓN DESDE CERO" BEGINNER: 1. Primeros Pasos, 2. Variables y Datos, 3. Condicionales, 4. Ciclos, 5. Funciones
+
 TEMA DEL CURSO: ${courseTopic}
-NIVEL: ${level}
+⚠️ NIVEL: ${level.toUpperCase()}
+${level === 'beginner' ? '\n⚠️ CRÍTICO: Este es nivel BEGINNER - la progresión debe ser EXTREMADAMENTE gradual. Cada módulo debe construir sobre el anterior paso a paso.' : ''}
 
 TOPICS EXISTENTES (si los hay): ${existingTopics.join(', ')}
 
@@ -558,12 +573,15 @@ Responde SOLO con un JSON válido que contenga un array de 5 strings con los tí
   ]
 }`;
 
-    const userPrompt = `Genera 5 títulos específicos y descriptivos para los módulos de un curso sobre "${courseTopic}". 
-    
+    const userPrompt = `Genera 5 títulos específicos y descriptivos para los módulos de un curso sobre "${courseTopic}" (nivel: ${level}). 
+
+⚠️ NIVEL: ${level.toUpperCase()} - ${level === 'beginner' ? 'PROGRESIÓN MUY GRADUAL' : level === 'intermediate' ? 'PROGRESIÓN MODERADA' : 'PROGRESIÓN RÁPIDA'}
+
 Los títulos deben ser:
 - Específicos y descriptivos (no genéricos)
 - Diferentes entre sí
-- Ordenados de básico a avanzado
+- Ordenados con progresión apropiada para el nivel ${level}
+${level === 'beginner' ? '- ⚠️ CRÍTICO: Progresión MUY gradual, conceptos básicos paso a paso\n- Cada módulo debe introducir UN GRUPO de conceptos relacionados\n- NO saltar de conceptos básicos a avanzados rápidamente' : ''}
 - Relevantes al tema del curso
 - En español
 
@@ -1355,27 +1373,58 @@ Responde SOLO con el JSON solicitado.`;
               []
             );
 
-            // Parsear y normalizar la respuesta
+            // Parsear y normalizar la respuesta con parser robusto
             let lessonDoc;
             try {
-              lessonDoc = JSON.parse(aiResponse);
+              console.log('🔧 Parsing AI response with robust parser...');
+              lessonDoc = parseAIJsonRobust(aiResponse);
+              
+              // Reparar documento si es necesario
+              lessonDoc = repairContentDocument(lessonDoc);
+              
+              console.log('✅ JSON parsed and repaired successfully');
             } catch (parseError) {
               console.error('❌ JSON parse error for lesson:', parseError);
-              console.log('🔧 Attempting to repair JSON...');
+              console.log('🔄 Retrying lesson generation with stricter JSON instructions...');
+              
+              // RETRY: Intentar una vez más con instrucciones más estrictas
+              try {
+                const retryPrompt = ContractPromptBuilder.buildUserPrompt('chunk', {
+                  topic: courseTopic,
+                  level: level as 'beginner' | 'intermediate' | 'advanced',
+                  interests: [],
+                  lessonTitle: lessonTitle,
+                  lessonNumber: lessonNumber,
+                  totalLessons: 5,
+                });
+                
+                const stricterPrompt = `${retryPrompt}
 
-              // Intentar reparar JSON
-              const repairedJson = repairMalformedJson(aiResponse);
-              if (repairedJson) {
-                try {
-                  lessonDoc = JSON.parse(repairedJson);
-                  console.log('✅ JSON repaired successfully');
-                } catch (repairError) {
-                  console.error('❌ Repaired JSON still invalid:', repairError);
-                  throw new Error('No valid JSON found in AI response');
-                }
-              } else {
-                console.error('❌ JSON repair failed completely');
-                throw new Error('No valid JSON found in AI response');
+⚠️ CRÍTICO - FORMATO JSON ESTRICTO:
+- Verifica que TODAS las comillas estén cerradas
+- Verifica que TODAS las comas estén presentes
+- Verifica que TODOS los corchetes [] y llaves {} estén balanceados
+- NO incluyas saltos de línea dentro de strings
+- USA comillas dobles " no simples '
+- Después de CADA propiedad debe haber una coma, excepto la última
+
+Revisa el JSON ANTES de responder. Debe ser 100% válido.`;
+
+                const retryResponse = await generateCourseMetadata(
+                  stricterPrompt,
+                  level,
+                  []
+                );
+                
+                console.log('🔧 Parsing retry response...');
+                lessonDoc = parseAIJsonRobust(retryResponse);
+                lessonDoc = repairContentDocument(lessonDoc);
+                console.log('✅ Retry successful!');
+                
+              } catch (retryError) {
+                console.error('❌ Retry also failed:', retryError);
+                console.error('AI Response preview:', aiResponse.substring(0, 500));
+                throw new Error(`No valid JSON found after retry: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
               }
             }
 

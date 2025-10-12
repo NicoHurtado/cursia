@@ -62,11 +62,25 @@ export function ModuleSidebar({
   width = 400,
   onWidthChange,
 }: ModuleSidebarProps) {
-  const [expandedModule, setExpandedModule] =
-    useState<number>(currentModuleOrder);
+  // Mantener todos los módulos expandidos por defecto para facilitar la navegación
+  const [collapsedModules, setCollapsedModules] = useState<Set<number>>(new Set());
 
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // Función para alternar el estado de colapso de un módulo
+  const toggleModuleCollapse = (moduleOrder: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCollapsedModules(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(moduleOrder)) {
+        newSet.delete(moduleOrder);
+      } else {
+        newSet.add(moduleOrder);
+      }
+      return newSet;
+    });
+  };
 
   // Función para manejar el redimensionamiento
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -226,8 +240,9 @@ export function ModuleSidebar({
         <div className="space-y-2 p-4">
           {modules.map(module => {
             const status = getModuleStatus(module);
-            const isExpanded = expandedModule === module.moduleOrder;
+            const isExpanded = !collapsedModules.has(module.moduleOrder);
             const isCurrentModule = currentModuleOrder === module.moduleOrder;
+            const isUnlocked = isModuleUnlocked(module.moduleOrder);
             const totalChunks = module.chunks.length;
             const completedChunksCount = module.chunks.filter(chunk =>
               completedChunks.includes(chunk.id)
@@ -235,21 +250,34 @@ export function ModuleSidebar({
             const progressPercentage =
               totalChunks > 0 ? (completedChunksCount / totalChunks) * 100 : 0;
 
+            // Determinar el mensaje de bloqueo
+            let lockMessage = '';
+            if (!isUnlocked && module.moduleOrder > 1) {
+              const previousModule = modules.find(m => m.moduleOrder === module.moduleOrder - 1);
+              const previousModuleQuizPassed = previousModule && quizAttempts.some(
+                (attempt: any) =>
+                  attempt.moduleId === previousModule.id && attempt.passed === true
+              );
+              
+              if (!previousModuleQuizPassed) {
+                lockMessage = `Completa el quiz del Módulo ${module.moduleOrder - 1} para desbloquear`;
+              } else {
+                lockMessage = `Completa todas las lecciones del Módulo ${module.moduleOrder - 1} para desbloquear`;
+              }
+            }
+
             return (
               <Card
                 key={module.id}
                 className={cn(
-                  'transition-all duration-200 cursor-pointer hover:shadow-md',
+                  'transition-all duration-200',
                   getStatusColor(status),
-                  isCurrentModule && 'ring-2 ring-blue-500 ring-offset-2'
+                  isCurrentModule && 'ring-2 ring-blue-500 ring-offset-2',
+                  isUnlocked ? 'cursor-pointer hover:shadow-md' : 'opacity-60'
                 )}
                 onClick={() => {
-                  setExpandedModule(isExpanded ? -1 : module.moduleOrder);
-                  // Solo permitir navegación si el módulo está desbloqueado
-                  if (
-                    status !== 'locked' &&
-                    isModuleUnlocked(module.moduleOrder)
-                  ) {
+                  // Navegar al módulo solo si está desbloqueado
+                  if (isUnlocked) {
                     onModuleChange(module.moduleOrder);
                   }
                 }}
@@ -285,6 +313,13 @@ export function ModuleSidebar({
                         <p className="text-xs text-muted-foreground line-clamp-2">
                           {module.title}
                         </p>
+                        {/* Mensaje de bloqueo */}
+                        {!isUnlocked && lockMessage && (
+                          <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 flex items-center gap-1">
+                            <Lock className="h-3 w-3" />
+                            {lockMessage}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -296,12 +331,7 @@ export function ModuleSidebar({
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                        onClick={e => {
-                          e.stopPropagation();
-                          setExpandedModule(
-                            isExpanded ? -1 : module.moduleOrder
-                          );
-                        }}
+                        onClick={e => toggleModuleCollapse(module.moduleOrder, e)}
                       >
                         <ChevronDown
                           className={cn(
@@ -337,39 +367,33 @@ export function ModuleSidebar({
                             <div
                               key={chunk.id}
                               className={cn(
-                                'flex items-center gap-2 p-3 rounded-lg text-xs cursor-pointer transition-all duration-200',
-                                'hover:bg-blue-100 hover:shadow-md hover:scale-[1.02] hover:border-blue-300',
-                                'border border-transparent hover:border-blue-200',
+                                'flex items-center gap-2 p-3 rounded-lg text-xs transition-all duration-200',
+                                'border border-transparent',
+                                isUnlocked && 'cursor-pointer hover:bg-blue-100 hover:shadow-md hover:scale-[1.02] hover:border-blue-300',
+                                isUnlocked && 'hover:border-blue-200',
                                 isCurrentChunk &&
                                   'bg-blue-100 dark:bg-blue-900/30 border-blue-300 shadow-md',
                                 chunkStatus === 'completed' &&
-                                  'text-green-700 dark:text-green-400 hover:bg-green-100',
-                                status === 'locked' &&
-                                  'opacity-50 cursor-not-allowed hover:scale-100 hover:shadow-none hover:bg-transparent'
+                                  'text-green-700 dark:text-green-400',
+                                chunkStatus === 'completed' && isUnlocked && 'hover:bg-green-100',
+                                !isUnlocked &&
+                                  'opacity-40 cursor-not-allowed relative'
                               )}
                               onClick={e => {
-                                e.stopPropagation(); // Evitar que se cierre la tarjeta del módulo
-                                console.log('🖱️ Lesson clicked:', {
-                                  moduleOrder: module.moduleOrder,
-                                  chunkOrder: chunk.chunkOrder,
-                                  status,
-                                  isLocked: status === 'locked',
-                                });
-                                if (status !== 'locked') {
+                                e.stopPropagation();
+                                if (isUnlocked) {
                                   onChunkChange(
                                     module.moduleOrder,
                                     chunk.chunkOrder
-                                  );
-                                } else {
-                                  console.log(
-                                    '❌ Lesson is locked, cannot navigate'
                                   );
                                 }
                               }}
                             >
                               <div className="flex items-center gap-3 flex-1">
                                 <div className="flex-shrink-0">
-                                  {chunkStatus === 'completed' ? (
+                                  {!isUnlocked ? (
+                                    <Lock className="h-4 w-4 text-gray-400" />
+                                  ) : chunkStatus === 'completed' ? (
                                     <CheckCircle2 className="h-4 w-4 text-green-600" />
                                   ) : isCurrentChunk ? (
                                     <Play className="h-4 w-4 text-blue-600" />
@@ -400,9 +424,16 @@ export function ModuleSidebar({
 
                       {/* Quiz */}
                       {module.quizzes.length > 0 && (
-                        <div className="pt-2 border-t border-border">
+                        <div className={cn(
+                          "pt-2 border-t border-border",
+                          !isUnlocked && "opacity-40"
+                        )}>
                           <div className="flex items-center gap-2 p-2 rounded-md text-xs">
-                            <Clock className="h-3 w-3 text-orange-500" />
+                            {!isUnlocked ? (
+                              <Lock className="h-3 w-3 text-gray-400" />
+                            ) : (
+                              <Clock className="h-3 w-3 text-orange-500" />
+                            )}
                             <span className="font-medium">Quiz del Módulo</span>
                           </div>
                         </div>

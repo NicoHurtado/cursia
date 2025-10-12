@@ -49,8 +49,8 @@ export async function askClaude({
 
   const model = 'claude-3-haiku-20240307';
   const modelMax = MODEL_CONFIG[model]?.maxOutputTokens ?? 4096;
-  // Start conservatively to avoid 400 errors, will dynamically lower on error
-  let currentMaxTokens = Math.min(3000, modelMax);
+  // Use full token limit for complete responses (will handle truncation with robust parser)
+  let currentMaxTokens = modelMax;
 
   const baseRequestBody: Omit<AnthropicRequest, 'max_tokens'> = {
     model,
