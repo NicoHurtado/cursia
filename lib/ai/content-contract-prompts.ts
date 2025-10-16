@@ -650,11 +650,14 @@ La salida siempre es un único ContentDocument válido.`;
     const totalLessons = context.totalLessons || 5;
     const existingTopics = context.existingTopics || [];
     const moduleTitle = context.moduleTitle || '';
+    const moduleOrder = context.moduleOrder || 1;
 
     // Detectar si es un módulo introductorio
     const isIntroductoryModule =
+      moduleOrder === 1 || // El primer módulo SIEMPRE es introductorio
       moduleTitle.toLowerCase().includes('introducción') ||
-      moduleTitle.toLowerCase().includes('introduccion');
+      moduleTitle.toLowerCase().includes('introduccion') ||
+      moduleTitle.toLowerCase().includes('fundamentos');
 
     let existingTopicsWarning = '';
     if (existingTopics.length > 0) {

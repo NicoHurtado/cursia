@@ -1236,15 +1236,18 @@ export async function POST(request: NextRequest) {
       async function generateSpecificLessonTitles(
         moduleTitle: string,
         courseTopic: string,
-        level: string
+        level: string,
+        moduleNumber: number = 1
       ): Promise<string[]> {
         try {
           console.log('🤖 Generating specific lesson titles using AI...');
 
           // Detectar si es un módulo introductorio
           const isIntroductoryModule =
+            moduleNumber === 1 || // El primer módulo SIEMPRE es introductorio
             moduleTitle.toLowerCase().includes('introducción') ||
-            moduleTitle.toLowerCase().includes('introduccion');
+            moduleTitle.toLowerCase().includes('introduccion') ||
+            moduleTitle.toLowerCase().includes('fundamentos');
 
           const systemPrompt = `Eres un experto en diseño de contenido educativo. Tu tarea es generar 5 títulos de lecciones específicas y únicas para un módulo.
 
@@ -1441,14 +1444,16 @@ Responde SOLO con el JSON solicitado.`;
       async function generateCompleteLessonsForModule(
         moduleTitle: string,
         courseTopic: string,
-        level: string
+        level: string,
+        moduleNumber: number = 1
       ) {
         const lessons = [];
         // Generate specific lesson titles for this module
         const lessonTitles = await generateSpecificLessonTitles(
           moduleTitle,
           courseTopic,
-          level
+          level,
+          moduleNumber
         );
 
         console.log(
@@ -1472,6 +1477,7 @@ Responde SOLO con el JSON solicitado.`;
               level: level,
               interests: [],
               moduleTitle: moduleTitle,
+              moduleOrder: moduleNumber,
               lessonTitle: lessonTitle,
               lessonNumber: lessonNumber,
               totalLessons: 5,
@@ -1503,6 +1509,8 @@ Responde SOLO con el JSON solicitado.`;
                   topic: courseTopic,
                   level: level as 'beginner' | 'intermediate' | 'advanced',
                   interests: [],
+                  moduleTitle: moduleTitle,
+                  moduleOrder: moduleNumber,
                   lessonTitle: lessonTitle,
                   lessonNumber: lessonNumber,
                   totalLessons: 5,
@@ -2386,7 +2394,8 @@ Revisa el JSON ANTES de responder. Debe ser 100% válido.`;
             const moduleResult = await generateCompleteLessonsForModule(
               moduleTitle,
               courseTopic,
-              level
+              level,
+              1 // Módulo 1
             );
             const moduleLessons = moduleResult.lessons;
             const quizQuestions = moduleResult.quizQuestions;
@@ -3471,7 +3480,8 @@ print(usuario)`
             const module1Result = await generateCompleteLessonsForModule(
               moduleTitles[i],
               doc.meta.topic,
-              level
+              level,
+              1 // Módulo 1
             );
             mod.lessons = module1Result.lessons;
             mod.quizQuestions = module1Result.quizQuestions;
