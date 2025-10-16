@@ -649,6 +649,12 @@ La salida siempre es un único ContentDocument válido.`;
     const lessonNumber = context.lessonNumber || 1;
     const totalLessons = context.totalLessons || 5;
     const existingTopics = context.existingTopics || [];
+    const moduleTitle = context.moduleTitle || '';
+
+    // Detectar si es un módulo introductorio
+    const isIntroductoryModule =
+      moduleTitle.toLowerCase().includes('introducción') ||
+      moduleTitle.toLowerCase().includes('introduccion');
 
     let existingTopicsWarning = '';
     if (existingTopics.length > 0) {
@@ -660,11 +666,45 @@ ${existingTopics.map((t, i) => `${i + 1}. "${t}"`).join('\n')}
 DEBES ABORDAR UN ASPECTO ÚNICO Y DIFERENTE. Si estás en la lección ${lessonNumber}, profundiza en aspectos más específicos o avanzados que no se hayan cubierto antes.`;
     }
 
+    let introductoryModuleInstructions = '';
+    if (isIntroductoryModule) {
+      introductoryModuleInstructions = `
+
+⚠️ ESTE ES UN MÓDULO INTRODUCTORIO - INSTRUCCIONES ESPECIALES:
+
+Este módulo debe ser 100% INTRODUCTORIO y CONTEXTUAL. NO incluyas contenido técnico avanzado.
+
+ENFOQUE DE CONTENIDO:
+- Explica QUÉ ES el tema de forma simple y clara
+- Muestra PARA QUÉ SIRVE con ejemplos cotidianos
+- Proporciona CONTEXTO histórico o conceptual breve
+- Presenta CASOS DE ÉXITO y aplicaciones reales
+- MOTIVA al estudiante mostrando el valor de aprender esto
+- Prepara MENTALMENTE para el aprendizaje técnico que vendrá después
+
+❌ NO INCLUYAS EN EL CONTENIDO:
+- Sintaxis técnica detallada
+- Código complejo o avanzado
+- Conceptos que requieran conocimiento previo
+- Terminología técnica sin explicar
+- Ejercicios prácticos profundos
+
+✅ SÍ INCLUYE:
+- Analogías de la vida cotidiana
+- Explicaciones simples y visuales
+- Ejemplos del mundo real que cualquiera entienda
+- Historia y evolución del tema
+- Por qué es importante y relevante hoy
+- Qué aprenderá el estudiante en el curso
+
+TONO: Motivador, accesible, inspirador, sin intimidar con tecnicismos.`;
+    }
+
     return `Tema: ${topic}
 Lección: ${lessonTitle} (${lessonNumber}/${totalLessons})
 ⚠️ NIVEL: ${level.toUpperCase()} ${level === 'beginner' ? '- PRINCIPIANTE ABSOLUTO (NO asumas conocimiento previo)' : level === 'intermediate' ? '- INTERMEDIO (asume conocimientos básicos)' : '- AVANZADO (asume dominio de fundamentos)'}
 Audiencia: ${audience}
-Intereses: ${interestLine}${existingTopicsWarning}
+Intereses: ${interestLine}${existingTopicsWarning}${introductoryModuleInstructions}
 
 IMPORTANTE: Genera UNA LECCIÓN COMPLETA Y AUTÓNOMA que aborde el tema de inicio a fin.
 ${level === 'beginner' ? `

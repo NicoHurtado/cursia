@@ -1241,6 +1241,11 @@ export async function POST(request: NextRequest) {
         try {
           console.log('🤖 Generating specific lesson titles using AI...');
 
+          // Detectar si es un módulo introductorio
+          const isIntroductoryModule =
+            moduleTitle.toLowerCase().includes('introducción') ||
+            moduleTitle.toLowerCase().includes('introduccion');
+
           const systemPrompt = `Eres un experto en diseño de contenido educativo. Tu tarea es generar 5 títulos de lecciones específicas y únicas para un módulo.
 
 REGLAS CRÍTICAS:
@@ -1270,7 +1275,7 @@ EJEMPLOS BUENOS:
 EJEMPLOS MALOS (NO USAR):
 - "Fundamentos", "Introducción", "Conclusión", "¿Para qué es necesario?", "Conceptos básicos"`;
 
-          const userPrompt = `Genera 5 títulos de lecciones específicas y únicas para el módulo "${moduleTitle}" del curso sobre "${courseTopic}" (nivel: ${level}).
+          let userPrompt = `Genera 5 títulos de lecciones específicas y únicas para el módulo "${moduleTitle}" del curso sobre "${courseTopic}" (nivel: ${level}).
 
 IMPORTANTE:
 - Los títulos deben ser específicos del tema del módulo
@@ -1281,7 +1286,41 @@ IMPORTANTE:
 
 MÓDULO: ${moduleTitle}
 CURSO: ${courseTopic}
-NIVEL: ${level}
+NIVEL: ${level}`;
+
+          // Agregar instrucciones especiales para módulos introductorios
+          if (isIntroductoryModule) {
+            userPrompt += `
+
+⚠️ ESTE ES UN MÓDULO INTRODUCTORIO - INSTRUCCIONES ESPECIALES:
+
+Este módulo debe ser 100% INTRODUCTORIO y CONTEXTUAL. NO debe incluir contenido técnico avanzado.
+
+GENERA TÍTULOS DE LECCIONES QUE CUBRAN:
+1. ¿Qué es ${courseTopic}? (Definición simple y clara)
+2. ¿Para qué sirve ${courseTopic}? (Aplicaciones y utilidad)
+3. Historia breve y contexto de ${courseTopic}
+4. Casos de éxito y ejemplos reales de ${courseTopic}
+5. Preparación inicial y primeros pasos conceptuales
+
+❌ NO INCLUYAS EN LOS TÍTULOS:
+- Sintaxis técnica detallada
+- Código o comandos específicos
+- Conceptos avanzados
+- Terminología compleja sin explicar
+- Ejercicios técnicos profundos
+
+✅ ENFOQUE: Motivar, contextualizar y preparar mentalmente al estudiante para el aprendizaje.
+
+EJEMPLO PARA "Introducción a JavaScript":
+- "¿Qué es JavaScript y Por Qué es el Lenguaje de la Web?"
+- "Aplicaciones Reales de JavaScript en el Mundo Actual"
+- "Historia y Evolución de JavaScript: De 1995 a Hoy"
+- "Casos de Éxito: Empresas que Usan JavaScript"
+- "Preparando tu Mentalidad para Aprender a Programar"`;
+          }
+
+          userPrompt += `
 
 Responde SOLO con el JSON solicitado.`;
 
