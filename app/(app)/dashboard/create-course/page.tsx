@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,7 +53,7 @@ export default function CreateCoursePage() {
     setValue,
     formState: { errors },
   } = useForm<CourseForm>({
-    resolver: zodResolver(courseSchema),
+    resolver: zodResolver(courseSchema) as any,
   });
 
   // Pre-fill prompt from URL parameters
@@ -219,12 +220,10 @@ export default function CreateCoursePage() {
               result.error + ' Actualiza tu plan para crear más cursos.',
             variant: 'destructive',
             action: (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push('/dashboard/plans')}
-              >
-                Ver Planes
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/plans" aria-label="Ver planes disponibles">
+                  Ver Planes
+                </Link>
               </Button>
             ),
           });

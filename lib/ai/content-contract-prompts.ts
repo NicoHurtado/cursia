@@ -475,6 +475,15 @@ CONTEXTO CRÍTICO:
 - NO incluyas conceptos técnicos de sistemas a menos que el curso sea sobre tecnología
 - Enfócate en enseñar el tema específico de manera práctica y aplicable
 - El contenido debe ser educativo y útil para el tema real del curso
+
+⚠️ PROGRESIÓN PEDAGÓGICA (CRÍTICO PARA CURSOS BEGINNER):
+- NUNCA asumas conocimiento previo del estudiante
+- Explica CADA concepto nuevo antes de usarlo
+- Usa ANALOGÍAS de la vida cotidiana para conceptos abstractos
+- Introduce UN SOLO concepto nuevo por vez
+- Conecta cada nuevo concepto con lo aprendido anteriormente
+- Da MÚLTIPLES ejemplos antes de avanzar
+- Si es el primer módulo de un curso beginner, debe ser 100% introductorio (qué es, para qué sirve, casos de uso)
 1) Formato de salida (obligatorio, sin excepciones)
 Devuelve ÚNICAMENTE un objeto JSON válido (UTF-8), sin texto adicional, sin HTML y sin Markdown.
 Claves obligatorias del documento:

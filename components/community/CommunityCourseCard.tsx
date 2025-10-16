@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Users, Calendar, Eye, Star, Lock } from 'lucide-react';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { cn } from '@/lib/utils';
 import { UserPlan } from '@/lib/plans';
 
@@ -36,10 +37,7 @@ export function CommunityCourseCard({
   currentUserId,
   userPlan,
 }: CommunityCourseCardProps) {
-  const router = useRouter();
-
-  // Debug log temporal
-  console.log('🔍 Debug CommunityCourseCard - course.user:', course.user);
+  
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
@@ -62,9 +60,7 @@ export function CommunityCourseCard({
     }
   };
 
-  const handleViewCourse = () => {
-    router.push(`/courses/${course.id}?from=community`);
-  };
+  
 
   const isOwner = currentUserId === course.user.id;
   const canView =
@@ -109,13 +105,13 @@ export function CommunityCourseCard({
         </div>
 
         {/* Author */}
-        <div className="flex items-center justify-between mb-4">
+        <Link
+          href={`/u/${course.user.username}`}
+          className="flex items-center justify-between mb-4 hover:bg-muted/40 rounded-md p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background"
+          aria-label={`Ver perfil de ${course.user.name}`}
+        >
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                {course.user.name.charAt(0).toUpperCase()}
-              </span>
-            </div>
+            <UserAvatar name={course.user.name} size={32} />
             <div>
               <p className="text-sm font-medium">{course.user.name}</p>
             </div>
@@ -124,31 +120,28 @@ export function CommunityCourseCard({
             <Calendar className="h-3 w-3" />
             <span>{formatDate(course.createdAt)}</span>
           </div>
-        </div>
+        </Link>
 
         {/* Action Button */}
-        <Button
-          className={cn(
-            'w-full',
-            canView
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed'
-          )}
-          onClick={canView ? handleViewCourse : undefined}
-          disabled={!canView}
-        >
-          {canView ? (
-            <>
+        {canView ? (
+          <Button
+            className={cn('w-full', 'bg-blue-600 hover:bg-blue-700 text-white')}
+            asChild
+          >
+            <Link href={`/courses/${course.id}`} aria-label={`Ver curso ${course.title}`}>
               <Eye className="h-4 w-4 mr-2" />
               Ver Curso
-            </>
-          ) : (
-            <>
-              <Lock className="h-4 w-4 mr-2" />
-              Plan EXPERTO/MAESTRO Requerido
-            </>
-          )}
-        </Button>
+            </Link>
+          </Button>
+        ) : (
+          <Button
+            className={cn('w-full', 'bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed')}
+            disabled
+          >
+            <Lock className="h-4 w-4 mr-2" />
+            Plan EXPERTO/MAESTRO Requerido
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

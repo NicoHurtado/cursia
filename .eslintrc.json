@@ -1,10 +1,19 @@
 {
-  "extends": ["next/core-web-vitals", "prettier"],
-  "plugins": ["prettier"],
+  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended", "prettier"],
+  "plugins": ["prettier", "unused-imports", "import", "@typescript-eslint"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
   "rules": {
     "prettier/prettier": "error",
     "prefer-const": "error",
-    "no-var": "error"
+    "no-var": "error",
+    "@typescript-eslint/no-floating-promises": "off",
+    "unused-imports/no-unused-imports": "error",
+    "import/order": ["warn", {"alphabetize": {"order": "asc", "caseInsensitive": true}, "newlines-between": "always", "groups": [["builtin", "external"], ["internal", "parent", "sibling", "index"]]}]
   },
   "ignorePatterns": ["node_modules/", ".next/", "out/"]
 }

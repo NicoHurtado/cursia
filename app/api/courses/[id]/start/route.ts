@@ -198,6 +198,9 @@ async function generateCompleteLessonsForModule(
 
   console.log(`🎯 Generating 5 complete lessons for module: ${moduleTitle}`);
 
+  // Acumular temas de lecciones anteriores para mantener contexto
+  const previousLessonTopics: string[] = [];
+
   for (let i = 0; i < lessonTitles.length; i++) {
     const lessonTitle = lessonTitles[i];
     const lessonNumber = i + 1;
@@ -215,6 +218,7 @@ async function generateCompleteLessonsForModule(
         lessonTitle: lessonTitle,
         lessonNumber: lessonNumber,
         totalLessons: 5,
+        existingTopics: previousLessonTopics, // Pasar contexto de lecciones anteriores
       });
 
       const aiResponse = await askClaude({
@@ -350,6 +354,9 @@ Revisa el JSON ANTES de responder. Debe ser 100% válido.`;
         videoData: videoData,
       });
 
+      // Agregar el título de esta lección a los temas anteriores para mantener contexto
+      previousLessonTopics.push(lessonTitle);
+
       console.log(`✅ Lesson ${lessonNumber} generated successfully`);
     } catch (error) {
       console.error(`❌ Error generating lesson ${lessonNumber}:`, error);
@@ -388,48 +395,96 @@ async function generateQuizQuestions(
 
     const systemPrompt = `Eres un experto en educación y evaluación. Tu tarea es generar 5 preguntas de quiz MUY ESPECÍFICAS del contenido del módulo.
 
+⚠️ REGLA FUNDAMENTAL Y CRÍTICA:
+LAS PREGUNTAS SOLO PUEDEN SER SOBRE CONTENIDO QUE SE ENSEÑÓ EXPLÍCITAMENTE EN ESTE MÓDULO.
+SI UN CONCEPTO NO SE MENCIONÓ EN EL CONTENIDO, NO PUEDES PREGUNTAR SOBRE ÉL.
+
 REGLAS CRÍTICAS:
 - Genera exactamente 5 preguntas
 - Cada pregunta debe tener 4 opciones de respuesta
-- Las preguntas DEBEN ser sobre conceptos, técnicas, métodos, ingredientes, procesos o información específica del tema
+- ⚠️ Las preguntas SOLO pueden ser sobre conceptos, técnicas, métodos o información que aparece TEXTUALMENTE en el contenido del módulo
+- Lee DETENIDAMENTE el contenido del módulo antes de generar las preguntas
+- NO inventes conceptos que no se enseñaron
 - NO uses preguntas genéricas como "¿Cuál es el concepto principal?"
-- Las preguntas deben ser sobre detalles específicos del contenido
+- Las preguntas deben verificar que el estudiante leyó y entendió el contenido específico de ESTE módulo
 - Una opción debe ser claramente correcta, las otras 3 deben ser incorrectas pero plausibles
 - Usa un lenguaje claro y profesional en español
-- Las preguntas deben evaluar comprensión profunda del tema
+- Las preguntas deben evaluar comprensión del tema al nivel del estudiante
 
-EJEMPLOS DE BUENAS PREGUNTAS:
-- Para comida saludable: "¿Cuáles son las proteínas presentes en el salmón?", "¿Cuál es el mejor método para cocinar verduras al vapor?", "¿Qué vitaminas se pierden al freír los alimentos?"
-- Para programación: "¿Qué patrón de diseño se usa para crear objetos sin especificar su clase?", "¿Cuál es la complejidad temporal del algoritmo de ordenamiento burbuja?"
-- Para arte: "¿Qué técnica de pintura al óleo permite crear transiciones suaves?", "¿Cuál es la regla de los tercios en composición fotográfica?"
+⚠️ PROHIBIDO ABSOLUTAMENTE:
+- NUNCA uses "Todas las anteriores" como opción
+- NUNCA uses "Ninguna de las anteriores" como opción
+- NUNCA uses "Todas son correctas" como opción
+- NUNCA uses "Ninguna es correcta" como opción
+- Cada opción debe ser una respuesta específica y concreta
+- Solo UNA opción puede ser correcta, las otras 3 deben ser específicamente incorrectas
+
+EJEMPLOS DE BUENAS PREGUNTAS (basadas en contenido real):
+✅ SI el módulo explicó "las variables se declaran con let o const":
+   "¿Qué palabras clave se usan para declarar variables en JavaScript moderno?"
+   
+✅ SI el módulo mostró "const nombre = 'Juan'":
+   "¿Qué palabra clave se usa para declarar una variable que no cambiará?"
+
+❌ MAL - NO preguntes sobre bubble sort si el módulo NO lo mencionó
+❌ MAL - NO preguntes sobre conceptos avanzados si solo se enseñaron conceptos básicos
+❌ MAL - NO inventes detalles técnicos que no se explicaron
 
 CONTENIDO DEL MÓDULO: ${moduleContent}
 TÍTULO DEL MÓDULO: ${moduleTitle}
 TEMA DEL CURSO: ${courseTopic}
 NIVEL: ${level}
 
+⚠️ IMPORTANTE: Lee TODO el contenido del módulo antes de generar las preguntas. Solo pregunta sobre lo que se enseñó.
+
 Responde SOLO con un JSON válido que contenga un array de 5 preguntas:
 {
   "questions": [
     {
-      "question": "Pregunta específica sobre detalles del tema",
+      "question": "Pregunta específica sobre contenido ENSEÑADO en el módulo",
       "options": ["Respuesta específica correcta", "Respuesta incorrecta pero plausible", "Otra respuesta incorrecta", "Cuarta respuesta incorrecta"],
       "correctAnswer": 0,
-      "explanation": "Explicación específica de por qué la respuesta es correcta"
+      "explanation": "Explicación específica de por qué la respuesta es correcta, basada en lo que se enseñó"
     }
   ]
 }`;
 
     const userPrompt = `Genera 5 preguntas de quiz MUY ESPECÍFICAS para el módulo "${moduleTitle}" sobre "${courseTopic}".
 
-IMPORTANTE: Las preguntas deben ser sobre:
-- Conceptos específicos del tema
-- Técnicas, métodos o procesos mencionados
-- Ingredientes, herramientas o elementos específicos
-- Detalles técnicos o información concreta
-- Aplicaciones prácticas del contenido
+⚠️ CRÍTICO: Las preguntas SOLO pueden ser sobre contenido que se enseñó EXPLÍCITAMENTE en este módulo.
 
-NO uses preguntas genéricas. Cada pregunta debe requerir conocimiento específico del contenido del módulo.
+PASOS OBLIGATORIOS:
+1. Lee DETENIDAMENTE todo el contenido del módulo
+2. Identifica los conceptos principales que se enseñaron
+3. Crea preguntas SOLO sobre esos conceptos
+4. NO inventes ni asumas conocimientos que no se enseñaron
+
+IMPORTANTE: Las preguntas deben ser sobre:
+- Conceptos específicos que se EXPLICARON en el módulo
+- Técnicas, métodos o procesos que se MENCIONARON
+- Ejemplos concretos que se MOSTRARON
+- Definiciones que se DIERON
+- Aplicaciones que se DESCRIBIERON
+
+❌ NO preguntes sobre:
+- Conceptos que NO se mencionaron
+- Detalles técnicos que NO se explicaron
+- Temas avanzados que NO se cubrieron
+- Información que asumes pero NO se enseñó
+
+❌ OPCIONES PROHIBIDAS:
+- "Todas las anteriores"
+- "Ninguna de las anteriores"
+- "Todas son correctas"
+- "Ninguna es correcta"
+- Cualquier variación de estas opciones
+
+✅ FORMATO CORRECTO DE OPCIONES:
+Cada opción debe ser una respuesta específica y concreta. Ejemplo:
+- Opción A: "Para declarar variables que no cambian de valor"
+- Opción B: "Para declarar funciones constantes"
+- Opción C: "Para crear objetos inmutables"
+- Opción D: "Para definir números fijos"
 
 Responde SOLO con el JSON solicitado.`;
 

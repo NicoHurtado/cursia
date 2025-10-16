@@ -491,35 +491,27 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
           setModuleGenerationStatus(status);
 
           // Check if any new modules have been generated
-          const hasNewContent = status.modules.some(
-            (module: any, index: number) => {
-              const currentModule = course.modules[index];
+          const hasNewContent = status.moduleStatus?.some(
+            (moduleStatus: any) => {
+              const currentModule = course.modules.find(
+                (m: any) => m.moduleOrder === moduleStatus.moduleOrder
+              );
               return (
                 currentModule &&
-                module.isGenerated &&
+                moduleStatus.isComplete &&
                 currentModule.chunks.length === 0
               );
             }
           );
 
-          // If new modules are available, fetch updated course data
+          // If new modules are available, reload the page to show the new content
           if (hasNewContent) {
             if (isDev)
               console.log(
-                'New modules generated, fetching updated course data...'
+                '✨ New modules generated! Reloading page to show new content...'
               );
-            try {
-              const courseResponse = await fetch(`/api/courses/${course.id}`);
-              if (courseResponse.ok) {
-                const updatedCourse = await courseResponse.json();
-                setCourse(updatedCourse);
-                if (isDev) console.log('Course data updated successfully');
-              }
-            } catch (error) {
-              console.error('Error fetching updated course data:', error);
-              // Fallback to page reload if API fails
-              window.location.reload();
-            }
+            // Recargar la página automáticamente
+            window.location.reload();
           }
         }
       } catch (error) {

@@ -154,10 +154,12 @@ export function ModuleSidebar({
     const moduleGenStatus = moduleGenerationStatus?.moduleStatus?.find(
       (m: any) => m.moduleOrder === module.moduleOrder
     );
-    const isModuleGenerated = moduleGenStatus?.isGenerated || totalChunks > 0;
+    const isModuleGenerated = moduleGenStatus?.isComplete || totalChunks > 0;
 
-    // Si el módulo no tiene contenido (chunks), está bloqueado
-    if (totalChunks === 0 && !isModuleGenerated) return 'locked';
+    // Si el módulo no tiene contenido (chunks) y no está generado, está en generación
+    if (totalChunks === 0 && !isModuleGenerated) {
+      return 'generating';
+    }
 
     // Verificar si el módulo está desbloqueado
     const isUnlocked = isModuleUnlocked(module.moduleOrder);
@@ -194,6 +196,8 @@ export function ModuleSidebar({
         return <Play className="h-4 w-4 text-blue-600" />;
       case 'available':
         return <Play className="h-4 w-4 text-blue-500" />; // Disponible para acceder
+      case 'generating':
+        return <Clock className="h-4 w-4 text-orange-500 animate-pulse" />;
       case 'generated-locked':
         return <Lock className="h-4 w-4 text-blue-500" />; // Candado azul
       case 'locked':
@@ -211,6 +215,8 @@ export function ModuleSidebar({
         return 'border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800';
       case 'available':
         return 'border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800'; // Disponible para acceder
+      case 'generating':
+        return 'border-orange-200 bg-orange-50 dark:bg-orange-950/30 dark:border-orange-700'; // Naranja para generación
       case 'generated-locked':
         return 'border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800'; // Fondo azul claro
       case 'locked':
@@ -313,8 +319,15 @@ export function ModuleSidebar({
                         <p className="text-xs text-muted-foreground line-clamp-2">
                           {module.title}
                         </p>
+                        {/* Mensaje de generación */}
+                        {status === 'generating' && (
+                          <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 flex items-center gap-1">
+                            <Clock className="h-3 w-3 animate-pulse" />
+                            Generando contenido...
+                          </p>
+                        )}
                         {/* Mensaje de bloqueo */}
-                        {!isUnlocked && lockMessage && (
+                        {!isUnlocked && status !== 'generating' && lockMessage && (
                           <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 flex items-center gap-1">
                             <Lock className="h-3 w-3" />
                             {lockMessage}

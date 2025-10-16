@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Users, Calendar, Trash2, Eye, Star } from 'lucide-react';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { cn } from '@/lib/utils';
 
 interface Course {
@@ -35,7 +36,7 @@ export function CourseCard({
   currentUserId,
   onDelete,
 }: CourseCardProps) {
-  const router = useRouter();
+  
   const [isDeleting, setIsDeleting] = useState(false);
 
   const formatDate = (dateString: string) => {
@@ -59,9 +60,7 @@ export function CourseCard({
     }
   };
 
-  const handleViewCourse = () => {
-    router.push(`/courses/${course.id}?from=community`);
-  };
+  
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -93,6 +92,7 @@ export function CourseCard({
                 onClick={handleDelete}
                 disabled={isDeleting}
                 className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                aria-label="Eliminar curso"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -123,11 +123,7 @@ export function CourseCard({
         {/* Author */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                {course.user.name.charAt(0).toUpperCase()}
-              </span>
-            </div>
+            <UserAvatar name={course.user.name} size={32} />
             <div>
               <p className="text-sm font-medium">{course.user.name}</p>
             </div>
@@ -139,9 +135,11 @@ export function CourseCard({
         </div>
 
         {/* Action Button */}
-        <Button className="w-full" variant="outline" onClick={handleViewCourse}>
-          <Eye className="h-4 w-4 mr-2" />
-          Ver Curso
+        <Button className="w-full" variant="outline" asChild>
+          <Link href={`/courses/${course.id}`} aria-label={`Ver curso ${course.title}`}>
+            <Eye className="h-4 w-4 mr-2" />
+            Ver Curso
+          </Link>
         </Button>
       </CardContent>
     </Card>

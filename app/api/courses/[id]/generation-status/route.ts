@@ -50,6 +50,7 @@ export async function GET(
       const hasQuiz =
         module.quizzes.length > 0 && module.quizzes[0].questions.length > 0;
       const isComplete = hasContent && hasQuiz;
+      const isGenerated = isComplete; // Alias para compatibilidad
 
       return {
         moduleOrder: module.moduleOrder,
@@ -57,6 +58,7 @@ export async function GET(
         hasContent,
         hasQuiz,
         isComplete,
+        isGenerated, // Agregado para compatibilidad con el componente
         chunksCount: module.chunks.length,
         quizQuestionsCount:
           module.quizzes.length > 0 ? module.quizzes[0].questions.length : 0,
