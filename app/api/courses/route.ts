@@ -1546,8 +1546,24 @@ Revisa el JSON ANTES de responder. Debe ser 100% válido.`;
               }
             }
 
-            // Normalizar y validar
+            // Normalizar y limpiar bloques vacíos
             const normalizedDoc = normalizeToContract(lessonDoc);
+            
+            // Filtrar bloques vacíos o inválidos
+            normalizedDoc.blocks = normalizedDoc.blocks.filter((block: any) => {
+              if (block.type === 'paragraph') {
+                return block.data && block.data.text && block.data.text.trim().length > 0;
+              }
+              if (block.type === 'heading') {
+                return block.data && block.data.text && block.data.text.trim().length > 0;
+              }
+              if (block.type === 'list') {
+                return block.data && block.data.items && block.data.items.length > 0;
+              }
+              // Mantener otros tipos de bloques
+              return true;
+            });
+            
             const validationResult =
               ContentContractValidator.validateDocument(normalizedDoc);
 

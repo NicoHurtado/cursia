@@ -132,8 +132,16 @@ function cleanBasicJson(jsonString: string): string {
     .replace(/[""]/g, '"')
     .replace(/['']/g, "'");
   
-  // Eliminar caracteres de control excepto \n, \r, \t
-  cleaned = cleaned.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  // Eliminar TODOS los caracteres de control excepto espacios normales
+  // Esto incluye \n, \r, \t dentro de strings JSON (que deben estar escapados)
+  cleaned = cleaned.replace(/[\x00-\x1F\x7F-\x9F]/g, (char) => {
+    const code = char.charCodeAt(0);
+    // Preservar solo espacios, tabs y newlines FUERA de strings
+    if (code === 0x09 || code === 0x0A || code === 0x0D) {
+      return ' '; // Reemplazar con espacio
+    }
+    return ''; // Eliminar otros caracteres de control
+  });
   
   return cleaned;
 }
