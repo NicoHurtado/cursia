@@ -875,13 +875,24 @@ async function generateModulesInBackground(
             `📝 [BACKGROUND] Generating module ${module.moduleOrder}: ${moduleTitle}`
           );
 
+          // Build context for previous modules
+          const previousModules = modulesToGenerate
+            .filter(m => m.moduleOrder < module.moduleOrder)
+            .map(m => ({
+              title: m.title,
+              topics: [], // We could extract topics from chunks if needed
+              description: m.description
+            }));
+
           // Generate module content
           const moduleContentJson = await simpleAI.generateModuleContent(
             course.title || 'Course',
             moduleTitle,
             module.moduleOrder,
             course.totalModules,
-            course.description || ''
+            course.description || '',
+            previousModules,
+            moduleList
           );
           // Since generateModuleContent already returns a structured object,
           // do not JSON.parse. Use it directly.

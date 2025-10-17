@@ -17,11 +17,13 @@ import {
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Mi Perfil', href: '/dashboard/profile', icon: User },
-  { name: 'Crear Curso', href: '/create-course', icon: Plus },
   { name: 'Mis Cursos', href: '/dashboard/courses', icon: BookOpen },
-  { name: 'Planes', href: '/dashboard/plans', icon: CreditCard },
   { name: 'Certificaciones', href: '/dashboard/certificates', icon: Award },
+];
+
+const bottomNavigation = [
+  { name: 'Mi Perfil', href: '/dashboard/profile', icon: User },
+  { name: 'Planes', href: '/dashboard/plans', icon: CreditCard },
 ];
 
 export function Sidebar() {
@@ -58,21 +60,21 @@ export function Sidebar() {
         </CardContent>
       </Card>
 
-      {/* Community Button - Special */}
+      {/* Create Course Button - Special */}
       <div className="mb-6">
         <Button
           variant="default"
           className={cn(
             'w-full justify-start h-14 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg',
-            pathname === '/dashboard/community' && 'bg-blue-700 shadow-xl'
+            pathname === '/create-course' && 'bg-blue-700 shadow-xl'
           )}
-          onClick={() => handleNavigation('/dashboard/community')}
+          onClick={() => handleNavigation('/create-course')}
           aria-current={
-            pathname === '/dashboard/community' ? 'page' : undefined
+            pathname === '/create-course' ? 'page' : undefined
           }
         >
-          <Users className="h-6 w-6 mr-3" />
-          <span className="font-semibold text-base">Comunidad</span>
+          <Plus className="h-6 w-6 mr-3" />
+          <span className="font-semibold text-base">Crear Curso</span>
         </Button>
       </div>
 
@@ -102,6 +104,31 @@ export function Sidebar() {
       </nav>
 
       <div className="my-4 h-px bg-border flex-shrink-0" />
+
+      {/* Bottom Navigation */}
+      <nav className="flex-shrink-0 space-y-2 mb-4">
+        {bottomNavigation.map(item => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href;
+
+          return (
+            <Button
+              key={item.name}
+              variant="ghost"
+              className={cn(
+                'w-full justify-start h-12 px-4',
+                isActive &&
+                  'bg-primary/10 text-primary border-r-2 border-primary'
+              )}
+              onClick={() => handleNavigation(item.href)}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <Icon className="h-5 w-5 mr-3" />
+              <span className="font-medium">{item.name}</span>
+            </Button>
+          );
+        })}
+      </nav>
 
       {/* Logout Button */}
       <div className="flex-shrink-0">

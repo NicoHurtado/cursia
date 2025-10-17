@@ -234,6 +234,19 @@ IMPORTANTE: Responde ÚNICAMENTE con JSON válido que cumpla este contrato. No i
 export const COURSE_METADATA_CONTRACT_PROMPT = `
 Genera metadata de curso siguiendo el CONTRATO DE CONTENIDO.
 
+⚠️ IMPORTANTE - ESTRUCTURA PROGRESIVA DEL CURSO:
+El curso debe tener 5 módulos que formen una progresión coherente y completa:
+
+MÓDULO 1: FUNDAMENTOS Y CONTEXTO INICIAL
+- Solo definiciones básicas, contexto, herramientas necesarias
+- NO incluir conceptos avanzados ni implementaciones complejas
+- Preparar la base para los módulos siguientes
+
+MÓDULOS 2-5: PROGRESIÓN LÓGICA Y COHERENTE
+- Cada módulo debe construir sobre el anterior
+- NO repetir conceptos ya explicados en módulos anteriores
+- Avanzar de forma natural y progresiva en complejidad
+
 Estructura requerida:
 {
   "version": "1.0.0",
@@ -257,7 +270,7 @@ Estructura requerida:
       "id": "block_metadata_2", 
       "type": "paragraph",
       "data": {
-        "text": "Descripción detallada del curso (300-400 palabras)..."
+        "text": "Descripción detallada del curso (300-400 palabras) que explique el valor y la progresión del aprendizaje..."
       }
     },
     {
@@ -273,7 +286,22 @@ Estructura requerida:
       "type": "list", 
       "data": {
         "style": "numbered",
-        "items": ["Módulo 1: Título", "Módulo 2: Título", ...]
+        "items": [
+          "Módulo 1: [Título específico] - Fundamentos y contexto inicial",
+          "Módulo 2: [Título específico] - [Aspecto específico que construye sobre el Módulo 1]",
+          "Módulo 3: [Título específico] - [Aspecto específico que construye sobre módulos anteriores]",
+          "Módulo 4: [Título específico] - [Aspecto específico que construye sobre módulos anteriores]",
+          "Módulo 5: [Título específico] - [Aspecto específico avanzado que culmina el curso]"
+        ]
+      }
+    },
+    {
+      "id": "block_metadata_5",
+      "type": "callout",
+      "data": {
+        "type": "info",
+        "title": "Progresión del Curso",
+        "content": "Este curso está diseñado como una progresión coherente donde cada módulo construye sobre el anterior. El Módulo 1 establece los fundamentos, y los módulos 2-5 desarrollan aspectos específicos y avanzados sin repetir contenido."
       }
     }
   ]
@@ -636,6 +664,8 @@ La salida siempre es un único ContentDocument válido.`;
       lessonNumber?: number;
       totalLessons?: number;
       existingTopics?: string[];
+      previousModules?: Array<{title: string, topics: string[], description: string}>;
+      courseOutline?: string[];
     }
   ): string {
     const topic = context.topic || context.moduleTitle || 'Lección';
@@ -651,6 +681,8 @@ La salida siempre es un único ContentDocument válido.`;
     const existingTopics = context.existingTopics || [];
     const moduleTitle = context.moduleTitle || '';
     const moduleOrder = context.moduleOrder || 1;
+    const previousModules = context.previousModules || [];
+    const courseOutline = context.courseOutline || [];
 
     // Detectar si es un módulo introductorio
     const isIntroductoryModule =
@@ -669,45 +701,72 @@ ${existingTopics.map((t, i) => `${i + 1}. "${t}"`).join('\n')}
 DEBES ABORDAR UN ASPECTO ÚNICO Y DIFERENTE. Si estás en la lección ${lessonNumber}, profundiza en aspectos más específicos o avanzados que no se hayan cubierto antes.`;
     }
 
+    // Información sobre módulos anteriores y outline del curso
+    let courseContextInfo = '';
+    if (courseOutline.length > 0) {
+      courseContextInfo = `
+
+📋 OUTLINE COMPLETO DEL CURSO:
+${courseOutline.map((module, i) => `${i + 1}. ${module}`).join('\n')}
+
+Este es el Módulo ${moduleOrder} de ${totalModules || courseOutline.length} módulos.`;
+    }
+
+    let previousModulesInfo = '';
+    if (previousModules.length > 0) {
+      previousModulesInfo = `
+
+📚 MÓDULOS ANTERIORES YA COMPLETADOS:
+${previousModules.map((mod, i) => 
+  `${i + 1}. ${mod.title}: ${mod.description}`
+).join('\n')}
+
+⚠️ CRÍTICO - NO REPITAS CONTENIDO:
+- NO expliques conceptos básicos ya cubiertos en módulos anteriores
+- NO repitas definiciones ya dadas
+- NO vuelvas a introducir herramientas ya presentadas
+- CONSTRUYE sobre el conocimiento previo, no lo reemplaces
+- ASUME que el estudiante ya conoce los fundamentos cubiertos anteriormente`;
+    }
+
     let introductoryModuleInstructions = '';
     if (isIntroductoryModule) {
       introductoryModuleInstructions = `
 
-⚠️ ESTE ES UN MÓDULO INTRODUCTORIO - INSTRUCCIONES ESPECIALES:
+⚠️ ESTE ES EL MÓDULO 1 - FUNDAMENTOS Y CONTEXTO INICIAL:
 
-Este módulo debe ser 100% INTRODUCTORIO y CONTEXTUAL. NO incluyas contenido técnico avanzado.
+Este módulo debe establecer SOLO los fundamentos básicos y el contexto. Es la base sobre la que construirán los módulos 2-5.
 
-ENFOQUE DE CONTENIDO:
-- Explica QUÉ ES el tema de forma simple y clara
-- Muestra PARA QUÉ SIRVE con ejemplos cotidianos
-- Proporciona CONTEXTO histórico o conceptual breve
-- Presenta CASOS DE ÉXITO y aplicaciones reales
-- MOTIVA al estudiante mostrando el valor de aprender esto
-- Prepara MENTALMENTE para el aprendizaje técnico que vendrá después
+ENFOQUE ESPECÍFICO DEL MÓDULO 1:
+- Define QUÉ ES el tema principal del curso
+- Explica PARA QUÉ SIRVE con ejemplos cotidianos
+- Presenta las HERRAMIENTAS y conceptos básicos necesarios
+- Establece el CONTEXTO histórico y actual
+- Prepara la MENTALIDAD del estudiante para el aprendizaje
+- Muestra la IMPORTANCIA y relevancia del tema
 
-❌ NO INCLUYAS EN EL CONTENIDO:
-- Sintaxis técnica detallada
-- Código complejo o avanzado
-- Conceptos que requieran conocimiento previo
-- Terminología técnica sin explicar
+❌ NO INCLUYAS EN ESTE MÓDULO:
+- Conceptos avanzados que se cubrirán en módulos posteriores
+- Implementaciones técnicas complejas
 - Ejercicios prácticos profundos
+- Temas específicos que pertenecen a otros módulos
 
 ✅ SÍ INCLUYE:
-- Analogías de la vida cotidiana
-- Explicaciones simples y visuales
-- Ejemplos del mundo real que cualquiera entienda
-- Historia y evolución del tema
-- Por qué es importante y relevante hoy
-- Qué aprenderá el estudiante en el curso
+- Definiciones claras y fundamentales
+- Analogías simples y accesibles
+- Contexto histórico y evolución
+- Herramientas básicas necesarias
+- Motivación y casos de éxito
+- Preparación para el aprendizaje progresivo
 
-TONO: Motivador, accesible, inspirador, sin intimidar con tecnicismos.`;
+IMPORTANTE: Este módulo es la FUNDACIÓN. Los módulos 2-5 construirán sobre estos fundamentos sin repetirlos.`;
     }
 
     return `Tema: ${topic}
 Lección: ${lessonTitle} (${lessonNumber}/${totalLessons})
 ⚠️ NIVEL: ${level.toUpperCase()} ${level === 'beginner' ? '- PRINCIPIANTE ABSOLUTO (NO asumas conocimiento previo)' : level === 'intermediate' ? '- INTERMEDIO (asume conocimientos básicos)' : '- AVANZADO (asume dominio de fundamentos)'}
 Audiencia: ${audience}
-Intereses: ${interestLine}${existingTopicsWarning}${introductoryModuleInstructions}
+Intereses: ${interestLine}${courseContextInfo}${previousModulesInfo}${existingTopicsWarning}${introductoryModuleInstructions}
 
 IMPORTANTE: Genera UNA LECCIÓN COMPLETA Y AUTÓNOMA que aborde el tema de inicio a fin.
 ${level === 'beginner' ? `

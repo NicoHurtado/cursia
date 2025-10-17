@@ -75,7 +75,9 @@ export class FallbackAI {
     moduleTitle: string,
     moduleOrder: number,
     totalModules: number,
-    courseDescription: string
+    courseDescription: string,
+    previousModules?: Array<{title: string, topics: string[], description: string}>,
+    courseOutline?: string[]
   ): Promise<string> {
     console.log(
       `🔄 Using fallback AI for module ${moduleOrder} content generation...`

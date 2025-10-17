@@ -112,7 +112,9 @@ export class SimpleAI {
     moduleTitle: string,
     moduleOrder: number,
     totalModules: number,
-    courseDescription: string
+    courseDescription: string,
+    previousModules?: Array<{title: string, topics: string[], description: string}>,
+    courseOutline?: string[]
   ): Promise<any> {
     const cacheKey = `module-content:${JSON.stringify({
       courseTitle,
@@ -137,7 +139,9 @@ export class SimpleAI {
         moduleTitle,
         moduleOrder,
         totalModules,
-        courseDescription
+        courseDescription,
+        previousModules,
+        courseOutline
       );
 
       // Debug: Log raw AI response
@@ -290,7 +294,9 @@ export class SimpleAI {
         moduleTitle,
         moduleOrder,
         totalModules,
-        courseDescription
+        courseDescription,
+        previousModules,
+        courseOutline
       );
       const fallbackContent = this.parseJsonWithFallback(
         fallbackJson,

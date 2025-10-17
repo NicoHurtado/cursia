@@ -181,7 +181,9 @@ export async function generateModuleContent(
   moduleTitle: string,
   moduleOrder: number,
   totalModules: number,
-  courseDescription: string
+  courseDescription: string,
+  previousModules?: Array<{title: string, topics: string[], description: string}>,
+  courseOutline?: string[]
 ): Promise<string> {
   const systemPrompt = ContractPromptBuilder.buildSystemPrompt('module');
   const userPrompt = ContractPromptBuilder.buildUserPrompt('module', {
@@ -190,6 +192,8 @@ export async function generateModuleContent(
     moduleOrder: moduleOrder,
     totalModules: totalModules,
     courseDescription: courseDescription,
+    previousModules: previousModules,
+    courseOutline: courseOutline,
   });
 
   return askClaude({ system: systemPrompt, user: userPrompt });

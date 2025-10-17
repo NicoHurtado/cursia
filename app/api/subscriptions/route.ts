@@ -13,6 +13,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Debug: Check if db.subscription exists
+    console.log('DB object keys:', Object.keys(db));
+    console.log('Subscription model exists:', !!db.subscription);
+    console.log('Subscription model type:', typeof db.subscription);
+    
+    if (!db.subscription) {
+      console.error('db.subscription is undefined!');
+      return NextResponse.json({ error: 'Database subscription model not available' }, { status: 500 });
+    }
+
     // Get user's active subscription
     const subscription = await db.subscription.findFirst({
       where: {
@@ -74,6 +84,15 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid plan for subscription' },
         { status: 400 }
       );
+    }
+
+    // Debug: Check if db.subscription exists in POST method
+    console.log('POST - DB object keys:', Object.keys(db));
+    console.log('POST - Subscription model exists:', !!db.subscription);
+    
+    if (!db.subscription) {
+      console.error('POST - db.subscription is undefined!');
+      return NextResponse.json({ error: 'Database subscription model not available' }, { status: 500 });
     }
 
     // Check if user already has an active subscription

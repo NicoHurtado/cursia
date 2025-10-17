@@ -88,12 +88,23 @@ export async function POST(
           },
         });
 
+        // Build context for previous modules
+        const previousModules = existingModules
+          .filter(m => m.moduleOrder < moduleOrder && m.chunks.length > 0)
+          .map(m => ({
+            title: m.title,
+            topics: [], // We could extract topics from chunks if needed
+            description: m.description
+          }));
+
         const moduleContent = await simpleAI.generateModuleContent(
           course.title,
           moduleTitle,
           moduleOrder,
           course.totalModules,
-          course.description
+          course.description,
+          previousModules,
+          moduleList
         );
 
         // Update module with generated content
