@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { BookOpen, Users, Calendar, Eye, Lock } from 'lucide-react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Users, Calendar, Eye, Star, Lock } from 'lucide-react';
-import { UserAvatar } from '@/components/ui/user-avatar';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserPlan } from '@/lib/plans';
+import { cn } from '@/lib/utils';
+
+// import { UserAvatar } from '@/components/ui/user-avatar';
 
 interface Course {
   id: string;
@@ -37,8 +38,6 @@ export function CommunityCourseCard({
   currentUserId,
   userPlan,
 }: CommunityCourseCardProps) {
-  
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
       year: 'numeric',
@@ -59,8 +58,6 @@ export function CommunityCourseCard({
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
     }
   };
-
-  
 
   const isOwner = currentUserId === course.user.id;
   const canView =
@@ -111,7 +108,11 @@ export function CommunityCourseCard({
           aria-label={`Ver perfil de ${course.user.name}`}
         >
           <div className="flex items-center gap-2">
-            <UserAvatar name={course.user.name} size={32} />
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-sm font-bold text-primary">
+                {course.user.name?.charAt(0)?.toUpperCase() || 'U'}
+              </span>
+            </div>
             <div>
               <p className="text-sm font-medium">{course.user.name}</p>
             </div>
@@ -128,14 +129,20 @@ export function CommunityCourseCard({
             className={cn('w-full', 'bg-blue-600 hover:bg-blue-700 text-white')}
             asChild
           >
-            <Link href={`/courses/${course.id}`} aria-label={`Ver curso ${course.title}`}>
+            <Link
+              href={`/courses/${course.id}`}
+              aria-label={`Ver curso ${course.title}`}
+            >
               <Eye className="h-4 w-4 mr-2" />
               Ver Curso
             </Link>
           </Button>
         ) : (
           <Button
-            className={cn('w-full', 'bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed')}
+            className={cn(
+              'w-full',
+              'bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed'
+            )}
             disabled
           >
             <Lock className="h-4 w-4 mr-2" />

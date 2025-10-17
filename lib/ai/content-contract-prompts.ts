@@ -664,7 +664,11 @@ La salida siempre es un único ContentDocument válido.`;
       lessonNumber?: number;
       totalLessons?: number;
       existingTopics?: string[];
-      previousModules?: Array<{title: string, topics: string[], description: string}>;
+      previousModules?: Array<{
+        title: string;
+        topics: string[];
+        description: string;
+      }>;
       courseOutline?: string[];
     }
   ): string {
@@ -717,9 +721,9 @@ Este es el Módulo ${moduleOrder} de ${totalModules || courseOutline.length} mó
       previousModulesInfo = `
 
 📚 MÓDULOS ANTERIORES YA COMPLETADOS:
-${previousModules.map((mod, i) => 
-  `${i + 1}. ${mod.title}: ${mod.description}`
-).join('\n')}
+${previousModules
+  .map((mod, i) => `${i + 1}. ${mod.title}: ${mod.description}`)
+  .join('\n')}
 
 ⚠️ CRÍTICO - NO REPITAS CONTENIDO:
 - NO expliques conceptos básicos ya cubiertos en módulos anteriores
@@ -769,7 +773,9 @@ Audiencia: ${audience}
 Intereses: ${interestLine}${courseContextInfo}${previousModulesInfo}${existingTopicsWarning}${introductoryModuleInstructions}
 
 IMPORTANTE: Genera UNA LECCIÓN COMPLETA Y AUTÓNOMA que aborde el tema de inicio a fin.
-${level === 'beginner' ? `
+${
+  level === 'beginner'
+    ? `
 ⚠️ CRÍTICO PARA NIVEL BEGINNER:
 - Esta lección debe explicar UN SOLO concepto fundamental
 - NO asumas que el estudiante sabe NADA sobre este tema
@@ -779,7 +785,9 @@ ${level === 'beginner' ? `
 - Múltiples EJEMPLOS SIMPLES antes de pasar a algo más complejo
 - Si es programación: muestra CADA LÍNEA de código explicada
 - El estudiante debe sentir que puede seguirlo sin frustrarse
-` : ''}
+`
+    : ''
+}
 
 CONTEXTO CRÍTICO:
 - El curso es sobre: ${topic}

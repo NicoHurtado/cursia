@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { contentStore } from '@/lib/content-store';
 
 export async function GET(
@@ -12,6 +13,3 @@ export async function GET(
   }
   return NextResponse.json(doc, { status: 200 });
 }
-
-
-

@@ -1,22 +1,20 @@
 'use client';
 
-import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import {
   CheckCircle,
   Circle,
-  Clock,
   BookOpen,
-  Award,
   Play,
-  Download,
   ArrowLeft,
   ArrowRight,
   Home,
 } from 'lucide-react';
+import Image from 'next/image';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 interface CourseViewMockupProps {
   course: {

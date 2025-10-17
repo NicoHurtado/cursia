@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+
 import { db } from '@/lib/db';
 
 export default async function SampleCoursePage() {
@@ -18,8 +19,9 @@ export default async function SampleCoursePage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Course Not Found</h1>
           <p className="text-muted-foreground">
-            The sample course "Estructuras de Datos Aplicadas al Análisis
-            Deportivo" doesn't exist yet. Please create a course first.
+            The sample course &quot;Estructuras de Datos Aplicadas al Análisis
+            Deportivo&quot; doesn&apos;t exist yet. Please create a course
+            first.
           </p>
         </div>
       </div>

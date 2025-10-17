@@ -1,13 +1,8 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Certificate } from './Certificate';
 import {
   Trophy,
   CheckCircle2,
-  Clock,
   BookOpen,
   Download,
   Star,
@@ -15,6 +10,11 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { useState } from 'react';
+
+import { Certificate } from './Certificate';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { downloadCertificatePDF } from '@/lib/certificate-pdf';
 
 interface FinishCourseProps {

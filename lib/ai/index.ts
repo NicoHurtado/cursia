@@ -19,7 +19,11 @@ export {
 } from './lesson-generator-with-validation';
 
 // Funciones de AI base
-export { askClaude, generateCourseMetadata, generateModuleContent } from './anthropic';
+export {
+  askClaude,
+  generateCourseMetadata,
+  generateModuleContent,
+} from './anthropic';
 
 // Builders de prompts
 export { ContractPromptBuilder } from './content-contract-prompts';
@@ -32,9 +36,9 @@ export { simpleAI, SimpleAI } from './simple';
 
 /**
  * EJEMPLO DE USO:
- * 
+ *
  * import { generateLessonsWithValidation, ContentTopicValidator } from '@/lib/ai';
- * 
+ *
  * const result = await generateLessonsWithValidation({
  *   moduleTitle: 'Arrays en JavaScript',
  *   courseTopic: 'JavaScript para Principiantes',
@@ -43,9 +47,8 @@ export { simpleAI, SimpleAI } from './simple';
  *   maxAttempts: 2,
  *   interests: ['programación', 'web']
  * });
- * 
+ *
  * if (result.validationResult.isValid) {
  *   console.log('✅ Lecciones válidas generadas');
  * }
  */
-

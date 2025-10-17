@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { UserAvatar } from '@/components/ui/user-avatar';
 import { Calendar, Layers3, Users, Star } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState, useCallback } from 'react';
+
 import { CommunityCourseCard } from '@/components/community/CommunityCourseCard';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+
+// import { UserAvatar } from '@/components/ui/user-avatar';
 
 interface PageParams {
   params: Promise<{ username: string }>;
@@ -85,13 +87,13 @@ export default function UserProfilePage({ params }: PageParams) {
         const data = await resp.json();
         setUserPlan(data.currentPlan);
       }
-    } catch (e) {
+    } catch {
       // noop
     }
   };
 
   // Fetch profile data
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     if (!username) return;
     try {
       const resp = await fetch(`/api/users/${username}`);
@@ -105,10 +107,10 @@ export default function UserProfilePage({ params }: PageParams) {
         setMetrics(data.metrics);
         setCourses(data.courses);
       }
-    } catch (e) {
+    } catch {
       // noop
     }
-  };
+  }, [username, router]);
 
   useEffect(() => {
     if (!username) return;
@@ -118,7 +120,7 @@ export default function UserProfilePage({ params }: PageParams) {
       setLoading(false);
     };
     load();
-  }, [username]);
+  }, [username, fetchProfile]);
 
   if (status === 'loading' || loading) {
     return (
@@ -160,7 +162,11 @@ export default function UserProfilePage({ params }: PageParams) {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <UserAvatar name={user.name} size={64} />
+        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+          <span className="text-2xl font-bold text-primary">
+            {user.name?.charAt(0)?.toUpperCase() || 'U'}
+          </span>
+        </div>
         <div>
           <h1 className="text-2xl font-bold">{user.name}</h1>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -191,8 +197,12 @@ export default function UserProfilePage({ params }: PageParams) {
             <CardContent className="p-4 flex items-center gap-3">
               <Users className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm text-muted-foreground">Completados totales</p>
-                <p className="text-xl font-semibold">{metrics.totalCompletions}</p>
+                <p className="text-sm text-muted-foreground">
+                  Completados totales
+                </p>
+                <p className="text-xl font-semibold">
+                  {metrics.totalCompletions}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -238,5 +248,3 @@ export default function UserProfilePage({ params }: PageParams) {
     </div>
   );
 }
-
-

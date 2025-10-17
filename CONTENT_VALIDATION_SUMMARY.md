@@ -29,40 +29,52 @@ He creado un **sistema completo de validación de contenido** que soluciona tus 
 ## 📁 Archivos Creados
 
 ### 1. Validador Principal
+
 **`lib/content-topic-validator.ts`** (388 líneas)
+
 - Clase `ContentTopicValidator` con todos los métodos de validación
 - Detecta repeticiones, analiza profundidad, valida conteo de unidades
 - Genera sugerencias específicas de mejora
 
 ### 2. Generador con Validación
+
 **`lib/ai/lesson-generator-with-validation.ts`** (294 líneas)
+
 - Función principal: `generateLessonsWithValidation()`
 - Genera lecciones y las valida automáticamente
 - Regenera si detecta problemas
 - Retorna resultado completo con metadata
 
 ### 3. Prompts Mejorados
+
 **`lib/ai/content-contract-prompts.ts`** (actualizado)
+
 - Agregado parámetro `existingTopics` para evitar repeticiones
 - Requisitos más estrictos de profundidad (10-15 bloques)
 - Estructura obligatoria de lección profunda
 - Progresión lógica entre lecciones
 
 ### 4. Guía de Uso
+
 **`docs/content-validation-guide.md`** (430 líneas)
+
 - Documentación completa del sistema
 - Ejemplos de uso
 - Criterios de validación
 - Solución de problemas
 
 ### 5. Ejemplos de Integración
+
 **`lib/ai/integration-example.ts`** (380 líneas)
+
 - 5 ejemplos completos listos para usar
 - Código copy-paste para tu API
 - Diferentes configuraciones (estricta, flexible, balanceada)
 
 ### 6. Script de Prueba
+
 **`scripts/test-content-validation.ts`** (470 líneas)
+
 - Tests completos del sistema
 - Casos de prueba con datos reales
 - Validación de todos los componentes
@@ -80,7 +92,7 @@ const result = await generateLessonsWithValidation({
   level: 'intermediate',
   totalLessons: 5,
   maxAttempts: 2,
-  interests: ['programación', 'datos']
+  interests: ['programación', 'datos'],
 });
 
 // result contiene:
@@ -100,7 +112,7 @@ import { generateModuleForAPI } from '@/lib/ai/integration-example';
 
 export async function POST(request: NextRequest, { params }) {
   const { moduleTitle, courseTopic, level, interests } = await request.json();
-  
+
   const result = await generateModuleForAPI(
     params.id,
     moduleTitle,
@@ -109,7 +121,7 @@ export async function POST(request: NextRequest, { params }) {
     interests,
     db
   );
-  
+
   return NextResponse.json(result);
 }
 ```
@@ -124,6 +136,7 @@ npx tsx scripts/test-content-validation.ts
 ```
 
 Esto probará:
+
 - ✅ Detección de repeticiones
 - ✅ Validación de lecciones correctas
 - ✅ Detección de contenido superficial
@@ -134,46 +147,54 @@ Esto probará:
 ### 1. Repeticiones de Temas
 
 **Detecta:**
+
 - Headings nivel 2 (H2) que se repiten entre lecciones
 - Temas idénticos en diferentes lecciones
 
 **Ejemplo de salida:**
+
 ```
 ⚠️ Tema repetido: "qué son los arrays" en lecciones 1, 3
 ```
 
 **Sugerencia:**
+
 ```
-El tema "qué son los arrays" se repite. Profundiza en un aspecto 
+El tema "qué son los arrays" se repite. Profundiza en un aspecto
 específico en cada lección en lugar de repetir el mismo tema.
 ```
 
 ### 2. Profundidad del Contenido
 
 **Analiza:**
+
 - Número de bloques por lección
 - Número de subtemas (H3) por tema principal (H2)
 - Promedio de secciones por lección
 
 **Clasificación:**
+
 - **Deep** (profundo): ≥3 subtemas por tema, ≥6 bloques/lección
 - **Moderate** (moderado): 2-3 subtemas, 4-6 bloques
 - **Shallow** (superficial): <2 subtemas, <4 bloques
 
 **Sugerencia si es superficial:**
+
 ```
-El contenido es demasiado superficial. Cada lección debe tener 
+El contenido es demasiado superficial. Cada lección debe tener
 al menos 3-4 secciones (H3) que profundicen en el tema principal.
 ```
 
 ### 3. Número de Unidades
 
 **Valida automáticamente según:**
+
 - Palabras clave en el título del módulo
 - Nivel del curso (beginner/intermediate/advanced)
 - Complejidad estimada del tema
 
 **Ejemplos:**
+
 - "Introducción a Python" → 3-4 unidades
 - "Fundamentos de JavaScript" → 4-5 unidades
 - "Arquitectura de Microservicios" → 5-6 unidades
@@ -183,15 +204,16 @@ al menos 3-4 secciones (H3) que profundicen en el tema principal.
 ```typescript
 // Configuración para producción
 const config = {
-  maxAttempts: 2,        // 2 intentos para asegurar calidad
-  totalLessons: 5,       // Se ajusta automáticamente
-  minBlocksPerLesson: 10 // Mínimo para considerar profundo
+  maxAttempts: 2, // 2 intentos para asegurar calidad
+  totalLessons: 5, // Se ajusta automáticamente
+  minBlocksPerLesson: 10, // Mínimo para considerar profundo
 };
 ```
 
 ## 📝 Próximos Pasos
 
 1. **Probar el sistema**
+
    ```bash
    npx tsx scripts/test-content-validation.ts
    ```
@@ -316,8 +338,9 @@ const simpleKeywords = [
 ✅ **Normal** - El sistema detectó contenido poco profundo
 ✅ **Se regenerará** con requisitos más estrictos
 ✅ **Si persiste** después de 2 intentos, considera:
-   - Aumentar `maxAttempts`
-   - Usar un modelo de IA más potente (Claude Opus)
+
+- Aumentar `maxAttempts`
+- Usar un modelo de IA más potente (Claude Opus)
 
 ### "Máximo de intentos alcanzado"
 
@@ -336,9 +359,10 @@ const simpleKeywords = [
 
 ## 🎉 ¡Listo para Usar!
 
-El sistema está **completamente implementado** y **listo para producción**. 
+El sistema está **completamente implementado** y **listo para producción**.
 
 Solo necesitas:
+
 1. Probar con el script de test
 2. Copiar el código de integración en tu API
 3. ¡Disfrutar de contenido de alta calidad sin repeticiones!
@@ -346,4 +370,3 @@ Solo necesitas:
 ---
 
 **Nota**: El sistema no hace nada "complejo" como pediste. Simplemente valida que no haya repeticiones y regenera si es necesario. Es simple pero efectivo. 🎯
-

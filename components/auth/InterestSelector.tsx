@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
 import {
   Brain,
   Music,
@@ -27,6 +25,9 @@ import {
   ChevronUp,
   Check,
 } from 'lucide-react';
+import { useState } from 'react';
+
+import { cn } from '@/lib/utils';
 
 interface Interest {
   id: string;

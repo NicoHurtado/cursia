@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+
 import { simpleAI } from '@/lib/ai/simple';
+import { db } from '@/lib/db';
 import { YouTubeService } from '@/lib/youtube';
 
 export async function POST(request: NextRequest) {
@@ -196,6 +197,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-
-

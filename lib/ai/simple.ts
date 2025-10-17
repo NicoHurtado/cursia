@@ -1,11 +1,10 @@
 import { generateCourseMetadata, generateModuleContent } from './anthropic';
 import { fallbackAI } from './fallback';
-import { CourseMetadataSchema, ModuleContentSchema } from '@/lib/dto/course';
 import {
   ContentDocument,
   ContentContractValidator,
-  CONTENT_CONTRACT_VERSION,
 } from '@/lib/content-contract';
+import { CourseMetadataSchema, ModuleContentSchema } from '@/lib/dto/course';
 
 /**
  * Simple AI System - No Redis, Direct Calls Only
@@ -113,7 +112,11 @@ export class SimpleAI {
     moduleOrder: number,
     totalModules: number,
     courseDescription: string,
-    previousModules?: Array<{title: string, topics: string[], description: string}>,
+    previousModules?: Array<{
+      title: string;
+      topics: string[];
+      description: string;
+    }>,
     courseOutline?: string[]
   ): Promise<any> {
     const cacheKey = `module-content:${JSON.stringify({
@@ -161,7 +164,7 @@ export class SimpleAI {
             'Contract validation failed: ' + validation.errors.join('; ')
           );
         }
-        let moduleContent = this.convertContractToModuleContent(
+        const moduleContent = this.convertContractToModuleContent(
           doc,
           moduleTitle
         );
@@ -179,7 +182,7 @@ export class SimpleAI {
 
         // Legacy path: parse as ModuleContent JSON and normalize markdown
         const cleanedJson = this.cleanJsonString(moduleJson);
-        let rawContent = this.parseJsonWithFallback(
+        const rawContent = this.parseJsonWithFallback(
           cleanedJson,
           ModuleContentSchema,
           moduleTitle

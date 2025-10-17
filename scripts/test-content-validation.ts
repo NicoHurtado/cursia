@@ -1,11 +1,11 @@
 /**
  * Script de Prueba para el Sistema de Validación de Contenido
- * 
+ *
  * Uso: node --loader tsx scripts/test-content-validation.ts
  */
 
-import { ContentTopicValidator } from '../lib/content-topic-validator';
 import { ContentDocument } from '../lib/content-contract';
+import { ContentTopicValidator } from '../lib/content-topic-validator';
 
 // Datos de prueba: Lecciones con REPETICIÓN (caso problemático)
 const lessonsWithRepetition: ContentDocument[] = [
@@ -373,7 +373,7 @@ function runTests() {
   console.log(`Temas repetidos: ${validation1.repeatedTopics.length}`);
   if (validation1.repeatedTopics.length > 0) {
     console.log('Temas:');
-    validation1.repeatedTopics.forEach((topic) => {
+    validation1.repeatedTopics.forEach(topic => {
       console.log(`   - "${topic}"`);
     });
   }
@@ -390,8 +390,12 @@ function runTests() {
   console.log(
     `Resultado: ${validation2.isValid ? '✅ PASÓ (esperado)' : '❌ FALLÓ'}`
   );
-  console.log(`Tiene repeticiones: ${validation2.hasRepetitions ? 'SÍ' : 'NO'}`);
-  console.log(`Necesita más profundidad: ${validation2.needsMoreDepth ? 'SÍ' : 'NO'}`);
+  console.log(
+    `Tiene repeticiones: ${validation2.hasRepetitions ? 'SÍ' : 'NO'}`
+  );
+  console.log(
+    `Necesita más profundidad: ${validation2.needsMoreDepth ? 'SÍ' : 'NO'}`
+  );
   console.log(`Profundidad: ${validation2.depth}`);
   console.log(`Temas únicos: ${validation2.topics.length}`);
   console.log('');
@@ -407,7 +411,9 @@ function runTests() {
     `Resultado: ${validation3.needsMoreDepth ? '❌ FALLÓ (esperado)' : '✅ PASÓ'}`
   );
   console.log(`Profundidad: ${validation3.depth}`);
-  console.log(`Necesita más profundidad: ${validation3.needsMoreDepth ? 'SÍ' : 'NO'}`);
+  console.log(
+    `Necesita más profundidad: ${validation3.needsMoreDepth ? 'SÍ' : 'NO'}`
+  );
   console.log('');
 
   // TEST 4: Validar número de unidades
@@ -467,4 +473,3 @@ function runTests() {
 
 // Ejecutar pruebas
 runTests();
-

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+
+import { generateModuleContent } from '@/lib/ai/anthropic';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { generateModuleContent } from '@/lib/ai/anthropic';
 import { ModuleContentSchema } from '@/lib/dto/course';
 
 export async function POST(

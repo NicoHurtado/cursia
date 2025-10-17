@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { AlertTriangle, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,7 +14,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { AlertTriangle, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface DeleteAccountModalProps {

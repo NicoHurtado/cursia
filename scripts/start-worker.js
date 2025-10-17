@@ -15,7 +15,11 @@ if (process.env.USE_AI_WORKER === 'false') {
   process.exit(0);
 }
 
-const connection = { host: redisHost, port: redisPort, password: process.env.REDIS_PASSWORD };
+const connection = {
+  host: redisHost,
+  port: redisPort,
+  password: process.env.REDIS_PASSWORD,
+};
 
 let worker;
 try {
@@ -24,7 +28,10 @@ try {
     async job => {
       // Placeholder: the actual processing logic should live in app/api or lib
       if (process.env.NODE_ENV !== 'production') {
-        console.log(`[worker] Received job ${job.id} of type ${job.name}`, job.data);
+        console.log(
+          `[worker] Received job ${job.id} of type ${job.name}`,
+          job.data
+        );
       }
       return { ok: true };
     },
@@ -54,5 +61,3 @@ process.on('SIGINT', async () => {
     process.exit(0);
   }
 });
-
-

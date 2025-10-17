@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { UserPlan } from '@/lib/plans';
-import { wompiClient, getPlanPriceInCents, createSubscriptionReference } from '@/lib/wompi';
+import {
+  wompiClient,
+  getPlanPriceInCents,
+  createSubscriptionReference,
+} from '@/lib/wompi';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
@@ -17,10 +22,13 @@ export async function GET(request: NextRequest) {
     console.log('DB object keys:', Object.keys(db));
     console.log('Subscription model exists:', !!db.subscription);
     console.log('Subscription model type:', typeof db.subscription);
-    
+
     if (!db.subscription) {
       console.error('db.subscription is undefined!');
-      return NextResponse.json({ error: 'Database subscription model not available' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Database subscription model not available' },
+        { status: 500 }
+      );
     }
 
     // Get user's active subscription
@@ -28,18 +36,18 @@ export async function GET(request: NextRequest) {
       where: {
         userId: session.user.id,
         status: {
-          in: ['ACTIVE', 'PAUSED']
-        }
+          in: ['ACTIVE', 'PAUSED'],
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: 'desc',
+      },
     });
 
     if (!subscription) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         hasSubscription: false,
-        subscription: null 
+        subscription: null,
       });
     }
 
@@ -54,8 +62,8 @@ export async function GET(request: NextRequest) {
         nextPaymentDate: subscription.nextPaymentDate,
         lastPaymentDate: subscription.lastPaymentDate,
         createdAt: subscription.createdAt,
-        cancelledAt: subscription.cancelledAt
-      }
+        cancelledAt: subscription.cancelledAt,
+      },
     });
   } catch (error) {
     console.error('Get subscription error:', error);
@@ -89,10 +97,13 @@ export async function POST(request: NextRequest) {
     // Debug: Check if db.subscription exists in POST method
     console.log('POST - DB object keys:', Object.keys(db));
     console.log('POST - Subscription model exists:', !!db.subscription);
-    
+
     if (!db.subscription) {
       console.error('POST - db.subscription is undefined!');
-      return NextResponse.json({ error: 'Database subscription model not available' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Database subscription model not available' },
+        { status: 500 }
+      );
     }
 
     // Check if user already has an active subscription
@@ -100,9 +111,9 @@ export async function POST(request: NextRequest) {
       where: {
         userId: session.user.id,
         status: {
-          in: ['ACTIVE', 'PAUSED']
-        }
-      }
+          in: ['ACTIVE', 'PAUSED'],
+        },
+      },
     });
 
     if (existingSubscription) {
@@ -115,7 +126,7 @@ export async function POST(request: NextRequest) {
     // Get user details
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { email: true, name: true }
+      select: { email: true, name: true },
     });
 
     if (!user) {
@@ -136,21 +147,21 @@ export async function POST(request: NextRequest) {
         reference,
         payment_method: {
           type: 'CARD',
-          token: paymentMethodToken
+          token: paymentMethodToken,
         },
         recurring_period: {
           interval: 'MONTHLY',
-          interval_count: 1
-        }
+          interval_count: 1,
+        },
       });
 
       console.log('✅ Wompi subscription created:', wompiSubscription.id);
     } catch (wompiError: any) {
       console.error('❌ Wompi subscription creation failed:', wompiError);
       return NextResponse.json(
-        { 
+        {
           error: 'No se pudo crear la suscripción en el procesador de pagos.',
-          details: wompiError.message 
+          details: wompiError.message,
         },
         { status: 400 }
       );
@@ -167,14 +178,14 @@ export async function POST(request: NextRequest) {
         reference,
         paymentMethodToken, // Guardar el token para futuros pagos
         nextPaymentDate: new Date(wompiSubscription.next_payment_date),
-        status: wompiSubscription.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE'
-      }
+        status: wompiSubscription.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+      },
     });
 
     // Update user plan
     await db.user.update({
       where: { id: session.user.id },
-      data: { plan }
+      data: { plan },
     });
 
     return NextResponse.json({
@@ -184,8 +195,8 @@ export async function POST(request: NextRequest) {
         plan: subscription.plan,
         status: subscription.status,
         amountInCents: subscription.amountInCents,
-        nextPaymentDate: subscription.nextPaymentDate
-      }
+        nextPaymentDate: subscription.nextPaymentDate,
+      },
     });
   } catch (error) {
     console.error('Create subscription error:', error);

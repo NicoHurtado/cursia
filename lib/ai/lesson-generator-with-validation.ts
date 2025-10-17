@@ -83,28 +83,34 @@ export async function generateLessonsWithValidation(
       } else {
         console.log(`⚠️ Validación falló en intento ${attempt}:`);
         console.log(`   - Repeticiones: ${validationResult.hasRepetitions}`);
-        console.log(`   - Temas repetidos: ${validationResult.repeatedTopics.length}`);
-        console.log(`   - Necesita más profundidad: ${validationResult.needsMoreDepth}`);
-        
+        console.log(
+          `   - Temas repetidos: ${validationResult.repeatedTopics.length}`
+        );
+        console.log(
+          `   - Necesita más profundidad: ${validationResult.needsMoreDepth}`
+        );
+
         if (attempt < maxAttempts) {
           console.log(`🔄 Regenerando lecciones con mejores instrucciones...`);
           regenerated = true;
-          
+
           // Pequeña pausa antes de regenerar
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 2000));
         } else {
-          console.log(`⚠️ Máximo de intentos alcanzado. Usando último conjunto generado.`);
+          console.log(
+            `⚠️ Máximo de intentos alcanzado. Usando último conjunto generado.`
+          );
         }
       }
     } catch (error) {
       console.error(`❌ Error en intento ${attempt}:`, error);
-      
+
       if (attempt === maxAttempts) {
         throw error;
       }
-      
+
       // Pausa antes de reintentar
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
 
@@ -128,17 +134,14 @@ async function generateLessonsInternal(
   previousLessons: ContentDocument[]
 ): Promise<ContentDocument[]> {
   const lessons: ContentDocument[] = [];
-  
+
   // Extraer temas ya cubiertos en intentos anteriores
   const existingTopics: string[] = [];
   if (previousLessons.length > 0) {
-    previousLessons.forEach((lesson) => {
+    previousLessons.forEach(lesson => {
       const blocks = lesson.blocks || [];
-      blocks.forEach((block) => {
-        if (
-          block.type === 'heading' &&
-          (block.data as any)?.level === 2
-        ) {
+      blocks.forEach(block => {
+        if (block.type === 'heading' && (block.data as any)?.level === 2) {
           const topic = (block.data as any)?.text || '';
           if (topic && !existingTopics.includes(topic)) {
             existingTopics.push(topic);
@@ -165,17 +168,16 @@ async function generateLessonsInternal(
     const lessonTitle = lessonTitles[i];
     const lessonNumber = i + 1;
 
-    console.log(`\n📖 Generando lección ${lessonNumber}/${totalLessons}: ${lessonTitle}`);
+    console.log(
+      `\n📖 Generando lección ${lessonNumber}/${totalLessons}: ${lessonTitle}`
+    );
 
     // Temas a evitar: existingTopics + temas de lecciones ya generadas en este intento
     const topicsToAvoid = [...existingTopics];
-    lessons.forEach((lesson) => {
+    lessons.forEach(lesson => {
       const blocks = lesson.blocks || [];
-      blocks.forEach((block) => {
-        if (
-          block.type === 'heading' &&
-          (block.data as any)?.level === 2
-        ) {
+      blocks.forEach(block => {
+        if (block.type === 'heading' && (block.data as any)?.level === 2) {
           const topic = (block.data as any)?.text || '';
           if (topic && !topicsToAvoid.includes(topic)) {
             topicsToAvoid.push(topic);
@@ -199,7 +201,7 @@ async function generateLessonsInternal(
 
     // Pequeña pausa entre lecciones para no sobrecargar la API
     if (i < lessonTitles.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1500));
     }
   }
 
@@ -236,17 +238,17 @@ async function generateSingleLesson(
 
   // Parsear respuesta
   let lessonDoc: ContentDocument;
-  
+
   try {
     // Limpiar respuesta
     let cleaned = response.trim();
-    
+
     // Extraer JSON si está envuelto en markdown
     const jsonMatch = cleaned.match(/```json\s*([\s\S]*?)\s*```/);
     if (jsonMatch) {
       cleaned = jsonMatch[1];
     }
-    
+
     // Buscar entre marcadores si existen
     const startMarker = '<<<JSON>>>';
     const endMarker = '<<<END>>>';
@@ -255,10 +257,10 @@ async function generateSingleLesson(
     if (startIdx !== -1 && endIdx !== -1) {
       cleaned = cleaned.substring(startIdx + startMarker.length, endIdx).trim();
     }
-    
+
     // Parsear
     lessonDoc = JSON.parse(cleaned);
-    
+
     // Validar contrato
     const validation = ContentContractValidator.validateDocument(lessonDoc);
     if (!validation.isValid) {
@@ -266,7 +268,6 @@ async function generateSingleLesson(
         `Validación de contrato falló: ${validation.errors.join(', ')}`
       );
     }
-    
   } catch (error) {
     console.error(`❌ Error parseando lección ${lessonNumber}:`, error);
     throw error;
@@ -288,12 +289,12 @@ function generateProgressiveLessonTitles(
     courseTopic.toLowerCase().includes('programación') ||
     courseTopic.toLowerCase().includes('código') ||
     courseTopic.toLowerCase().includes('desarrollo');
-    
+
   const isCooking =
     courseTopic.toLowerCase().includes('comida') ||
     courseTopic.toLowerCase().includes('cocina') ||
     courseTopic.toLowerCase().includes('receta');
-    
+
   const isFitness =
     courseTopic.toLowerCase().includes('fitness') ||
     courseTopic.toLowerCase().includes('ejercicio') ||
@@ -354,4 +355,3 @@ export function validateModuleUnitCount(
     courseLevel
   );
 }
-

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { CourseFullResponse } from '@/lib/dto/course';
-import { UserPlan } from '@/lib/plans';
 import { safeJsonParseArray, safeJsonParseObject } from '@/lib/json-utils';
+import { UserPlan } from '@/lib/plans';
 
 export async function GET(
   request: NextRequest,

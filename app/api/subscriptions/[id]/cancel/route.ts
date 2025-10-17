@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { wompiClient } from '@/lib/wompi';
-import { UserPlan } from '@/lib/plans';
 
 export async function POST(
   request: NextRequest,
@@ -22,16 +21,22 @@ export async function POST(
     const subscription = await db.subscription.findFirst({
       where: {
         id: subscriptionId,
-        userId: session.user.id
-      }
+        userId: session.user.id,
+      },
     });
 
     if (!subscription) {
-      return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Subscription not found' },
+        { status: 404 }
+      );
     }
 
     if (subscription.status === 'CANCELLED') {
-      return NextResponse.json({ error: 'Subscription already cancelled' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Subscription already cancelled' },
+        { status: 400 }
+      );
     }
 
     // For testing, skip Wompi cancellation since we're using mock subscriptions
@@ -43,8 +48,8 @@ export async function POST(
       where: { id: subscriptionId },
       data: {
         status: 'CANCELLED',
-        cancelledAt: new Date()
-      }
+        cancelledAt: new Date(),
+      },
     });
 
     // DON'T downgrade user immediately - they keep access until the end of the paid period
@@ -56,8 +61,8 @@ export async function POST(
       subscription: {
         id: updatedSubscription.id,
         status: updatedSubscription.status,
-        cancelledAt: updatedSubscription.cancelledAt
-      }
+        cancelledAt: updatedSubscription.cancelledAt,
+      },
     });
   } catch (error) {
     console.error('Cancel subscription error:', error);

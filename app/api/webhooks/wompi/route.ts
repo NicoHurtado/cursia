@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { db } from '@/lib/db';
-import { parseWompiWebhook } from '@/lib/wompi';
 import { UserPlan } from '@/lib/plans';
+import { parseWompiWebhook } from '@/lib/wompi';
 const isDev = process.env.NODE_ENV !== 'production';
 
 export async function POST(request: NextRequest) {
@@ -13,7 +14,11 @@ export async function POST(request: NextRequest) {
     const webhookEvent = parseWompiWebhook(body, signature);
 
     if (isDev)
-      console.log('Wompi webhook received:', webhookEvent.event, webhookEvent.data);
+      console.log(
+        'Wompi webhook received:',
+        webhookEvent.event,
+        webhookEvent.data
+      );
 
     const { event, data } = webhookEvent;
 
@@ -21,23 +26,23 @@ export async function POST(request: NextRequest) {
       case 'transaction.created':
         await handleTransactionCreated(data);
         break;
-      
+
       case 'transaction.updated':
         await handleTransactionUpdated(data);
         break;
-      
+
       case 'subscription.created':
         await handleSubscriptionCreated(data);
         break;
-      
+
       case 'subscription.updated':
         await handleSubscriptionUpdated(data);
         break;
-      
+
       case 'subscription.cancelled':
         await handleSubscriptionCancelled(data);
         break;
-      
+
       default:
         if (isDev) console.log('Unhandled webhook event:', event);
     }
@@ -54,15 +59,19 @@ export async function POST(request: NextRequest) {
 
 async function handleTransactionCreated(data: any) {
   const { transaction } = data;
-  
+
   // Find subscription by reference
   const subscription = await db.subscription.findUnique({
     where: { reference: transaction.reference },
-    include: { user: true }
+    include: { user: true },
   });
 
   if (!subscription) {
-    if (isDev) console.log('Subscription not found for reference:', transaction.reference);
+    if (isDev)
+      console.log(
+        'Subscription not found for reference:',
+        transaction.reference
+      );
     return;
   }
 
@@ -71,24 +80,24 @@ async function handleTransactionCreated(data: any) {
     where: { id: subscription.id },
     data: {
       lastPaymentDate: new Date(transaction.created_at),
-      status: transaction.status === 'APPROVED' ? 'ACTIVE' : 'FAILED'
-    }
+      status: transaction.status === 'APPROVED' ? 'ACTIVE' : 'FAILED',
+    },
   });
 
   // If payment failed, downgrade user to FREE
   if (transaction.status !== 'APPROVED') {
     await db.user.update({
       where: { id: subscription.userId },
-      data: { plan: UserPlan.FREE }
+      data: { plan: UserPlan.FREE },
     });
   }
 }
 
 async function handleTransactionUpdated(data: any) {
   const { transaction } = data;
-  
+
   const subscription = await db.subscription.findUnique({
-    where: { reference: transaction.reference }
+    where: { reference: transaction.reference },
   });
 
   if (!subscription) {
@@ -97,10 +106,13 @@ async function handleTransactionUpdated(data: any) {
 
   // Update subscription status based on transaction status
   let newStatus = subscription.status;
-  
+
   if (transaction.status === 'APPROVED') {
     newStatus = 'ACTIVE';
-  } else if (transaction.status === 'DECLINED' || transaction.status === 'VOIDED') {
+  } else if (
+    transaction.status === 'DECLINED' ||
+    transaction.status === 'VOIDED'
+  ) {
     newStatus = 'FAILED';
   }
 
@@ -108,26 +120,27 @@ async function handleTransactionUpdated(data: any) {
     where: { id: subscription.id },
     data: {
       status: newStatus,
-      lastPaymentDate: transaction.status === 'APPROVED' 
-        ? new Date(transaction.created_at) 
-        : subscription.lastPaymentDate
-    }
+      lastPaymentDate:
+        transaction.status === 'APPROVED'
+          ? new Date(transaction.created_at)
+          : subscription.lastPaymentDate,
+    },
   });
 
   // If payment failed, downgrade user to FREE
   if (transaction.status !== 'APPROVED') {
     await db.user.update({
       where: { id: subscription.userId },
-      data: { plan: UserPlan.FREE }
+      data: { plan: UserPlan.FREE },
     });
   }
 }
 
 async function handleSubscriptionCreated(data: any) {
   const { subscription } = data;
-  
+
   const dbSubscription = await db.subscription.findUnique({
-    where: { wompiSubscriptionId: subscription.id }
+    where: { wompiSubscriptionId: subscription.id },
   });
 
   if (dbSubscription) {
@@ -135,17 +148,17 @@ async function handleSubscriptionCreated(data: any) {
       where: { id: dbSubscription.id },
       data: {
         status: subscription.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
-        nextPaymentDate: new Date(subscription.next_payment_date)
-      }
+        nextPaymentDate: new Date(subscription.next_payment_date),
+      },
     });
   }
 }
 
 async function handleSubscriptionUpdated(data: any) {
   const { subscription } = data;
-  
+
   const dbSubscription = await db.subscription.findUnique({
-    where: { wompiSubscriptionId: subscription.id }
+    where: { wompiSubscriptionId: subscription.id },
   });
 
   if (dbSubscription) {
@@ -153,17 +166,17 @@ async function handleSubscriptionUpdated(data: any) {
       where: { id: dbSubscription.id },
       data: {
         status: subscription.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
-        nextPaymentDate: new Date(subscription.next_payment_date)
-      }
+        nextPaymentDate: new Date(subscription.next_payment_date),
+      },
     });
   }
 }
 
 async function handleSubscriptionCancelled(data: any) {
   const { subscription } = data;
-  
+
   const dbSubscription = await db.subscription.findUnique({
-    where: { wompiSubscriptionId: subscription.id }
+    where: { wompiSubscriptionId: subscription.id },
   });
 
   if (dbSubscription) {
@@ -171,14 +184,14 @@ async function handleSubscriptionCancelled(data: any) {
       where: { id: dbSubscription.id },
       data: {
         status: 'CANCELLED',
-        cancelledAt: new Date()
-      }
+        cancelledAt: new Date(),
+      },
     });
 
     // Downgrade user to FREE plan
     await db.user.update({
       where: { id: dbSubscription.userId },
-      data: { plan: UserPlan.FREE }
+      data: { plan: UserPlan.FREE },
     });
   }
 }

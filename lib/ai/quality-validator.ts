@@ -515,8 +515,6 @@ export class ContentQualityValidator {
     return { issues, recommendations };
   }
 
-
-
   /**
    * Retorna métricas de calidad cero
    */

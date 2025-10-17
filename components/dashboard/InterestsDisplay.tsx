@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
 import {
   Brain,
   Music,
@@ -26,8 +24,11 @@ import {
   Edit3,
   Check,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+
 import { InterestSelector } from '@/components/auth/InterestSelector';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface Interest {
   id: string;

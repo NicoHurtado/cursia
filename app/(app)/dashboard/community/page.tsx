@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useMemo } from 'react';
+
+import { CommunityCourseCard } from '@/components/community/CommunityCourseCard';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -12,145 +15,69 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import {
-  Search,
-  Filter,
-  Star,
-  Users,
-  BookOpen,
-  Calendar,
-  TrendingUp,
-  Clock,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { CommunityCourseCard } from '@/components/community/CommunityCourseCard';
-import { useToast } from '@/components/ui/use-toast';
+import { CommunityCourseCardSkeleton } from '@/components/ui/skeleton-card';
+import { useCommunityCourses } from '@/hooks/useCommunity';
+import { useDebounce } from '@/hooks/useDebounce';
+import { UserPlan } from '@/lib/plans';
 
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  userLevel: string;
-  totalModules: number;
-  totalCompletions: number;
-  createdAt: string;
-  user: {
-    id: string;
-    name: string;
-    username: string;
-    plan: string;
-  };
-}
-
-interface CommunityCoursesResponse {
-  courses: Course[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-  userPlan: string;
-  canAccessCommunity: boolean;
-}
+// interface Course {
+//   id: string;
+//   title: string;
+//   description: string;
+//   userLevel: string;
+//   totalModules: number;
+//   totalCompletions: number;
+//   createdAt: string;
+//   user: {
+//     id: string;
+//     name: string;
+//     username: string;
+//     plan: string;
+//   };
+// }
 
 export default function CommunityPage() {
   const { data: session } = useSession();
-  const { toast } = useToast();
 
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [level, setLevel] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [page, setPage] = useState(1);
-  const [userPlan, setUserPlan] = useState<string>('');
-  const [canAccessCommunity, setCanAccessCommunity] = useState(false);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0,
-  });
 
-  const fetchCourses = async () => {
-    try {
-      setLoading(true);
+  // Debounce search input to avoid too many API calls
+  const debouncedSearch = useDebounce(search, 300);
 
-      // Verificar que la sesión esté cargada
-      if (!session?.user?.id) {
-        setLoading(false);
-        return;
-      }
+  // Memoize filters to prevent unnecessary re-renders
+  const filters = useMemo(
+    () => ({
+      page,
+      search: debouncedSearch,
+      level,
+      sortBy,
+    }),
+    [page, debouncedSearch, level, sortBy]
+  );
 
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '12',
-        ...(search && { search }),
-        ...(level && level !== 'all' && { level }),
-        ...(sortBy && { sortBy }),
-      });
-
-      const response = await fetch(`/api/community?${params}`);
-      if (response.ok) {
-        const data: CommunityCoursesResponse = await response.json();
-        setCourses(data.courses);
-        setPagination(data.pagination);
-        setUserPlan(data.userPlan);
-        setCanAccessCommunity(data.canAccessCommunity);
-      } else {
-        console.error('❌ Error en API:', response.status, response.statusText);
-        const errorData = await response.text();
-        console.error('❌ Error data:', errorData);
-      }
-    } catch (error) {
-      console.error('Error fetching courses:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchCourses();
-    }
-  }, [session?.user?.id, page, search, level, sortBy]);
+  // Use React Query hook for data fetching
+  const {
+    data: communityData,
+    isLoading,
+    error,
+  } = useCommunityCourses(filters);
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPage(1);
+    setPage(1); // Reset to first page when searching
   };
 
   const handleLevelChange = (value: string) => {
     setLevel(value);
-    setPage(1);
+    setPage(1); // Reset to first page when filtering
   };
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
-    setPage(1);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const getLevelColor = (level: string) => {
-    switch (level.toLowerCase()) {
-      case 'beginner':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
-      case 'intermediate':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300';
-      case 'advanced':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
-    }
+    setPage(1); // Reset to first page when sorting
   };
 
   if (!session) {
@@ -158,178 +85,155 @@ export default function CommunityPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Comunidad de Cursos</h1>
-          <p>Inicia sesión para acceder a la comunidad</p>
+          <p className="text-muted-foreground">
+            Inicia sesión para explorar la comunidad de cursos.
+          </p>
         </div>
       </div>
     );
   }
 
-  // Mostrar loading mientras se carga la sesión
-  if (!session) {
+  if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
+        <h1 className="text-3xl font-bold mb-6">Comunidad de Cursos</h1>
 
-  // Mostrar pantalla de restricción de plan si no puede acceder
-  if (!canAccessCommunity) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="max-w-md mx-auto">
-            <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Users className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
-            </div>
-            <h1 className="text-2xl font-bold mb-4">Acceso Restringido</h1>
-            <p className="text-muted-foreground mb-6">
-              Necesitas un plan{' '}
-              <span className="font-semibold text-blue-600">EXPERTO</span> o{' '}
-              <span className="font-semibold text-purple-600">MAESTRO</span>{' '}
-              para acceder a la comunidad de cursos.
-            </p>
-            <p className="text-sm text-muted-foreground mb-8">
-              Plan actual: <span className="font-medium">{userPlan}</span>
-            </p>
-            <Button asChild className="w-full">
-              <a href="/dashboard/plans">
-                <Star className="h-4 w-4 mr-2" />
-                Mejorar Plan
-              </a>
-            </Button>
+        {/* Filters Skeleton */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-grow">
+            <div className="h-10 bg-muted rounded-md animate-pulse" />
           </div>
+          <div className="h-10 w-[180px] bg-muted rounded-md animate-pulse" />
+          <div className="h-10 w-[180px] bg-muted rounded-md animate-pulse" />
+        </div>
+
+        {/* Courses Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <CommunityCourseCardSkeleton key={i} />
+          ))}
         </div>
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Error al cargar cursos</h1>
+          <p className="text-muted-foreground mb-4">
+            No se pudieron cargar los cursos de la comunidad.
+          </p>
+          <Button onClick={() => window.location.reload()}>Reintentar</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!communityData?.canAccessCommunity) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h1 className="text-3xl font-bold mb-6">Comunidad de Cursos</h1>
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader>
+            <h2 className="text-2xl font-semibold">Acceso Restringido</h2>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>
+              Para acceder a la comunidad de cursos, necesitas tener un plan
+              activo.
+            </p>
+            <Button onClick={() => (window.location.href = '/dashboard/plans')}>
+              Ver Planes
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const { courses, pagination, userPlan } = communityData;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Comunidad de Cursos</h1>
-        <p className="text-muted-foreground">
-          Descubre cursos creados por la comunidad y comparte tus conocimientos
-        </p>
-      </div>
+      <h1 className="text-3xl font-bold mb-6">Comunidad de Cursos</h1>
 
       {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar cursos..."
-                  value={search}
-                  onChange={e => handleSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar cursos..."
+            value={search}
+            onChange={e => handleSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={level} onValueChange={handleLevelChange}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Nivel" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los niveles</SelectItem>
+            <SelectItem value="beginner">Principiante</SelectItem>
+            <SelectItem value="intermediate">Intermedio</SelectItem>
+            <SelectItem value="advanced">Avanzado</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={handleSortChange}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Ordenar por" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Más recientes</SelectItem>
+            <SelectItem value="popular">Más populares</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-            {/* Level Filter */}
-            <Select value={level} onValueChange={handleLevelChange}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Nivel" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los niveles</SelectItem>
-                <SelectItem value="beginner">Principiante</SelectItem>
-                <SelectItem value="intermediate">Intermedio</SelectItem>
-                <SelectItem value="advanced">Avanzado</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Sort */}
-            <Select value={sortBy} onValueChange={handleSortChange}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Ordenar por" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Más recientes</SelectItem>
-                <SelectItem value="oldest">Más antiguos</SelectItem>
-                <SelectItem value="completions">Más completados</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Results */}
-      {loading ? (
+      {/* Courses Grid */}
+      {courses.length === 0 && !isLoading ? (
+        <p className="text-center text-muted-foreground">
+          No se encontraron cursos que coincidan con tu búsqueda.
+        </p>
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-20 bg-gray-200 rounded mb-4"></div>
-                <div className="flex gap-2">
-                  <div className="h-6 bg-gray-200 rounded w-16"></div>
-                  <div className="h-6 bg-gray-200 rounded w-20"></div>
-                </div>
-              </CardContent>
-            </Card>
+          {courses.map(course => (
+            <CommunityCourseCard
+              key={course.id}
+              course={course}
+              userPlan={userPlan as UserPlan}
+            />
           ))}
         </div>
-      ) : courses.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              No se encontraron cursos
-            </h3>
-            <p className="text-muted-foreground">
-              Intenta ajustar los filtros de búsqueda
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {/* Courses Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {courses.map(course => (
-              <CommunityCourseCard
-                key={course.id}
-                course={course}
-                currentUserId={session?.user?.id}
-                userPlan={userPlan}
-              />
-            ))}
-          </div>
+      )}
 
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="flex justify-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setPage(page - 1)}
-                disabled={page === 1}
-              >
-                Anterior
-              </Button>
-              <span className="flex items-center px-4 text-sm text-muted-foreground">
-                Página {page} de {pagination.totalPages}
-              </span>
-              <Button
-                variant="outline"
-                onClick={() => setPage(page + 1)}
-                disabled={page === pagination.totalPages}
-              >
-                Siguiente
-              </Button>
-            </div>
-          )}
-        </>
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="flex justify-center mt-8">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setPage(prev => Math.max(1, prev - 1))}
+              disabled={page === 1}
+            >
+              Anterior
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Página {page} de {pagination.totalPages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setPage(prev => Math.min(pagination.totalPages, prev + 1))
+              }
+              disabled={page === pagination.totalPages}
+            >
+              Siguiente
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

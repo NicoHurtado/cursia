@@ -1,14 +1,14 @@
 'use client';
 
+import { Menu, X, Home } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Menu, X, Home } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { APP_CONFIG, NAVIGATION } from '@/lib/constants';
+import { Button } from '@/components/ui/button';
+import { NAVIGATION } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 interface NavbarProps {

@@ -1,9 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import {
+  BookOpen,
+  Play,
+  AlertTriangle,
+  User,
+  Calendar,
+  ArrowLeft,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
@@ -13,18 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  BookOpen,
-  Clock,
-  Users,
-  Star,
-  Play,
-  Download,
-  AlertTriangle,
-  User,
-  Calendar,
-  ArrowLeft,
-} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ModuleData {

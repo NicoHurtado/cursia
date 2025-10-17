@@ -1,16 +1,17 @@
 'use client';
 
+import { CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
+
 import { ContractRenderer } from './ContractRenderer';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ContentDocument,
   ContentContractUtils,
   ContentContractValidator,
 } from '@/lib/content-contract';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 
 /**
  * DEMO DEL CONTRATO DE CONTENIDO

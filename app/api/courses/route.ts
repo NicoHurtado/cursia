@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { v4 as uuidv4 } from 'uuid';
+
+import { askClaude, generateCourseMetadata } from '@/lib/ai/anthropic';
+import { ContractPromptBuilder } from '@/lib/ai/content-contract-prompts';
 import { authOptions } from '@/lib/auth';
+import {
+  ContentContractValidator,
+  ContentDocument,
+} from '@/lib/content-contract';
+import { normalizeToContract } from '@/lib/content-normalizer';
+import { contentStore } from '@/lib/content-store';
+import { ContentValidator } from '@/lib/content-validator';
 import { db } from '@/lib/db';
-import { safeJsonParseArray } from '@/lib/json-utils';
 import {
   CourseCreateRequest,
   CourseCreateRequestSchema,
@@ -10,21 +20,13 @@ import {
   CourseMetadataSchema,
   ModuleContentSchema,
 } from '@/lib/dto/course';
-import { askClaude, generateCourseMetadata } from '@/lib/ai/anthropic';
-import { simpleAI } from '@/lib/ai/simple';
-import { ContractPromptBuilder } from '@/lib/ai/content-contract-prompts';
+import { safeJsonParseArray } from '@/lib/json-utils';
+import { UserPlan, canCreateCourse } from '@/lib/plans';
 import { YouTubeService } from '@/lib/youtube';
 import {
-  ContentContractValidator,
-  ContentDocument,
-} from '@/lib/content-contract';
-import { contentStore } from '@/lib/content-store';
-import { normalizeToContract } from '@/lib/content-normalizer';
-import { v4 as uuidv4 } from 'uuid';
-import { UserPlan, canCreateCourse } from '@/lib/plans';
-import { CourseStatus } from '@prisma/client';
-import { ContentValidator } from '@/lib/content-validator';
-import { parseAIJsonRobust, repairContentDocument } from '@/lib/json-parser-robust';
+  parseAIJsonRobust,
+  repairContentDocument,
+} from '@/lib/json-parser-robust';
 
 // Enhanced rate limiting
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
@@ -1494,28 +1496,33 @@ Responde SOLO con el JSON solicitado.`;
             try {
               console.log('🔧 Parsing AI response with robust parser...');
               lessonDoc = parseAIJsonRobust(aiResponse);
-              
+
               // Reparar documento si es necesario
               lessonDoc = repairContentDocument(lessonDoc);
-              
+
               console.log('✅ JSON parsed and repaired successfully');
             } catch (parseError) {
               console.error('❌ JSON parse error for lesson:', parseError);
-              console.log('🔄 Retrying lesson generation with stricter JSON instructions...');
-              
+              console.log(
+                '🔄 Retrying lesson generation with stricter JSON instructions...'
+              );
+
               // RETRY: Intentar una vez más con instrucciones más estrictas
               try {
-                const retryPrompt = ContractPromptBuilder.buildUserPrompt('chunk', {
-                  topic: courseTopic,
-                  level: level as 'beginner' | 'intermediate' | 'advanced',
-                  interests: [],
-                  moduleTitle: moduleTitle,
-                  moduleOrder: moduleNumber,
-                  lessonTitle: lessonTitle,
-                  lessonNumber: lessonNumber,
-                  totalLessons: 5,
-                });
-                
+                const retryPrompt = ContractPromptBuilder.buildUserPrompt(
+                  'chunk',
+                  {
+                    topic: courseTopic,
+                    level: level as 'beginner' | 'intermediate' | 'advanced',
+                    interests: [],
+                    moduleTitle: moduleTitle,
+                    moduleOrder: moduleNumber,
+                    lessonTitle: lessonTitle,
+                    lessonNumber: lessonNumber,
+                    totalLessons: 5,
+                  }
+                );
+
                 const stricterPrompt = `${retryPrompt}
 
 ⚠️ CRÍTICO - FORMATO JSON ESTRICTO:
@@ -1533,37 +1540,51 @@ Revisa el JSON ANTES de responder. Debe ser 100% válido.`;
                   level,
                   []
                 );
-                
+
                 console.log('🔧 Parsing retry response...');
                 lessonDoc = parseAIJsonRobust(retryResponse);
                 lessonDoc = repairContentDocument(lessonDoc);
                 console.log('✅ Retry successful!');
-                
               } catch (retryError) {
                 console.error('❌ Retry also failed:', retryError);
-                console.error('AI Response preview:', aiResponse.substring(0, 500));
-                throw new Error(`No valid JSON found after retry: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+                console.error(
+                  'AI Response preview:',
+                  aiResponse.substring(0, 500)
+                );
+                throw new Error(
+                  `No valid JSON found after retry: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+                );
               }
             }
 
             // Normalizar y limpiar bloques vacíos
             const normalizedDoc = normalizeToContract(lessonDoc);
-            
+
             // Filtrar bloques vacíos o inválidos
             normalizedDoc.blocks = normalizedDoc.blocks.filter((block: any) => {
               if (block.type === 'paragraph') {
-                return block.data && block.data.text && block.data.text.trim().length > 0;
+                return (
+                  block.data &&
+                  block.data.text &&
+                  block.data.text.trim().length > 0
+                );
               }
               if (block.type === 'heading') {
-                return block.data && block.data.text && block.data.text.trim().length > 0;
+                return (
+                  block.data &&
+                  block.data.text &&
+                  block.data.text.trim().length > 0
+                );
               }
               if (block.type === 'list') {
-                return block.data && block.data.items && block.data.items.length > 0;
+                return (
+                  block.data && block.data.items && block.data.items.length > 0
+                );
               }
               // Mantener otros tipos de bloques
               return true;
             });
-            
+
             const validationResult =
               ContentContractValidator.validateDocument(normalizedDoc);
 

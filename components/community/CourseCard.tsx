@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { BookOpen, Users, Calendar, Trash2, Eye } from 'lucide-react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Users, Calendar, Trash2, Eye, Star } from 'lucide-react';
-import { UserAvatar } from '@/components/ui/user-avatar';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+// import { UserAvatar } from '@/components/ui/user-avatar';
 
 interface Course {
   id: string;
@@ -36,7 +37,6 @@ export function CourseCard({
   currentUserId,
   onDelete,
 }: CourseCardProps) {
-  
   const [isDeleting, setIsDeleting] = useState(false);
 
   const formatDate = (dateString: string) => {
@@ -59,8 +59,6 @@ export function CourseCard({
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
     }
   };
-
-  
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -123,7 +121,11 @@ export function CourseCard({
         {/* Author */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <UserAvatar name={course.user.name} size={32} />
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-sm font-bold text-primary">
+                {course.user.name?.charAt(0)?.toUpperCase() || 'U'}
+              </span>
+            </div>
             <div>
               <p className="text-sm font-medium">{course.user.name}</p>
             </div>
@@ -136,7 +138,10 @@ export function CourseCard({
 
         {/* Action Button */}
         <Button className="w-full" variant="outline" asChild>
-          <Link href={`/courses/${course.id}`} aria-label={`Ver curso ${course.title}`}>
+          <Link
+            href={`/courses/${course.id}`}
+            aria-label={`Ver curso ${course.title}`}
+          >
             <Eye className="h-4 w-4 mr-2" />
             Ver Curso
           </Link>

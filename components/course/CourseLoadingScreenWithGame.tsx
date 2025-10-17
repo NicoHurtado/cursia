@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import { MemoryGame } from '@/components/loading/MemoryGame';
 
 interface CourseLoadingScreenWithGameProps {

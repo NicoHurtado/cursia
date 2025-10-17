@@ -1,8 +1,9 @@
+import bcrypt from 'bcryptjs';
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { db } from './db';
-import bcrypt from 'bcryptjs';
 import { z } from 'zod';
+
+import { db } from './db';
 import { sendWelcomeEmail } from './email';
 
 const loginSchema = z.object({

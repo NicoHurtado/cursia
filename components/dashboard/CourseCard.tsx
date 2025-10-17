@@ -1,11 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import {
   BookOpen,
   Calendar,
@@ -17,9 +11,17 @@ import {
   Upload,
   Eye,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { UserPlan } from '@/lib/plans';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
 import { PublishCourseDialog } from '@/components/course/PublishCourseDialog';
+import { usePrefetch } from '@/hooks/usePrefetch';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { UserPlan } from '@/lib/plans';
+import { cn } from '@/lib/utils';
 
 interface Course {
   id: string;
@@ -58,6 +60,7 @@ export function CourseCard({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const { prefetchCourse } = usePrefetch();
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -95,6 +98,11 @@ export function CourseCard({
   const handleOpenCourse = () => {
     // Navigate to course intro page when coming from dashboard
     router.push(`/courses/${course.id}?from=dashboard`);
+  };
+
+  const handleMouseEnter = () => {
+    // Prefetch course data when user hovers over the card
+    prefetchCourse(course.id);
   };
 
   const handleDelete = async () => {
@@ -207,6 +215,7 @@ export function CourseCard({
           {/* Open Course Button - Blue */}
           <Button
             onClick={handleOpenCourse}
+            onMouseEnter={handleMouseEnter}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
           >
             <ExternalLink className="h-4 w-4 mr-2" />

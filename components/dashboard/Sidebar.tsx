@@ -1,19 +1,11 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { User, Plus, BookOpen, Award, LogOut, CreditCard } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
+import { useSession, signOut } from 'next-auth/react';
+
 import { Button } from '@/components/ui/button';
-import {
-  User,
-  Plus,
-  BookOpen,
-  Award,
-  LogOut,
-  Home,
-  CreditCard,
-  Users,
-} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 const navigation = [
@@ -69,9 +61,7 @@ export function Sidebar() {
             pathname === '/create-course' && 'bg-blue-700 shadow-xl'
           )}
           onClick={() => handleNavigation('/create-course')}
-          aria-current={
-            pathname === '/create-course' ? 'page' : undefined
-          }
+          aria-current={pathname === '/create-course' ? 'page' : undefined}
         >
           <Plus className="h-6 w-6 mr-3" />
           <span className="font-semibold text-base">Crear Curso</span>

@@ -2,11 +2,13 @@ import { UserPlan, PLAN_PRICES } from './plans';
 
 // Wompi API Configuration
 // Para usar producción, asegúrate de tener WOMPI_ENV=production en tu .env
-const isProduction = process.env.WOMPI_ENV === 'production' || process.env.NODE_ENV === 'production';
+const isProduction =
+  process.env.WOMPI_ENV === 'production' ||
+  process.env.NODE_ENV === 'production';
 
 export const WOMPI_CONFIG = {
   baseUrl: isProduction
-    ? 'https://production.wompi.co/v1' 
+    ? 'https://production.wompi.co/v1'
     : 'https://sandbox.wompi.co/v1',
   publicKey: process.env.WOMPI_PUBLIC_KEY!,
   privateKey: process.env.WOMPI_PRIVATE_KEY!,
@@ -81,12 +83,12 @@ export class WompiClient {
     data?: any
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     const response = await fetch(url, {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.privateKey}`,
+        Authorization: `Bearer ${this.privateKey}`,
       },
       body: data ? JSON.stringify(data) : undefined,
     });
@@ -100,28 +102,45 @@ export class WompiClient {
   }
 
   // Create a subscription
-  async createSubscription(request: CreateSubscriptionRequest): Promise<WompiSubscription> {
-    return this.makeRequest<WompiSubscription>('/subscriptions', 'POST', request);
+  async createSubscription(
+    request: CreateSubscriptionRequest
+  ): Promise<WompiSubscription> {
+    return this.makeRequest<WompiSubscription>(
+      '/subscriptions',
+      'POST',
+      request
+    );
   }
 
   // Get subscription details
   async getSubscription(subscriptionId: string): Promise<WompiSubscription> {
-    return this.makeRequest<WompiSubscription>(`/subscriptions/${subscriptionId}`);
+    return this.makeRequest<WompiSubscription>(
+      `/subscriptions/${subscriptionId}`
+    );
   }
 
   // Cancel subscription
   async cancelSubscription(subscriptionId: string): Promise<WompiSubscription> {
-    return this.makeRequest<WompiSubscription>(`/subscriptions/${subscriptionId}`, 'DELETE');
+    return this.makeRequest<WompiSubscription>(
+      `/subscriptions/${subscriptionId}`,
+      'DELETE'
+    );
   }
 
   // Pause subscription
   async pauseSubscription(subscriptionId: string): Promise<WompiSubscription> {
-    return this.makeRequest<WompiSubscription>(`/subscriptions/${subscriptionId}/pause`, 'POST');
+    return this.makeRequest<WompiSubscription>(
+      `/subscriptions/${subscriptionId}/pause`,
+      'POST'
+    );
   }
 
   // Resume subscription
   async resumeSubscription(subscriptionId: string): Promise<WompiSubscription> {
-    return this.makeRequest<WompiSubscription>(`/subscriptions/${subscriptionId}/resume`, 'POST');
+    return this.makeRequest<WompiSubscription>(
+      `/subscriptions/${subscriptionId}/resume`,
+      'POST'
+    );
   }
 
   // Get transaction details
@@ -135,11 +154,17 @@ export function getPlanPriceInCents(plan: UserPlan): number {
   return PLAN_PRICES[plan] * 100; // Convert to cents
 }
 
-export function createSubscriptionReference(userId: string, plan: UserPlan): string {
+export function createSubscriptionReference(
+  userId: string,
+  plan: UserPlan
+): string {
   return `cursia-${plan.toLowerCase()}-${userId}-${Date.now()}`;
 }
 
-export function parseWompiWebhook(body: string, signature: string): WompiWebhookEvent {
+export function parseWompiWebhook(
+  body: string,
+  signature: string
+): WompiWebhookEvent {
   // Verify webhook signature using the Events secret
   const crypto = require('crypto');
   const secret = process.env.WOMPI_EVENTS_SECRET || WOMPI_CONFIG.webhookSecret;

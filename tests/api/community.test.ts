@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
 vi.mock('next-auth', () => ({
   getServerSession: vi.fn(async () => ({ user: { id: 'u1' } })),
 }));
@@ -19,7 +20,6 @@ vi.mock('@/lib/db', () => {
   };
 });
 
-
 function makeRequest(url: string) {
   return new Request(url, { method: 'GET' }) as any;
 }
@@ -35,5 +35,3 @@ describe('GET /api/community', () => {
     expect(json.canAccessCommunity).toBe(true);
   });
 });
-
-

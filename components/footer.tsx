@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { Instagram, Mail } from 'lucide-react';
+import Link from 'next/link';
 
 import { APP_CONFIG } from '@/lib/constants';
 

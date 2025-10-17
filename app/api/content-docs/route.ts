@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import {
   ContentContractValidator,
   ContentDocument,
@@ -31,6 +32,3 @@ export async function GET() {
     { status: 400 }
   );
 }
-
-
-

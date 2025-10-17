@@ -4,8 +4,6 @@ import {
   LayoutPanelTop,
   CheckCircle2,
   Award,
-  ChevronRight,
-  ArrowDown,
 } from 'lucide-react';
 
 export function Roadmap() {

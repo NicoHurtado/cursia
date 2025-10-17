@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { CourseShell } from '@/components/course/CourseShell';
+import { useSession } from 'next-auth/react';
+import { useState, useEffect, useCallback } from 'react';
+
 import { CommunityCourseIntro } from '@/components/course/CommunityCourseIntro';
-import { Loader2 } from 'lucide-react';
+import { CourseShell } from '@/components/course/CourseShell';
 import { NormalLoadingScreen } from '@/components/ui/normal-loading-screen';
-import { CourseFullResponse, CourseStatusResponse } from '@/lib/dto/course';
 import { useToast } from '@/components/ui/use-toast';
+import { CourseFullResponse } from '@/lib/dto/course';
 import { safeJsonParseArray } from '@/lib/json-utils';
 
 interface CoursePageProps {
@@ -38,19 +38,19 @@ export default function CoursePage({ params }: CoursePageProps) {
   }, [params]);
 
   // Fetch course data
-  const fetchCourse = async () => {
+  const fetchCourse = useCallback(async () => {
     try {
       const response = await fetch(`/api/courses/${courseId}`, {
         credentials: 'include',
       });
       if (response.ok) {
-        const data = await response.json();
-        setCourse(data);
+        const courseData = await response.json();
+        setCourse(courseData);
       }
     } catch (error) {
       console.error('Error fetching course:', error);
     }
-  };
+  }, [courseId]);
 
   // Initial load
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function CoursePage({ params }: CoursePageProps) {
       setIsLoading(false);
     };
     loadData();
-  }, [courseId]);
+  }, [courseId, fetchCourse]);
 
   const handleTakeCourse = async () => {
     if (!course) return;
@@ -78,7 +78,6 @@ export default function CoursePage({ params }: CoursePageProps) {
       });
 
       if (response.ok) {
-        const data = await response.json();
         toast({
           title: '¡Curso tomado exitosamente!',
           description:
@@ -144,8 +143,8 @@ export default function CoursePage({ params }: CoursePageProps) {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Course Not Found</h1>
           <p className="text-muted-foreground">
-            The course you're looking for doesn't exist or you don't have access
-            to it.
+            The course you&apos;re looking for doesn&apos;t exist or you
+            don&apos;t have access to it.
           </p>
         </div>
       </div>
@@ -160,8 +159,16 @@ export default function CoursePage({ params }: CoursePageProps) {
         level={course.userLevel || 'BEGINNER'}
         language={course.language}
         totalModules={course.totalModules}
-        topics={Array.isArray(course.topics) ? course.topics : safeJsonParseArray(course.topics)}
-        prerequisites={Array.isArray(course.prerequisites) ? course.prerequisites : safeJsonParseArray(course.prerequisites)}
+        topics={
+          Array.isArray(course.topics)
+            ? course.topics
+            : safeJsonParseArray(course.topics)
+        }
+        prerequisites={
+          Array.isArray(course.prerequisites)
+            ? course.prerequisites
+            : safeJsonParseArray(course.prerequisites)
+        }
         totalSizeEstimate={course.totalSizeEstimate || ''}
         modules={course.modules.map(module => ({
           title: module.title,

@@ -50,7 +50,7 @@ const result = await generateLessonsWithValidation({
   level: 'intermediate',
   totalLessons: 5,
   maxAttempts: 2,
-  interests: ['programación', 'datos']
+  interests: ['programación', 'datos'],
 });
 
 // result contiene:
@@ -90,21 +90,25 @@ Los prompts ahora incluyen:
 ### Detección de Repeticiones
 
 El sistema extrae:
+
 - **Temas principales** (headings nivel 2)
 - **Subtemas** (headings nivel 3)
 - **Keywords** de párrafos
 
 Luego compara entre lecciones y detecta:
+
 - Temas que aparecen en múltiples lecciones
 - Lecciones con contenido muy similar
 
 ### Análisis de Profundidad
 
 Calcula:
+
 - Promedio de subtemas por tema principal
 - Promedio de bloques por lección
 
 Clasifica como:
+
 - **Shallow** (superficial): < 2 subtemas por tema, < 4 bloques por lección
 - **Moderate** (moderado): 2-3 subtemas por tema, 4-6 bloques por lección
 - **Deep** (profundo): ≥ 3 subtemas por tema, ≥ 6 bloques por lección
@@ -118,23 +122,27 @@ Clasifica como:
 import { generateLessonsWithValidation } from '@/lib/ai/lesson-generator-with-validation';
 import { ContentTopicValidator } from '@/lib/content-topic-validator';
 
-async function generateModule(moduleTitle: string, courseTopic: string, level: string) {
+async function generateModule(
+  moduleTitle: string,
+  courseTopic: string,
+  level: string
+) {
   console.log(`📚 Generando módulo: ${moduleTitle}`);
-  
+
   // 1. Validar número de unidades apropiado
   const unitValidation = ContentTopicValidator.validateUnitCount(
     moduleTitle,
     5,
     level
   );
-  
+
   console.log(`📊 Validación de unidades:`);
   console.log(`   - Es válido: ${unitValidation.isValid ? 'SÍ' : 'NO'}`);
   console.log(`   - Sugerido: ${unitValidation.suggestedCount} unidades`);
   console.log(`   - Razón: ${unitValidation.reason}`);
-  
+
   const totalLessons = unitValidation.suggestedCount;
-  
+
   // 2. Generar lecciones con validación automática
   const result = await generateLessonsWithValidation({
     moduleTitle,
@@ -142,9 +150,9 @@ async function generateModule(moduleTitle: string, courseTopic: string, level: s
     level,
     totalLessons,
     maxAttempts: 2,
-    interests: ['tu', 'lista', 'de', 'intereses']
+    interests: ['tu', 'lista', 'de', 'intereses'],
   });
-  
+
   // 3. Revisar resultado
   if (result.validationResult.isValid) {
     console.log(`✅ Lecciones válidas generadas`);
@@ -154,22 +162,22 @@ async function generateModule(moduleTitle: string, courseTopic: string, level: s
       console.log(`   - ${s}`);
     });
   }
-  
+
   // 4. Guardar en base de datos
   for (let i = 0; i < result.lessons.length; i++) {
     const lesson = result.lessons[i];
-    
+
     await db.chunk.create({
       data: {
         moduleId: module.id,
         chunkOrder: i + 1,
         title: lesson.meta.topic,
         content: JSON.stringify(lesson),
-        videoData: null
-      }
+        videoData: null,
+      },
     });
   }
-  
+
   console.log(`✅ Módulo completado con ${result.lessons.length} lecciones`);
   if (result.regenerated) {
     console.log(`   (Se regeneró en ${result.attemptsMade} intentos)`);
@@ -188,11 +196,11 @@ import { ContentDocument } from '@/lib/content-contract';
 // Obtener lecciones de base de datos
 const chunks = await db.chunk.findMany({
   where: { moduleId: 'some-id' },
-  orderBy: { chunkOrder: 'asc' }
+  orderBy: { chunkOrder: 'asc' },
 });
 
 // Parsear a ContentDocument
-const lessons: ContentDocument[] = chunks.map(chunk => 
+const lessons: ContentDocument[] = chunks.map(chunk =>
   JSON.parse(chunk.content)
 );
 
@@ -204,18 +212,20 @@ const validation = ContentTopicValidator.validateModuleLessons(
 
 if (!validation.isValid) {
   console.log('❌ Problemas detectados:');
-  
+
   if (validation.hasRepetitions) {
     console.log(`\n🔄 Temas repetidos (${validation.repeatedTopics.length}):`);
     validation.repeatedTopics.forEach(topic => {
       console.log(`   - "${topic}"`);
     });
   }
-  
+
   if (validation.needsMoreDepth) {
-    console.log(`\n📉 Contenido superficial (profundidad: ${validation.depth})`);
+    console.log(
+      `\n📉 Contenido superficial (profundidad: ${validation.depth})`
+    );
   }
-  
+
   console.log('\n💡 Sugerencias:');
   validation.suggestions.forEach(suggestion => {
     console.log(`   - ${suggestion}`);
@@ -234,6 +244,7 @@ if (!validation.isValid) {
 ### Profundidad
 
 Una lección profunda debe tener:
+
 - **Mínimo 10-15 bloques** de contenido (no solo 8)
 - **3-4 secciones H3** que profundicen en el tema principal
 - **Párrafos de 80-150 palabras** (no superficiales)
@@ -244,6 +255,7 @@ Una lección profunda debe tener:
 ### Elementos Visuales
 
 Cada lección debe incluir:
+
 - ✅ 2-3 listas (bulleted o numbered)
 - ✅ 1-2 callouts (tips, warnings, info)
 - ✅ 1-2 highlights con conceptos clave
@@ -262,16 +274,19 @@ Cada lección debe incluir:
 El validador sugiere automáticamente el número apropiado de unidades:
 
 ### Temas Básicos/Introductorios
+
 - **3-4 unidades**
 - Ejemplos: "Introducción a...", "Conceptos básicos de...", "Primeros pasos en..."
 - Razón: Cubrir los conceptos esenciales sin abrumar
 
 ### Temas de Complejidad Moderada
+
 - **4-5 unidades**
 - Mayoría de los temas
 - Razón: Cobertura equilibrada con profundidad adecuada
 
 ### Temas Complejos/Avanzados
+
 - **5-6 unidades**
 - Ejemplos: "Arquitectura avanzada", "Algoritmos complejos", "Machine Learning"
 - Razón: Profundidad necesaria para dominar el tema
@@ -283,6 +298,7 @@ El validador sugiere automáticamente el número apropiado de unidades:
 **Problema**: Múltiples lecciones cubren el mismo tema.
 
 **Solución**: El sistema regenerará automáticamente con instrucciones para evitar esos temas. Si persiste:
+
 1. Aumenta `maxAttempts` a 3
 2. Verifica que los títulos de lecciones sean específicos y únicos
 
@@ -291,6 +307,7 @@ El validador sugiere automáticamente el número apropiado de unidades:
 **Problema**: Las lecciones no profundizan lo suficiente.
 
 **Solución**: El sistema ya incluye requisitos de profundidad en los prompts. Si persiste:
+
 1. Revisa que el modelo de IA tenga suficiente contexto
 2. Considera usar un modelo más potente (Claude Opus en lugar de Haiku)
 
@@ -298,7 +315,8 @@ El validador sugiere automáticamente el número apropiado de unidades:
 
 **Problema**: El módulo tiene muy pocos temas únicos.
 
-**Solución**: 
+**Solución**:
+
 1. Divide el módulo en aspectos más específicos
 2. Usa títulos de lecciones más descriptivos
 3. Aumenta el número de lecciones si el tema lo requiere
@@ -318,15 +336,15 @@ El validador sugiere automáticamente el número apropiado de unidades:
 const config = {
   // Intentos de generación antes de aceptar resultado
   maxAttempts: 2,
-  
+
   // Número de lecciones (se ajusta automáticamente según complejidad)
   totalLessons: 5,
-  
+
   // Nivel de validación
-  strictValidation: true,  // Rechaza contenido superficial
-  
+  strictValidation: true, // Rechaza contenido superficial
+
   // Logging
-  verbose: true  // Mostrar logs detallados de validación
+  verbose: true, // Mostrar logs detallados de validación
 };
 ```
 
@@ -340,4 +358,3 @@ Para usar este sistema en tu generación de cursos:
 4. Revisa los logs para ver si hubo regeneraciones
 
 El sistema funcionará automáticamente y solo regenerará cuando detecte problemas, sin necesidad de intervención manual.
-

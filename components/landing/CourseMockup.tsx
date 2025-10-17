@@ -373,7 +373,7 @@ export function CourseMockup({ course, variant = 'intro' }: CourseMockupProps) {
         <div className="flex items-center space-x-4 text-sm">
           <span>{course.progress}% completado</span>
           <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-white rounded-full transition-all duration-300"
               style={{ width: `${course.progress}%` }}
             />
@@ -397,7 +397,10 @@ export function CourseMockup({ course, variant = 'intro' }: CourseMockupProps) {
                 { title: 'Funciones y módulos', completed: false },
                 { title: 'Proyecto final', completed: false },
               ].map((module, index) => (
-                <div key={index} className="p-4 bg-white border rounded-lg shadow-sm">
+                <div
+                  key={index}
+                  className="p-4 bg-white border rounded-lg shadow-sm"
+                >
                   <div className="flex items-center space-x-3">
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center ${
@@ -478,7 +481,9 @@ export function CourseMockup({ course, variant = 'intro' }: CourseMockupProps) {
           {/* Stats */}
           <div className="bg-white border rounded-lg shadow-sm">
             <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Estadísticas del Curso</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Estadísticas del Curso
+              </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1">

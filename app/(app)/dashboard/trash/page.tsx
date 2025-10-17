@@ -1,11 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import {
   Loader2,
   Trash2,
@@ -16,8 +10,14 @@ import {
   BookOpen,
   ArrowLeft,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
-import { cn } from '@/lib/utils';
 
 interface DeletedCourse {
   id: string;
@@ -42,7 +42,7 @@ export default function TrashPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const fetchDeletedCourses = async () => {
+  const fetchDeletedCourses = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/courses/trash');
@@ -62,11 +62,11 @@ export default function TrashPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchDeletedCourses();
-  }, []);
+  }, [fetchDeletedCourses]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

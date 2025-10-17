@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Flame } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
+import { getStreak, touchStreak } from '@/lib/streak';
 
 export default function StreakPage() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    const { getStreak, touchStreak } = require('@/lib/streak');
     touchStreak();
     setCount(getStreak().count);
   }, []);
@@ -33,9 +34,7 @@ export default function StreakPage() {
         </div>
       </div>
       <div className="mt-6">
-        <Button
-          onClick={() => setCount(require('@/lib/streak').touchStreak().count)}
-        >
+        <Button onClick={() => setCount(touchStreak().count)}>
           Actualizar racha
         </Button>
       </div>

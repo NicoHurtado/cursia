@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+
+import { askClaude, generateCourseMetadata } from '@/lib/ai/anthropic';
+import { ContractPromptBuilder } from '@/lib/ai/content-contract-prompts';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { askClaude, generateCourseMetadata } from '@/lib/ai/anthropic';
-import { simpleAI } from '@/lib/ai/simple';
-import { ModuleContentSchema } from '@/lib/dto/course';
-import { UserPlan } from '@/lib/plans';
-import { ContractPromptBuilder } from '@/lib/ai/content-contract-prompts';
 import { YouTubeService } from '@/lib/youtube';
 
 // Función para generar títulos específicos de lecciones para cada módulo
@@ -186,7 +184,9 @@ async function generateCompleteLessonsForModule(
   // Importar dependencias dinámicamente para evitar duplicaciones
   const { normalizeToContract } = await import('@/lib/content-normalizer');
   const { ContentContractValidator } = await import('@/lib/content-contract');
-  const { parseAIJsonRobust, repairContentDocument } = await import('@/lib/json-parser-robust');
+  const { parseAIJsonRobust, repairContentDocument } = await import(
+    '@/lib/json-parser-robust'
+  );
 
   const lessons = [];
   // Generate specific lesson titles for this module
@@ -238,7 +238,9 @@ async function generateCompleteLessonsForModule(
         console.log('✅ JSON parsed and repaired successfully');
       } catch (parseError) {
         console.error('❌ JSON parse error for lesson:', parseError);
-        console.log('🔄 Retrying lesson generation with stricter JSON instructions...');
+        console.log(
+          '🔄 Retrying lesson generation with stricter JSON instructions...'
+        );
 
         // RETRY: Intentar una vez más con instrucciones más estrictas
         try {
@@ -273,11 +275,12 @@ Revisa el JSON ANTES de responder. Debe ser 100% válido.`;
           lessonDoc = parseAIJsonRobust(retryResponse);
           lessonDoc = repairContentDocument(lessonDoc);
           console.log('✅ Retry successful!');
-
         } catch (retryError) {
           console.error('❌ Retry also failed:', retryError);
           console.error('AI Response preview:', aiResponse.substring(0, 500));
-          throw new Error(`No valid JSON found after retry: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+          throw new Error(
+            `No valid JSON found after retry: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+          );
         }
       }
 
@@ -881,7 +884,7 @@ async function generateModulesInBackground(
             .map(m => ({
               title: m.title,
               topics: [], // We could extract topics from chunks if needed
-              description: m.description
+              description: m.description,
             }));
 
           // Generate module content

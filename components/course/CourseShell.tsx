@@ -1,17 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { CourseIntro } from './CourseIntro';
-import { ModuleQuiz } from './ModuleQuiz';
-import { FinishCourse } from './FinishCourse';
-import { ModuleSidebar } from './ModuleSidebar';
+import { useState, useEffect } from 'react';
+
 import { ChunkReader } from './ChunkReader';
+import { CourseIntro } from './CourseIntro';
 import { CourseLoadingScreenWithGame } from './CourseLoadingScreenWithGame';
-import { NormalLoadingScreen } from '@/components/ui/normal-loading-screen';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FinishCourse } from './FinishCourse';
+import { ModuleQuiz } from './ModuleQuiz';
+import { ModuleSidebar } from './ModuleSidebar';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { NormalLoadingScreen } from '@/components/ui/normal-loading-screen';
 import { useToast } from '@/components/ui/use-toast';
 import { CourseFullResponse } from '@/lib/dto/course';
 
@@ -273,7 +281,8 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
             }
           }
         } else {
-          if (isDev) console.log('Failed to load progress, status:', response.status);
+          if (isDev)
+            console.log('Failed to load progress, status:', response.status);
           const errorData = await response.json();
           if (isDev) console.log('Error data:', errorData);
 
@@ -310,7 +319,10 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
   // Restaurar estado de navegación después de cargar el progreso del usuario (solo si no viene del dashboard)
   useEffect(() => {
     if (fromDashboard) {
-      if (isDev) console.log('🚀 Coming from dashboard, skipping navigation restoration');
+      if (isDev)
+        console.log(
+          '🚀 Coming from dashboard, skipping navigation restoration'
+        );
       return;
     }
 
@@ -345,7 +357,8 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
           if (isDev) console.log('✅ Navigation state restored successfully');
           return; // Salir temprano para evitar sobrescribir
         } else {
-          if (isDev) console.log('❌ Invalid saved state, falling back to progress');
+          if (isDev)
+            console.log('❌ Invalid saved state, falling back to progress');
         }
       }
 
@@ -365,7 +378,8 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
             const currentChunk = currentModule.chunks.find(
               c => c.id === userProgress.currentChunkId
             );
-            if (isDev) console.log('Current chunk from progress:', currentChunk);
+            if (isDev)
+              console.log('Current chunk from progress:', currentChunk);
 
             if (currentChunk) {
               setCurrentChunkOrder(currentChunk.chunkOrder);
@@ -401,7 +415,8 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
     moduleOrder?: number,
     chunkOrder?: number
   ) => {
-    if (isDev) console.log('🔄 updateView called:', { view, moduleOrder, chunkOrder });
+    if (isDev)
+      console.log('🔄 updateView called:', { view, moduleOrder, chunkOrder });
     setCurrentView(view);
     if (moduleOrder !== undefined) setCurrentModuleOrder(moduleOrder);
     if (chunkOrder !== undefined) setCurrentChunkOrder(chunkOrder);
@@ -778,7 +793,8 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
               toast({
                 title: 'Contenido bloqueado por tu plan',
                 description:
-                  err.error || 'Tu plan de prueba permite solo los primeros 2 módulos.',
+                  err.error ||
+                  'Tu plan de prueba permite solo los primeros 2 módulos.',
                 variant: 'destructive',
               });
               setShowUpgradeModal(true);
@@ -852,10 +868,14 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
 
   const handleQuizComplete = async (passed: boolean, score: number) => {
     if (passed && currentModule) {
-      setUserProgress(prev => prev ? ({
-        ...prev,
-        completedModules: [...prev.completedModules, currentModule.id],
-      }) : null);
+      setUserProgress(prev =>
+        prev
+          ? {
+              ...prev,
+              completedModules: [...prev.completedModules, currentModule.id],
+            }
+          : null
+      );
 
       toast({
         title: '¡Quiz aprobado!',
@@ -1061,101 +1081,103 @@ export function CourseShell({ course: initialCourse }: CourseShellProps) {
 
     return (
       <>
-      <div className="h-screen bg-background flex flex-col">
-        <div className="flex flex-1 overflow-hidden">
-          {/* Left Sidebar */}
-          <ModuleSidebar
-            modules={course.modules.map(module => ({
-              ...module,
-              description: module.description || '',
-            }))}
-            currentModuleOrder={currentModuleOrder}
-            currentChunkOrder={currentChunkOrder}
-            completedChunks={userProgress.completedChunks}
-            completedModules={userProgress.completedModules}
-            quizAttempts={userProgress.quizAttempts || []}
-            onModuleChange={handleModuleChange}
-            onChunkChange={handleChunkChange}
-            moduleGenerationStatus={moduleGenerationStatus}
-            className="flex-shrink-0"
-            width={sidebarWidth}
-            onWidthChange={setSidebarWidth}
-          />
+        <div className="h-screen bg-background flex flex-col">
+          <div className="flex flex-1 overflow-hidden">
+            {/* Left Sidebar */}
+            <ModuleSidebar
+              modules={course.modules.map(module => ({
+                ...module,
+                description: module.description || '',
+              }))}
+              currentModuleOrder={currentModuleOrder}
+              currentChunkOrder={currentChunkOrder}
+              completedChunks={userProgress.completedChunks}
+              completedModules={userProgress.completedModules}
+              quizAttempts={userProgress.quizAttempts || []}
+              onModuleChange={handleModuleChange}
+              onChunkChange={handleChunkChange}
+              moduleGenerationStatus={moduleGenerationStatus}
+              className="flex-shrink-0"
+              width={sidebarWidth}
+              onWidthChange={setSidebarWidth}
+            />
 
-          {/* Main Content Area - Centered and Wider with scroll on the right edge */}
-          <div className="flex-1 flex justify-center overflow-y-auto">
-            {/* Content Area - Wider and Centered */}
-            <div className="w-full max-w-6xl p-6">
-              {currentChunk ? (
-                <ChunkReader
-                  chunk={currentChunk}
-                  isCompleted={userProgress.completedChunks.includes(
-                    currentChunk.id
-                  )}
-                  isMarkingComplete={isMarkingComplete}
-                  onMarkComplete={handleMarkChunkComplete}
-                  onPrevious={handlePreviousChunk}
-                  onNext={handleNextChunk}
-                  canGoPrevious={currentChunkOrder > 1}
-                  canGoNext={currentChunkOrder < currentModule.chunks.length}
-                  courseTopic={course.title || ''}
-                  onTakeQuiz={() => updateView('quiz')}
-                  showQuizButton={
-                    currentChunkOrder === currentModule.chunks.length &&
-                    currentModule.quizzes &&
-                    currentModule.quizzes.length > 0
-                  }
-                  quizCompleted={isCurrentModuleQuizCompleted()}
-                  showFinishCourseButton={
-                    currentModuleOrder === course.modules.length &&
-                    currentChunkOrder === currentModule.chunks.length &&
-                    isCurrentModuleQuizCompleted() &&
-                    currentView !== 'finish' as any
-                  }
-                  onFinishCourse={() => updateView('finish')}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <h2 className="text-xl font-semibold mb-2">
-                      Lección no encontrada
-                    </h2>
-                    <p className="text-muted-foreground">
-                      Esta lección no está disponible aún.
-                    </p>
+            {/* Main Content Area - Centered and Wider with scroll on the right edge */}
+            <div className="flex-1 flex justify-center overflow-y-auto">
+              {/* Content Area - Wider and Centered */}
+              <div className="w-full max-w-6xl p-6">
+                {currentChunk ? (
+                  <ChunkReader
+                    chunk={currentChunk}
+                    isCompleted={userProgress.completedChunks.includes(
+                      currentChunk.id
+                    )}
+                    isMarkingComplete={isMarkingComplete}
+                    onMarkComplete={handleMarkChunkComplete}
+                    onPrevious={handlePreviousChunk}
+                    onNext={handleNextChunk}
+                    canGoPrevious={currentChunkOrder > 1}
+                    canGoNext={currentChunkOrder < currentModule.chunks.length}
+                    courseTopic={course.title || ''}
+                    onTakeQuiz={() => updateView('quiz')}
+                    showQuizButton={
+                      currentChunkOrder === currentModule.chunks.length &&
+                      currentModule.quizzes &&
+                      currentModule.quizzes.length > 0
+                    }
+                    quizCompleted={isCurrentModuleQuizCompleted()}
+                    showFinishCourseButton={
+                      currentModuleOrder === course.modules.length &&
+                      currentChunkOrder === currentModule.chunks.length &&
+                      isCurrentModuleQuizCompleted() &&
+                      currentView !== ('finish' as any)
+                    }
+                    onFinishCourse={() => updateView('finish')}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <h2 className="text-xl font-semibold mb-2">
+                        Lección no encontrada
+                      </h2>
+                      <p className="text-muted-foreground">
+                        Esta lección no está disponible aún.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      {/* Upgrade Modal for FREE plan gating */}
-      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Desbloquea todos los módulos</DialogTitle>
-            <DialogDescription>
-              Tu plan de prueba permite acceder solo a los módulos 1 y 2. Actualiza tu plan para continuar con el curso completo y obtener certificado.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto"
-              onClick={() => setShowUpgradeModal(false)}
-            >
-              Seguir explorando
-            </Button>
-            <Button
-              className="w-full sm:w-auto"
-              onClick={() => router.push('/dashboard/plans')}
-            >
-              Ver planes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Upgrade Modal for FREE plan gating */}
+        <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Desbloquea todos los módulos</DialogTitle>
+              <DialogDescription>
+                Tu plan de prueba permite acceder solo a los módulos 1 y 2.
+                Actualiza tu plan para continuar con el curso completo y obtener
+                certificado.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => setShowUpgradeModal(false)}
+              >
+                Seguir explorando
+              </Button>
+              <Button
+                className="w-full sm:w-auto"
+                onClick={() => router.push('/dashboard/plans')}
+              >
+                Ver planes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </>
     );
   }

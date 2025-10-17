@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 
@@ -29,7 +30,10 @@ export async function GET(
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Usuario no encontrado' },
+        { status: 404 }
+      );
     }
 
     const courses = await db.course.findMany({
@@ -51,8 +55,14 @@ export async function GET(
 
     // Métricas agregadas rápidas (sin promedio)
     const publicCourses = courses.length;
-    const totalCompletions = courses.reduce((acc, c) => acc + (c.totalCompletions || 0), 0);
-    const totalRatings = courses.reduce((acc, c) => acc + (c.totalRatings || 0), 0);
+    const totalCompletions = courses.reduce(
+      (acc, c) => acc + (c.totalCompletions || 0),
+      0
+    );
+    const totalRatings = courses.reduce(
+      (acc, c) => acc + (c.totalRatings || 0),
+      0
+    );
 
     return NextResponse.json({
       user,
@@ -71,5 +81,3 @@ export async function GET(
     );
   }
 }
-
-

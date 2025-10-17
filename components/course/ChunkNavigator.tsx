@@ -1,18 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { CheckCircle2, Circle, BookOpen } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle2,
-  Circle,
-  BookOpen,
-  Clock,
-} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Chunk {
   id: string;

@@ -76,7 +76,11 @@ export class FallbackAI {
     moduleOrder: number,
     totalModules: number,
     courseDescription: string,
-    previousModules?: Array<{title: string, topics: string[], description: string}>,
+    previousModules?: Array<{
+      title: string;
+      topics: string[];
+      description: string;
+    }>,
     courseOutline?: string[]
   ): Promise<string> {
     console.log(

@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { signIn, getSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { signIn, getSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -14,11 +17,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
 
 const signupSchema = z
   .object({
@@ -59,7 +60,7 @@ export default function SignupPage() {
         if (session) {
           router.push('/dashboard');
         }
-      } catch (error) {
+      } catch {
         console.error('Error checking session:', error);
       } finally {
         setIsCheckingSession(false);
@@ -121,7 +122,7 @@ export default function SignupPage() {
         });
         router.push('/dashboard');
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'An error occurred. Please try again.',

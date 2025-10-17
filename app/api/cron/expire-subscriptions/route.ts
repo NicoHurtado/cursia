@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { db } from '@/lib/db';
 import { UserPlan } from '@/lib/plans';
 
@@ -15,30 +16,32 @@ export async function GET(request: NextRequest) {
       where: {
         status: 'CANCELLED',
         nextPaymentDate: {
-          lt: new Date() // Next payment date is in the past
-        }
+          lt: new Date(), // Next payment date is in the past
+        },
       },
       include: {
-        user: true
-      }
+        user: true,
+      },
     });
 
     if (process.env.NODE_ENV !== 'production')
-      console.log(`Found ${expiredSubscriptions.length} expired subscriptions to process`);
+      console.log(
+        `Found ${expiredSubscriptions.length} expired subscriptions to process`
+      );
 
     // Downgrade users to FREE plan
     const userIds = expiredSubscriptions.map(sub => sub.userId);
-    
+
     if (userIds.length > 0) {
       await db.user.updateMany({
         where: {
           id: {
-            in: userIds
-          }
+            in: userIds,
+          },
         },
         data: {
-          plan: UserPlan.FREE
-        }
+          plan: UserPlan.FREE,
+        },
       });
 
       if (process.env.NODE_ENV !== 'production')
@@ -48,9 +51,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       processed: expiredSubscriptions.length,
-      message: `Processed ${expiredSubscriptions.length} expired subscriptions`
+      message: `Processed ${expiredSubscriptions.length} expired subscriptions`,
     });
-
   } catch (error) {
     console.error('Error processing expired subscriptions:', error);
     return NextResponse.json(

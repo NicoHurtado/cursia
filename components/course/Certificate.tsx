@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Download, Home, Trophy, Share2, Copy, Check } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
 interface CertificateProps {

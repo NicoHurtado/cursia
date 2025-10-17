@@ -1,13 +1,13 @@
 /**
  * EJEMPLO DE INTEGRACIÓN
  * Cómo usar el sistema de validación en tu generación de cursos
- * 
+ *
  * Copia y adapta este código en tu archivo de API de generación de módulos
  */
 
 import { generateLessonsWithValidation } from './lesson-generator-with-validation';
-import { ContentTopicValidator } from '@/lib/content-topic-validator';
 import { ContentDocument } from '@/lib/content-contract';
+import { ContentTopicValidator } from '@/lib/content-topic-validator';
 
 /**
  * EJEMPLO 1: Generar un módulo completo con validación automática
@@ -28,7 +28,9 @@ export async function generateModuleWithValidation(
     level
   );
 
-  console.log(`   ${unitValidation.isValid ? '✅' : '⚠️'} Validación de unidades:`);
+  console.log(
+    `   ${unitValidation.isValid ? '✅' : '⚠️'} Validación de unidades:`
+  );
   console.log(`      - Sugerido: ${unitValidation.suggestedCount} unidades`);
   console.log(`      - Razón: ${unitValidation.reason}`);
 
@@ -50,24 +52,32 @@ export async function generateModuleWithValidation(
   console.log(`   - Lecciones generadas: ${result.lessons.length}`);
   console.log(`   - Intentos realizados: ${result.attemptsMade}`);
   console.log(`   - Se regeneró: ${result.regenerated ? 'SÍ' : 'NO'}`);
-  console.log(`   - Es válido: ${result.validationResult.isValid ? 'SÍ' : 'NO'}`);
+  console.log(
+    `   - Es válido: ${result.validationResult.isValid ? 'SÍ' : 'NO'}`
+  );
 
   if (result.validationResult.hasRepetitions) {
-    console.log(`\n⚠️ Se detectaron ${result.validationResult.repeatedTopics.length} tema(s) repetido(s):`);
+    console.log(
+      `\n⚠️ Se detectaron ${result.validationResult.repeatedTopics.length} tema(s) repetido(s):`
+    );
     result.validationResult.repeatedTopics.forEach((topic: string) => {
       console.log(`      - "${topic}"`);
     });
   }
 
   if (result.validationResult.needsMoreDepth) {
-    console.log(`\n⚠️ El contenido es superficial (profundidad: ${result.validationResult.depth})`);
+    console.log(
+      `\n⚠️ El contenido es superficial (profundidad: ${result.validationResult.depth})`
+    );
   }
 
   if (result.validationResult.suggestions.length > 0) {
     console.log(`\n💡 Sugerencias de mejora:`);
-    result.validationResult.suggestions.forEach((suggestion: string, i: number) => {
-      console.log(`   ${i + 1}. ${suggestion}`);
-    });
+    result.validationResult.suggestions.forEach(
+      (suggestion: string, i: number) => {
+        console.log(`   ${i + 1}. ${suggestion}`);
+      }
+    );
   }
 
   // PASO 4: Retornar resultado
@@ -112,7 +122,7 @@ export async function validateExistingModule(
 
   if (validation.hasRepetitions) {
     report += `🔄 TEMAS REPETIDOS (${validation.repeatedTopics.length}):\n`;
-    validation.repeatedTopics.forEach((topic) => {
+    validation.repeatedTopics.forEach(topic => {
       report += `   - "${topic}"\n`;
     });
     report += `\n`;
@@ -143,7 +153,7 @@ export async function validateExistingModule(
 
 /**
  * EJEMPLO 3: Uso en tu API endpoint existente
- * 
+ *
  * Reemplaza tu código de generación actual con esto:
  */
 export async function generateModuleForAPI(
@@ -218,7 +228,7 @@ export async function generateModuleForAPI(
 
 /**
  * EJEMPLO 4: Validación post-generación (opcional)
- * 
+ *
  * Si quieres validar después de que el contenido ya está en la base de datos:
  */
 export async function validateModuleInDatabase(moduleId: string, db: any) {
@@ -254,7 +264,9 @@ export async function validateModuleInDatabase(moduleId: string, db: any) {
   // 4. Si no es válido, puedes regenerar
   if (validationResult.needsRegeneration) {
     console.log(`\n⚠️ El módulo necesita ser regenerado`);
-    console.log(`   ¿Deseas regenerar automáticamente? (Implementa tu lógica aquí)`);
+    console.log(
+      `   ¿Deseas regenerar automáticamente? (Implementa tu lógica aquí)`
+    );
   }
 
   return validationResult;
@@ -291,15 +303,15 @@ export const validationConfig = {
 
 /**
  * USO RECOMENDADO EN TU API:
- * 
+ *
  * 1. En tu archivo: app/api/courses/[id]/generate-module/route.ts
- * 
+ *
  * import { generateModuleForAPI } from '@/lib/ai/integration-example';
- * 
+ *
  * export async function POST(request: NextRequest, { params }) {
  *   const { moduleTitle, courseTopic, level, interests } = await request.json();
  *   const courseId = params.id;
- *   
+ *
  *   const result = await generateModuleForAPI(
  *     courseId,
  *     moduleTitle,
@@ -308,8 +320,7 @@ export const validationConfig = {
  *     interests,
  *     db
  *   );
- *   
+ *
  *   return NextResponse.json(result);
  * }
  */
-

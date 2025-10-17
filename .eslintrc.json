@@ -1,5 +1,9 @@
 {
-  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended", "prettier"],
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
   "plugins": ["prettier", "unused-imports", "import", "@typescript-eslint"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -13,7 +17,25 @@
     "no-var": "error",
     "@typescript-eslint/no-floating-promises": "off",
     "unused-imports/no-unused-imports": "error",
-    "import/order": ["warn", {"alphabetize": {"order": "asc", "caseInsensitive": true}, "newlines-between": "always", "groups": [["builtin", "external"], ["internal", "parent", "sibling", "index"]]}]
+    "import/order": [
+      "warn",
+      {
+        "alphabetize": { "order": "asc", "caseInsensitive": true },
+        "newlines-between": "always",
+        "groups": [
+          ["builtin", "external"],
+          ["internal", "parent", "sibling", "index"]
+        ]
+      }
+    ]
   },
-  "ignorePatterns": ["node_modules/", ".next/", "out/"]
+  "ignorePatterns": [
+    "node_modules/",
+    ".next/",
+    "out/",
+    "*.js",
+    "scripts/*.js",
+    "next.config.js",
+    "postcss.config.js"
+  ]
 }

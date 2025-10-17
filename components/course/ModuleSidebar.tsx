@@ -1,11 +1,5 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import {
   BookOpen,
   CheckCircle2,
@@ -15,6 +9,13 @@ import {
   Lock,
   ChevronDown,
 } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
 interface Module {
   id: string;
@@ -63,7 +64,9 @@ export function ModuleSidebar({
   onWidthChange,
 }: ModuleSidebarProps) {
   // Mantener todos los módulos expandidos por defecto para facilitar la navegación
-  const [collapsedModules, setCollapsedModules] = useState<Set<number>>(new Set());
+  const [collapsedModules, setCollapsedModules] = useState<Set<number>>(
+    new Set()
+  );
 
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -259,12 +262,17 @@ export function ModuleSidebar({
             // Determinar el mensaje de bloqueo
             let lockMessage = '';
             if (!isUnlocked && module.moduleOrder > 1) {
-              const previousModule = modules.find(m => m.moduleOrder === module.moduleOrder - 1);
-              const previousModuleQuizPassed = previousModule && quizAttempts.some(
-                (attempt: any) =>
-                  attempt.moduleId === previousModule.id && attempt.passed === true
+              const previousModule = modules.find(
+                m => m.moduleOrder === module.moduleOrder - 1
               );
-              
+              const previousModuleQuizPassed =
+                previousModule &&
+                quizAttempts.some(
+                  (attempt: any) =>
+                    attempt.moduleId === previousModule.id &&
+                    attempt.passed === true
+                );
+
               if (!previousModuleQuizPassed) {
                 lockMessage = `Completa el quiz del Módulo ${module.moduleOrder - 1} para desbloquear`;
               } else {
@@ -327,12 +335,14 @@ export function ModuleSidebar({
                           </p>
                         )}
                         {/* Mensaje de bloqueo */}
-                        {!isUnlocked && status !== 'generating' && lockMessage && (
-                          <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 flex items-center gap-1">
-                            <Lock className="h-3 w-3" />
-                            {lockMessage}
-                          </p>
-                        )}
+                        {!isUnlocked &&
+                          status !== 'generating' &&
+                          lockMessage && (
+                            <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 flex items-center gap-1">
+                              <Lock className="h-3 w-3" />
+                              {lockMessage}
+                            </p>
+                          )}
                       </div>
                     </div>
 
@@ -344,7 +354,9 @@ export function ModuleSidebar({
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                        onClick={e => toggleModuleCollapse(module.moduleOrder, e)}
+                        onClick={e =>
+                          toggleModuleCollapse(module.moduleOrder, e)
+                        }
                       >
                         <ChevronDown
                           className={cn(
@@ -382,13 +394,16 @@ export function ModuleSidebar({
                               className={cn(
                                 'flex items-center gap-2 p-3 rounded-lg text-xs transition-all duration-200',
                                 'border border-transparent',
-                                isUnlocked && 'cursor-pointer hover:bg-blue-100 hover:shadow-md hover:scale-[1.02] hover:border-blue-300',
+                                isUnlocked &&
+                                  'cursor-pointer hover:bg-blue-100 hover:shadow-md hover:scale-[1.02] hover:border-blue-300',
                                 isUnlocked && 'hover:border-blue-200',
                                 isCurrentChunk &&
                                   'bg-blue-100 dark:bg-blue-900/30 border-blue-300 shadow-md',
                                 chunkStatus === 'completed' &&
                                   'text-green-700 dark:text-green-400',
-                                chunkStatus === 'completed' && isUnlocked && 'hover:bg-green-100',
+                                chunkStatus === 'completed' &&
+                                  isUnlocked &&
+                                  'hover:bg-green-100',
                                 !isUnlocked &&
                                   'opacity-40 cursor-not-allowed relative'
                               )}
@@ -437,10 +452,12 @@ export function ModuleSidebar({
 
                       {/* Quiz */}
                       {module.quizzes.length > 0 && (
-                        <div className={cn(
-                          "pt-2 border-t border-border",
-                          !isUnlocked && "opacity-40"
-                        )}>
+                        <div
+                          className={cn(
+                            'pt-2 border-t border-border',
+                            !isUnlocked && 'opacity-40'
+                          )}
+                        >
                           <div className="flex items-center gap-2 p-2 rounded-md text-xs">
                             {!isUnlocked ? (
                               <Lock className="h-3 w-3 text-gray-400" />

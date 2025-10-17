@@ -1,8 +1,8 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { CheckCircle2, LucideIcon } from 'lucide-react';
-import { useState } from 'react';
+
+import { cn } from '@/lib/utils';
 
 interface LevelOption {
   value: string;

@@ -1,8 +1,9 @@
+import { Target, BookOpen, Star, Zap, Users, Award } from 'lucide-react';
+import Image from 'next/image';
+
 import { Halo } from '@/components/landing/Halo';
 import { Hero } from '@/components/landing/Hero';
 import { PromptInput } from '@/components/landing/PromptInput';
-import Image from 'next/image';
-import { Target, BookOpen, Star, Zap, Users, Award } from 'lucide-react';
 
 export default function HomePage() {
   return (

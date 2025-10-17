@@ -1,10 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Trophy,
   Download,
@@ -15,6 +10,12 @@ import {
   Copy,
   CheckCircle2,
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { downloadCertificatePDF } from '@/lib/certificate-pdf';
 
@@ -39,10 +40,10 @@ export default function CertificatesPage() {
   const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (session?.user?.id) {
+    if (session?.user) {
       loadCertificates();
     }
-  }, [session?.user?.id]);
+  }, [session?.user]);
 
   const loadCertificates = async () => {
     try {
@@ -98,7 +99,7 @@ export default function CertificatesPage() {
           return newSet;
         });
       }, 2000);
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'No se pudo copiar el enlace.',

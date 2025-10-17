@@ -1,6 +1,8 @@
 'use client';
 
+import { AlertTriangle, Users, Eye, Upload, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { AlertTriangle, Users, Eye, Upload, EyeOff } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface PublishCourseDialogProps {

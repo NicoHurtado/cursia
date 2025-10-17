@@ -1,9 +1,5 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   CheckCircle2,
   XCircle,
@@ -14,6 +10,11 @@ import {
   BookOpen,
   ExternalLink,
 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface CertificateVerificationProps {
   certificateId: string;

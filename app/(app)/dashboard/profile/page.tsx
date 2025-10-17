@@ -1,15 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   User,
-  Mail,
   Trash2,
   Edit3,
   Check,
@@ -17,9 +9,17 @@ import {
   AlertTriangle,
   CreditCard,
 } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+
 import { DeleteAccountModal } from '@/components/auth/DeleteAccountModal';
 import { PlanStatus } from '@/components/dashboard/PlanStatus';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
 
 interface User {
   id: string;
@@ -49,7 +49,9 @@ export default function ProfilePage() {
   const [editedEmail, setEditedEmail] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [userSubscription, setUserSubscription] = useState<Subscription | null>(null);
+  const [userSubscription, setUserSubscription] = useState<Subscription | null>(
+    null
+  );
   const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
@@ -159,19 +161,27 @@ export default function ProfilePage() {
   };
 
   const handleCancelSubscription = async () => {
-    if (!userSubscription || !confirm('¿Estás seguro de que quieres cancelar tu suscripción? Mantendrás acceso hasta el final del período pagado, pero no se renovará automáticamente.')) {
+    if (
+      !userSubscription ||
+      !confirm(
+        '¿Estás seguro de que quieres cancelar tu suscripción? Mantendrás acceso hasta el final del período pagado, pero no se renovará automáticamente.'
+      )
+    ) {
       return;
     }
 
     try {
       setIsCancelling(true);
 
-      const response = await fetch(`/api/subscriptions/${userSubscription.id}/cancel`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `/api/subscriptions/${userSubscription.id}/cancel`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to cancel subscription');
@@ -179,7 +189,8 @@ export default function ProfilePage() {
 
       toast({
         title: 'Suscripción cancelada',
-        description: 'Tu suscripción ha sido cancelada. Mantienes acceso hasta el final del período pagado.',
+        description:
+          'Tu suscripción ha sido cancelada. Mantienes acceso hasta el final del período pagado.',
       });
 
       fetchUserSubscription(); // Refresh subscription data
@@ -187,7 +198,8 @@ export default function ProfilePage() {
       console.error('Error cancelling subscription:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo cancelar la suscripción. Por favor, intenta de nuevo.',
+        description:
+          'No se pudo cancelar la suscripción. Por favor, intenta de nuevo.',
         variant: 'destructive',
       });
     } finally {
@@ -271,7 +283,7 @@ export default function ProfilePage() {
                   placeholder="tu@email.com"
                 />
               </div>
-              
+
               {/* Cancel Subscription Button - Only show when editing and user has active subscription */}
               {userSubscription && userSubscription.status === 'ACTIVE' && (
                 <div className="pt-4 border-t">
@@ -287,7 +299,7 @@ export default function ProfilePage() {
                   </Button>
                 </div>
               )}
-              
+
               <div className="flex gap-2">
                 <Button
                   onClick={handleSaveProfile}

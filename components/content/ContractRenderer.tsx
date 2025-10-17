@@ -1,21 +1,21 @@
 'use client';
 
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
-import {
-  ContentDocument,
-  ContentBlock,
-  ContentContractValidator,
-} from '@/lib/content-contract';
-import { Button } from '@/components/ui/button';
 import {
   CheckCircle,
   AlertTriangle,
   Info,
   Lightbulb,
   Copy,
-  BookOpen,
 } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import {
+  ContentDocument,
+  ContentBlock,
+  ContentContractValidator,
+} from '@/lib/content-contract';
+import { cn } from '@/lib/utils';
 
 interface ContractRendererProps {
   document: ContentDocument;

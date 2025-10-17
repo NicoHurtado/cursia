@@ -25,6 +25,7 @@ npx tsx scripts/test-content-validation.ts
 ```
 
 Verás:
+
 - ✅ Detección de repeticiones funcionando
 - ✅ Validación de profundidad funcionando
 - ✅ Sugerencias automáticas
@@ -43,7 +44,7 @@ const result = await generateLessonsWithValidation({
   level: 'intermediate',
   totalLessons: 5,
   maxAttempts: 2,
-  interests: ['interés1', 'interés2']
+  interests: ['interés1', 'interés2'],
 });
 
 // Usar result.lessons para guardar en DB
@@ -53,7 +54,7 @@ for (const lesson of result.lessons) {
       moduleId: module.id,
       content: JSON.stringify(lesson),
       // ... otros campos
-    }
+    },
   });
 }
 ```
@@ -119,6 +120,7 @@ Abre **`lib/ai/integration-example.ts`** y copia la función `generateModuleForA
 ### 🎉 ¡Eso es todo!
 
 El sistema está listo. Solo:
+
 1. Prueba con el script
 2. Copia el código en tu API
 3. Disfruta contenido sin repeticiones
@@ -126,4 +128,3 @@ El sistema está listo. Solo:
 ---
 
 **¿Dudas?** Lee `CONTENT_VALIDATION_SUMMARY.md` para más detalles.
-

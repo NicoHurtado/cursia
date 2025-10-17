@@ -1,6 +1,12 @@
 'use client';
 
+import { Check, X, Star, Zap, Crown, CreditCard } from 'lucide-react';
 import { useState, useEffect } from 'react';
+
+import WompiPaymentForm from '@/components/payment/WompiPaymentForm';
+import SubscriptionInfo from '@/components/subscription/SubscriptionInfo';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,14 +15,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Check, X, Star, Zap, Crown, CreditCard } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
-import { UserPlan, PLAN_NAMES, PLAN_PRICES, isDowngrade, isUpgrade, isSamePlan } from '@/lib/plans';
-import WompiPaymentForm from '@/components/payment/WompiPaymentForm';
-import SubscriptionInfo from '@/components/subscription/SubscriptionInfo';
+import { UserPlan, isDowngrade, isUpgrade } from '@/lib/plans';
+import { cn } from '@/lib/utils';
 
 const plans = [
   {
@@ -103,12 +104,13 @@ const plans = [
 ];
 
 export default function PlansPage() {
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedPlan] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<UserPlan | null>(null);
   const [isUpgrading, setIsUpgrading] = useState<string | null>(null);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [selectedPlanForPayment, setSelectedPlanForPayment] = useState<UserPlan | null>(null);
-  const [userSubscription, setUserSubscription] = useState<any>(null);
+  const [selectedPlanForPayment, setSelectedPlanForPayment] =
+    useState<UserPlan | null>(null);
+  const [userSubscription, setUserSubscription] = useState<unknown>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -150,10 +152,15 @@ export default function PlansPage() {
     }
 
     // Check if user has an active subscription and is trying to downgrade
-    if (currentPlan && userSubscription?.status === 'ACTIVE' && isDowngrade(currentPlan, planId)) {
+    if (
+      currentPlan &&
+      (userSubscription as { status?: string })?.status === 'ACTIVE' &&
+      isDowngrade(currentPlan, planId)
+    ) {
       toast({
         title: 'Cambio de plan no permitido',
-        description: 'No puedes cambiar a un plan menor. Los cambios a planes inferiores se aplicarán al final del período de facturación actual. Para cancelar tu suscripción, ve a tu perfil.',
+        description:
+          'No puedes cambiar a un plan menor. Los cambios a planes inferiores se aplicarán al final del período de facturación actual. Para cancelar tu suscripción, ve a tu perfil.',
         variant: 'destructive',
       });
       return;
@@ -214,7 +221,7 @@ export default function PlansPage() {
     }
   };
 
-  const handlePaymentSuccess = (subscription: any) => {
+  const handlePaymentSuccess = (subscription: unknown) => {
     setShowPaymentForm(false);
     setSelectedPlanForPayment(null);
     setUserSubscription(subscription);
@@ -272,18 +279,23 @@ export default function PlansPage() {
         )}
 
         {/* Information about downgrades */}
-        {userSubscription && userSubscription.status === 'ACTIVE' && currentPlan && (
-          <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-sm font-medium">Información sobre cambios de plan</span>
+        {userSubscription &&
+          userSubscription.status === 'ACTIVE' &&
+          currentPlan && (
+            <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm font-medium">
+                  Información sobre cambios de plan
+                </span>
+              </div>
+              <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
+                Con una suscripción activa, solo puedes hacer cambios a planes
+                superiores. Para cancelar tu suscripción y cambiar a un plan
+                menor, ve a tu perfil personal.
+              </p>
             </div>
-            <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
-              Con una suscripción activa, solo puedes hacer cambios a planes superiores. 
-              Para cancelar tu suscripción y cambiar a un plan menor, ve a tu perfil personal.
-            </p>
-          </div>
-        )}
+          )}
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
@@ -291,8 +303,12 @@ export default function PlansPage() {
             const Icon = plan.icon;
             const isCurrentPlan = plan.id === currentPlan;
             const isPlanUpgrading = isUpgrading === plan.id;
-            const isDowngradeAttempt = currentPlan && userSubscription?.status === 'ACTIVE' && isDowngrade(currentPlan, plan.id);
-            const isUpgradeAttempt = currentPlan && isUpgrade(currentPlan, plan.id);
+            const isDowngradeAttempt =
+              currentPlan &&
+              userSubscription?.status === 'ACTIVE' &&
+              isDowngrade(currentPlan, plan.id);
+            const isUpgradeAttempt =
+              currentPlan && isUpgrade(currentPlan, plan.id);
 
             return (
               <Card
@@ -386,7 +402,14 @@ export default function PlansPage() {
                             : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
                     )}
                     onClick={() => handleUpgrade(plan.id)}
-                    disabled={isPlanUpgrading || isCurrentPlan || isDowngradeAttempt || (userSubscription && userSubscription.status === 'ACTIVE' && !isUpgradeAttempt)}
+                    disabled={
+                      isPlanUpgrading ||
+                      isCurrentPlan ||
+                      isDowngradeAttempt ||
+                      (userSubscription &&
+                        userSubscription.status === 'ACTIVE' &&
+                        !isUpgradeAttempt)
+                    }
                   >
                     {isPlanUpgrading
                       ? 'Actualizando...'
@@ -394,7 +417,9 @@ export default function PlansPage() {
                         ? 'Plan Actual'
                         : isDowngradeAttempt
                           ? 'Cambio no disponible'
-                          : userSubscription && userSubscription.status === 'ACTIVE' && !isUpgradeAttempt
+                          : userSubscription &&
+                              userSubscription.status === 'ACTIVE' &&
+                              !isUpgradeAttempt
                             ? 'Suscripción Activa'
                             : isUpgradeAttempt
                               ? 'Mejorar Plan'

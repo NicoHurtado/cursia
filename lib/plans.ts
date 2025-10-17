@@ -127,7 +127,10 @@ export function canUpgrade(currentPlan: UserPlan, newPlan: UserPlan): boolean {
   return isUpgrade(currentPlan, newPlan);
 }
 
-export function canDowngrade(currentPlan: UserPlan, newPlan: UserPlan): boolean {
+export function canDowngrade(
+  currentPlan: UserPlan,
+  newPlan: UserPlan
+): boolean {
   // Allow downgrades only to FREE plan or if user explicitly wants to downgrade
   return newPlan === UserPlan.FREE || isDowngrade(currentPlan, newPlan);
 }

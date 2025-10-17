@@ -1,7 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Upload, BookOpen, Calendar, Loader2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,16 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Upload,
-  BookOpen,
-  Calendar,
-  CheckCircle2,
-  Loader2,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface Course {
   id: string;

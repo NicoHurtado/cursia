@@ -174,6 +174,3 @@ export function downloadCertificatePDF(certificateData: CertificateData): void {
     alert('Error generando el PDF. Por favor, inténtalo de nuevo.');
   }
 }
-
-
-

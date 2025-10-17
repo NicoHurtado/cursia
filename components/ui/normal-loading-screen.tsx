@@ -25,6 +25,3 @@ export function NormalLoadingScreen({
     </div>
   );
 }
-
-
-

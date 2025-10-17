@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getPlanPriceInCents, createSubscriptionReference, parseWompiWebhook } from '@/lib/wompi';
+
 import { UserPlan } from '@/lib/plans';
+import {
+  getPlanPriceInCents,
+  createSubscriptionReference,
+  parseWompiWebhook,
+} from '@/lib/wompi';
 
 describe('wompi helpers', () => {
   it('getPlanPriceInCents converts correctly', () => {
@@ -25,18 +30,37 @@ describe('wompi helpers', () => {
     });
 
     it('validates signature and parses body', () => {
-      const body = JSON.stringify({ event: 'transaction.updated', data: { transaction: { id: 't1', status: 'APPROVED', amount_in_cents: 1000, reference: 'r1', customer_email: 'a@b.com', payment_method_type: 'CARD', created_at: new Date().toISOString() } } });
-      const signature = crypto.createHmac('sha256', 'secret').update(body).digest('hex');
+      const body = JSON.stringify({
+        event: 'transaction.updated',
+        data: {
+          transaction: {
+            id: 't1',
+            status: 'APPROVED',
+            amount_in_cents: 1000,
+            reference: 'r1',
+            customer_email: 'a@b.com',
+            payment_method_type: 'CARD',
+            created_at: new Date().toISOString(),
+          },
+        },
+      });
+      const signature = crypto
+        .createHmac('sha256', 'secret')
+        .update(body)
+        .digest('hex');
       const event = parseWompiWebhook(body, signature);
       expect(event.event).toBe('transaction.updated');
       expect(event.data.transaction.id).toBe('t1');
     });
 
     it('throws on invalid signature', () => {
-      const body = JSON.stringify({ event: 'x', data: { transaction: { id: 't1' } } });
-      expect(() => parseWompiWebhook(body, 'bad')).toThrowError('Invalid webhook signature');
+      const body = JSON.stringify({
+        event: 'x',
+        data: { transaction: { id: 't1' } },
+      });
+      expect(() => parseWompiWebhook(body, 'bad')).toThrowError(
+        'Invalid webhook signature'
+      );
     });
   });
 });
-
-

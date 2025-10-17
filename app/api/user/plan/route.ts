@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { UserPlan, PLAN_LIMITS, PLAN_NAMES, PLAN_PRICES } from '@/lib/plans';
 const isDev = process.env.NODE_ENV !== 'production';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
@@ -23,7 +24,10 @@ export async function GET(request: NextRequest) {
     });
 
     if (!user) {
-      console.warn('[Plan API] User not found for session id:', session.user.id);
+      console.warn(
+        '[Plan API] User not found for session id:',
+        session.user.id
+      );
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -109,7 +113,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (isDev) console.log('Updating user plan from', existingUser.plan, 'to', plan);
+    if (isDev)
+      console.log('Updating user plan from', existingUser.plan, 'to', plan);
 
     // Update user plan
     const updatedUser = await db.user.update({

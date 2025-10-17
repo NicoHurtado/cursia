@@ -1,26 +1,20 @@
 'use client';
 
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { ContentParser, TaggedContent } from '@/lib/content-parser';
 import {
-  Code,
-  Quote,
-  List,
   CheckCircle,
   AlertCircle,
   Info,
   Lightbulb,
   BookOpen,
   Copy,
-  Table,
-  FileText,
-  Hash,
-  ListOrdered,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+
 import { ContractRenderer } from '@/components/content/ContractRenderer';
+import { Button } from '@/components/ui/button';
 import { ContentDocument } from '@/lib/content-contract';
+import { TaggedContent } from '@/lib/content-parser';
+import { cn } from '@/lib/utils';
 
 interface StructuredContentRendererProps {
   content: string;

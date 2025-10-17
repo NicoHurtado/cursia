@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import {
   Check,
   ArrowRight,
@@ -14,8 +13,9 @@ import {
   Shield,
   HelpCircle,
 } from 'lucide-react';
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export default function ComoFuncionaPage() {
   const [activeSection, setActiveSection] = useState('proceso');

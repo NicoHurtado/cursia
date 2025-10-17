@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
     const passed = score >= 50; // 50% or higher to pass
 
     // Get or create user progress
-    let userProgress = await db.userProgress.findUnique({
+    const userProgress = await db.userProgress.findUnique({
       where: {
         userId_courseId: {
           userId: session.user.id,
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
     quizAttempts.push(attempt);
 
     // If passed, add module to completed modules
-    let completedModules = JSON.parse(userProgress.completedModules);
+    const completedModules = JSON.parse(userProgress.completedModules);
     if (passed && !completedModules.includes(moduleId)) {
       completedModules.push(moduleId);
     }

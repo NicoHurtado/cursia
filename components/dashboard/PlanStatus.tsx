@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import { Crown, Star, Zap, CreditCard } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+
+import { Button } from '@/components/ui/button';
 import { UserPlan } from '@/lib/plans';
 
 interface PlanStatusProps {
@@ -71,7 +72,7 @@ export function PlanStatus({ className }: PlanStatusProps) {
       } else if (response.status === 401) {
         setError('Debes iniciar sesión para ver tu plan.');
       } else {
-        const err = await response.json().catch(() => ({} as any));
+        const err = await response.json().catch(() => ({}) as any);
         setError(err.error || 'No se pudo cargar el plan.');
       }
     } catch (error) {

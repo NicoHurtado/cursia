@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { UserPlan } from '@/lib/plans';
@@ -11,7 +12,8 @@ export async function POST(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (isDev) console.log('Session in mark-chunk-complete:', session?.user?.id);
+    if (isDev)
+      console.log('Session in mark-chunk-complete:', session?.user?.id);
 
     if (!session?.user?.id) {
       if (isDev) console.log('No session found in mark-chunk-complete');
@@ -92,7 +94,7 @@ export async function POST(
     }
 
     // Get or create user progress
-    let userProgress = await db.userProgress.findUnique({
+    const userProgress = await db.userProgress.findUnique({
       where: {
         userId_courseId: {
           userId: session.user.id,
@@ -102,13 +104,15 @@ export async function POST(
     });
 
     if (!userProgress) {
-      if (isDev) console.log('No user progress found - course must be started first');
+      if (isDev)
+        console.log('No user progress found - course must be started first');
       return NextResponse.json(
         { error: 'Course must be started before marking chunks as complete' },
         { status: 400 }
       );
     } else {
-      if (isDev) console.log('Updating existing user progress:', userProgress.id);
+      if (isDev)
+        console.log('Updating existing user progress:', userProgress.id);
     }
 
     // Parse completed chunks and enforce trial plan module cap

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { z } from 'zod';
+
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { z } from 'zod';
 
 const updateProfileSchema = z.object({
   email: z.string().email('Email inválido').optional(),
@@ -77,7 +78,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 

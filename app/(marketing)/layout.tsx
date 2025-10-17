@@ -1,5 +1,5 @@
-import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { Navbar } from '@/components/navbar';
 import { SessionProvider } from '@/components/session-provider';
 
 export default function MarketingLayout({

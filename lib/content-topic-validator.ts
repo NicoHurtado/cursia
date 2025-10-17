@@ -52,7 +52,8 @@ export class ContentTopicValidator {
       moduleTitle
     );
 
-    const isValid = repetitions.repeatedTopics.length === 0 && !depthAnalysis.needsMoreDepth;
+    const isValid =
+      repetitions.repeatedTopics.length === 0 && !depthAnalysis.needsMoreDepth;
 
     console.log(`✅ Validación completada:`);
     console.log(`   - Temas únicos: ${repetitions.allTopics.length}`);
@@ -84,22 +85,18 @@ export class ContentTopicValidator {
     // Extraer headings de nivel 2 (temas principales)
     const mainTopics = blocks
       .filter(
-        (block) =>
-          block.type === 'heading' &&
-          (block.data as any)?.level === 2
+        block => block.type === 'heading' && (block.data as any)?.level === 2
       )
-      .map((block) => this.normalizeTopicText((block.data as any)?.text || ''))
-      .filter((topic) => topic.length > 0);
+      .map(block => this.normalizeTopicText((block.data as any)?.text || ''))
+      .filter(topic => topic.length > 0);
 
     // Extraer headings de nivel 3 (subtemas)
     const subtopics = blocks
       .filter(
-        (block) =>
-          block.type === 'heading' &&
-          (block.data as any)?.level === 3
+        block => block.type === 'heading' && (block.data as any)?.level === 3
       )
-      .map((block) => this.normalizeTopicText((block.data as any)?.text || ''))
-      .filter((topic) => topic.length > 0);
+      .map(block => this.normalizeTopicText((block.data as any)?.text || ''))
+      .filter(topic => topic.length > 0);
 
     // Extraer keywords de párrafos y listas
     const keywords = this.extractKeywords(blocks);
@@ -121,19 +118,22 @@ export class ContentTopicValidator {
   /**
    * Detecta repeticiones de temas entre lecciones
    */
-  private static detectTopicRepetitions(
-    lessonsInfo: LessonTopicInfo[]
-  ): { repeatedTopics: string[]; allTopics: string[] } {
+  private static detectTopicRepetitions(lessonsInfo: LessonTopicInfo[]): {
+    repeatedTopics: string[];
+    allTopics: string[];
+  } {
     // Combinar todos los temas principales
-    const allMainTopics = lessonsInfo.flatMap((lesson) => lesson.mainTopics);
-    
+    const allMainTopics = lessonsInfo.flatMap(lesson => lesson.mainTopics);
+
     // Contar frecuencia de cada tema
     const topicFrequency = new Map<string, number>();
     const topicLessons = new Map<string, number[]>();
 
     allMainTopics.forEach((topic, index) => {
-      const lessonIndex = Math.floor(index / (allMainTopics.length / lessonsInfo.length));
-      
+      const lessonIndex = Math.floor(
+        index / (allMainTopics.length / lessonsInfo.length)
+      );
+
       const currentCount = topicFrequency.get(topic) || 0;
       topicFrequency.set(topic, currentCount + 1);
 
@@ -150,7 +150,9 @@ export class ContentTopicValidator {
       const lessons = topicLessons.get(topic) || [];
       if (lessons.length > 1) {
         repeatedTopics.push(topic);
-        console.log(`⚠️ Tema repetido: "${topic}" en lecciones ${lessons.map(l => l + 1).join(', ')}`);
+        console.log(
+          `⚠️ Tema repetido: "${topic}" en lecciones ${lessons.map(l => l + 1).join(', ')}`
+        );
       }
     });
 
@@ -163,15 +165,16 @@ export class ContentTopicValidator {
   /**
    * Analiza la profundidad del contenido
    */
-  private static analyzeContentDepth(
-    lessonsInfo: LessonTopicInfo[]
-  ): { depth: 'shallow' | 'moderate' | 'deep'; needsMoreDepth: boolean } {
+  private static analyzeContentDepth(lessonsInfo: LessonTopicInfo[]): {
+    depth: 'shallow' | 'moderate' | 'deep';
+    needsMoreDepth: boolean;
+  } {
     // Calcular promedio de subtemas por tema principal
     let totalMainTopics = 0;
     let totalSubtopics = 0;
     let totalBlocks = 0;
 
-    lessonsInfo.forEach((lesson) => {
+    lessonsInfo.forEach(lesson => {
       totalMainTopics += lesson.mainTopics.length;
       totalSubtopics += lesson.subtopics.length;
       totalBlocks += lesson.mainTopics.length + lesson.subtopics.length;
@@ -183,8 +186,12 @@ export class ContentTopicValidator {
       lessonsInfo.length > 0 ? totalBlocks / lessonsInfo.length : 0;
 
     console.log(`📊 Análisis de profundidad:`);
-    console.log(`   - Promedio de subtemas por tema: ${avgSubtopicsPerMainTopic.toFixed(2)}`);
-    console.log(`   - Promedio de bloques por lección: ${avgBlocksPerLesson.toFixed(2)}`);
+    console.log(
+      `   - Promedio de subtemas por tema: ${avgSubtopicsPerMainTopic.toFixed(2)}`
+    );
+    console.log(
+      `   - Promedio de bloques por lección: ${avgBlocksPerLesson.toFixed(2)}`
+    );
 
     let depth: 'shallow' | 'moderate' | 'deep' = 'shallow';
     let needsMoreDepth = false;
@@ -245,15 +252,17 @@ export class ContentTopicValidator {
       'muy',
     ]);
 
-    blocks.forEach((block) => {
+    blocks.forEach(block => {
       if (block.type === 'paragraph') {
         const text = (block.data as any)?.text || '';
         const words = text
           .toLowerCase()
           .split(/\s+/)
           .filter(
-            (word) =>
-              word.length > 4 && !stopWords.has(word) && /^[a-záéíóúñ]+$/.test(word)
+            word =>
+              word.length > 4 &&
+              !stopWords.has(word) &&
+              /^[a-záéíóúñ]+$/.test(word)
           );
         keywords.push(...words);
       }
@@ -261,7 +270,7 @@ export class ContentTopicValidator {
 
     // Contar frecuencia y retornar las 10 más comunes
     const frequency = new Map<string, number>();
-    keywords.forEach((word) => {
+    keywords.forEach(word => {
       frequency.set(word, (frequency.get(word) || 0) + 1);
     });
 
@@ -299,8 +308,8 @@ export class ContentTopicValidator {
       suggestions.push(
         `Detecté ${repetitions.repeatedTopics.length} tema(s) repetido(s). Cada lección debe abordar un aspecto único de "${moduleTitle}".`
       );
-      
-      repetitions.repeatedTopics.forEach((topic) => {
+
+      repetitions.repeatedTopics.forEach(topic => {
         suggestions.push(
           `El tema "${topic}" se repite. Profundiza en un aspecto específico en cada lección en lugar de repetir el mismo tema.`
         );
@@ -374,10 +383,10 @@ export class ContentTopicValidator {
     ];
 
     const lowerTitle = moduleTitle.toLowerCase();
-    const isComplex = complexKeywords.some((keyword) =>
+    const isComplex = complexKeywords.some(keyword =>
       lowerTitle.includes(keyword)
     );
-    const isSimple = simpleKeywords.some((keyword) =>
+    const isSimple = simpleKeywords.some(keyword =>
       lowerTitle.includes(keyword)
     );
     const isAdvancedLevel = courseLevel === 'advanced';
@@ -418,9 +427,10 @@ export class ContentTopicValidator {
   /**
    * Valida que las lecciones sigan una progresión lógica
    */
-  public static validateLessonProgression(
-    lessons: LessonTopicInfo[]
-  ): { isValid: boolean; issues: string[] } {
+  public static validateLessonProgression(lessons: LessonTopicInfo[]): {
+    isValid: boolean;
+    issues: string[];
+  } {
     const issues: string[] = [];
 
     // Verificar que hay suficientes lecciones
@@ -431,7 +441,7 @@ export class ContentTopicValidator {
     }
 
     // Verificar que cada lección tenga temas únicos
-    const allTopics = lessons.flatMap((lesson) => lesson.mainTopics);
+    const allTopics = lessons.flatMap(lesson => lesson.mainTopics);
     const uniqueTopics = new Set(allTopics);
 
     if (uniqueTopics.size < lessons.length) {
@@ -441,7 +451,7 @@ export class ContentTopicValidator {
     }
 
     // Verificar que las lecciones tengan suficiente contenido
-    lessons.forEach((lesson) => {
+    lessons.forEach(lesson => {
       const totalTopics = lesson.mainTopics.length + lesson.subtopics.length;
       if (totalTopics < 3) {
         issues.push(
@@ -454,4 +464,3 @@ export class ContentTopicValidator {
     return { isValid, issues };
   }
 }
-

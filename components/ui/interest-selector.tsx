@@ -1,8 +1,9 @@
 'use client';
 
+import { X, LucideIcon } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { X, LucideIcon } from 'lucide-react';
 
 interface InterestCategory {
   name: string;

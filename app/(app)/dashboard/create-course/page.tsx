@@ -1,13 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2, Sparkles, BookOpen, Target, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+import { ContentBlockedDialog } from '@/components/content/ContentBlockedDialog';
+import { PlanStatus } from '@/components/dashboard/PlanStatus';
+import { MemoryGame } from '@/components/loading/MemoryGame';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -17,11 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, Sparkles, BookOpen, Target, Zap } from 'lucide-react';
-import { MemoryGame } from '@/components/loading/MemoryGame';
-import { CourseLoadingScreen } from '@/components/course/CourseLoadingScreen';
-import { ContentBlockedDialog } from '@/components/content/ContentBlockedDialog';
-import { PlanStatus } from '@/components/dashboard/PlanStatus';
+import { useCreateCourse } from '@/hooks/useCourses';
 
 const courseSchema = z.object({
   prompt: z
@@ -34,7 +35,6 @@ const courseSchema = z.object({
 type CourseForm = z.infer<typeof courseSchema>;
 
 export default function CreateCoursePage() {
-  const [isCreatingCourse, setIsCreatingCourse] = useState(false);
   const [showContentBlocked, setShowContentBlocked] = useState(false);
   const [blockedReason, setBlockedReason] = useState('');
   const [blockedCategory, setBlockedCategory] = useState<string | undefined>();
@@ -43,9 +43,13 @@ export default function CreateCoursePage() {
   const [isCourseReady, setIsCourseReady] = useState(false);
   const [createdCourseId, setCreatedCourseId] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isCreatingCourse, setIsCreatingCourse] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+
+  // Use React Query mutation for course creation
+  const createCourseMutation = useCreateCourse();
 
   const {
     register,
@@ -53,7 +57,7 @@ export default function CreateCoursePage() {
     setValue,
     formState: { errors },
   } = useForm<CourseForm>({
-    resolver: zodResolver(courseSchema) as any,
+    resolver: zodResolver(courseSchema),
   });
 
   // Pre-fill prompt from URL parameters
@@ -84,7 +88,6 @@ export default function CreateCoursePage() {
     console.log('🔄 Starting course progress monitoring for:', courseId);
 
     let lastServerProgress = 0;
-    let simulatedProgress = 5;
 
     // Start with initial progress
     setCourseProgress(5);
@@ -188,76 +191,59 @@ export default function CreateCoursePage() {
 
   const onSubmit = async (data: CourseForm) => {
     // Show memory game immediately as loading screen
-    setIsCreatingCourse(true);
     setShowMemoryGame(true);
 
-    try {
-      const response = await fetch('/api/courses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        if (result.error === 'Content blocked') {
-          // Show content blocked dialog
-          setBlockedReason(
-            result.message || result.reason || 'Contenido no permitido'
+    // Use React Query mutation
+    createCourseMutation.mutate(
+      {
+        title: data.prompt,
+        description: data.prompt,
+        level: data.level,
+        interests: [], // You might want to add interests to the form
+      },
+      {
+        onSuccess: result => {
+          console.log(
+            '🎮 Course created, continuing with memory game...',
+            result.id
           );
-          setBlockedCategory(result.category);
-          setShowContentBlocked(true);
-          setIsCreatingCourse(false);
+          setCreatedCourseId(result.id);
+          startCourseProgressMonitoring(result.id);
+        },
+        onError: (error: unknown) => {
+          if ((error as any)?.message === 'Content blocked') {
+            // Show content blocked dialog
+            setBlockedReason((error as any)?.reason || 'Contenido no permitido');
+            setBlockedCategory((error as any)?.category);
+            setShowContentBlocked(true);
+            setShowMemoryGame(false);
+            return;
+          } else if ((error as any)?.upgradeRequired) {
+            toast({
+              title: 'Límite de cursos alcanzado',
+              description:
+                (error as any)?.message + ' Actualiza tu plan para crear más cursos.',
+              variant: 'destructive',
+              action: (
+                <Button asChild variant="outline" size="sm">
+                  <Link
+                    href="/dashboard/plans"
+                    aria-label="Ver planes disponibles"
+                  >
+                    Ver Planes
+                  </Link>
+                </Button>
+              ),
+            });
+          }
           setShowMemoryGame(false);
-          return;
-        } else if (result.upgradeRequired) {
-          toast({
-            title: 'Límite de cursos alcanzado',
-            description:
-              result.error + ' Actualiza tu plan para crear más cursos.',
-            variant: 'destructive',
-            action: (
-              <Button asChild variant="outline" size="sm">
-                <Link href="/dashboard/plans" aria-label="Ver planes disponibles">
-                  Ver Planes
-                </Link>
-              </Button>
-            ),
-          });
-        } else {
-          toast({
-            title: 'Error',
-            description: result.error || 'No se pudo crear el curso',
-            variant: 'destructive',
-          });
-        }
-        setIsCreatingCourse(false);
-        setShowMemoryGame(false);
-        return;
+        },
       }
-
-      // Course created successfully, continue with memory game
-      console.log(
-        '🎮 Course created, continuing with memory game...',
-        result.id
-      );
-      setCreatedCourseId(result.id);
-      startCourseProgressMonitoring(result.id);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Ocurrió un error. Por favor, inténtalo de nuevo.',
-        variant: 'destructive',
-      });
-      setIsCreatingCourse(false);
-    }
+    );
   };
 
   // Show memory game as the main loading screen
-  if (showMemoryGame || isCreatingCourse) {
+  if (showMemoryGame || createCourseMutation.isPending || isCreatingCourse) {
     console.log('🎮 Rendering memory game as loading screen...');
     return (
       <MemoryGame

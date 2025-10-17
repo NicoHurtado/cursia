@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { TypedExamples } from './TypedExamples';
 import { CourseFunnelModal } from './CourseFunnelModal';
+import { TypedExamples } from './TypedExamples';
+import { Button } from '@/components/ui/button';
 
 export function PromptInput() {
   const [prompt, setPrompt] = useState('');

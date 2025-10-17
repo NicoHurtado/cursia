@@ -198,6 +198,3 @@ async function runAllTests() {
 
 // Run the health check
 runAllTests().catch(console.error);
-
-
-

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+
+import { simpleAI } from '@/lib/ai/simple';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { simpleAI } from '@/lib/ai/simple';
-import { ModuleContentSchema } from '@/lib/dto/course';
 
 export async function POST(
   request: NextRequest,
@@ -94,7 +94,7 @@ export async function POST(
           .map(m => ({
             title: m.title,
             topics: [], // We could extract topics from chunks if needed
-            description: m.description
+            description: m.description,
           }));
 
         const moduleContent = await simpleAI.generateModuleContent(

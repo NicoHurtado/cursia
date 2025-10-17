@@ -1,11 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { BrowserFrame } from './BrowserFrame';
-import { CourseMockup } from './CourseMockup';
-import { CourseViewMockup } from './CourseViewMockup';
+
 import { SimpleCourseMockup } from './SimpleCourseMockup';
+import { Badge } from '@/components/ui/badge';
 
 type GenerationState =
   | 'idle'

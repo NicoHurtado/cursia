@@ -1,7 +1,8 @@
 'use client';
 
-import { Progress } from '@/components/ui/progress';
 import { BookOpen } from 'lucide-react';
+
+import { Progress } from '@/components/ui/progress';
 
 interface CourseProgressBarProps {
   completionPercentage: number;

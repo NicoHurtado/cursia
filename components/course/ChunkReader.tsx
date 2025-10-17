@@ -1,20 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
-  User,
   CheckCircle2,
   Play,
-  Loader2,
   ChevronLeft,
   ChevronRight,
   BookOpen,
 } from 'lucide-react';
-import { VideoPlayer } from './VideoPlayer';
+
 import { StructuredContentRenderer } from './StructuredContentRenderer';
+import { VideoPlayer } from './VideoPlayer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface Chunk {
   id: string;

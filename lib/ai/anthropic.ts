@@ -1,8 +1,4 @@
 import { ContractPromptBuilder } from '@/lib/ai/content-contract-prompts';
-import {
-  ContentContractValidator,
-  ContentDocument,
-} from '@/lib/content-contract';
 
 interface AnthropicMessage {
   role: 'user' | 'assistant';
@@ -182,7 +178,11 @@ export async function generateModuleContent(
   moduleOrder: number,
   totalModules: number,
   courseDescription: string,
-  previousModules?: Array<{title: string, topics: string[], description: string}>,
+  previousModules?: Array<{
+    title: string;
+    topics: string[];
+    description: string;
+  }>,
   courseOutline?: string[]
 ): Promise<string> {
   const systemPrompt = ContractPromptBuilder.buildSystemPrompt('module');

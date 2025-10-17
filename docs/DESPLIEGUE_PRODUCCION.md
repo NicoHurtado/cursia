@@ -35,7 +35,8 @@ Necesitarás las siguientes claves:
 - **WOMPI_EVENTS_SECRET**: Secreto para webhooks
 - **WOMPI_ACCEPTANCE_TOKEN**: Token de aceptación de términos
 
-⚠️ **IMPORTANTE**: 
+⚠️ **IMPORTANTE**:
+
 - Nunca compartas estas claves
 - No las subas al repositorio
 - Guárdalas en un gestor de secretos seguro
@@ -184,12 +185,14 @@ npm start
 ### 5.3 Verificar el Despliegue
 
 1. **Verificar Logs**:
+
    ```bash
    # Ver logs de la aplicación
    pm2 logs cursia
    ```
 
 2. **Probar Endpoint de Salud**:
+
    ```bash
    curl https://tu-dominio.com/api/health
    ```
@@ -214,10 +217,11 @@ npm start
 ### 6.2 Monitoreo de Seguridad
 
 1. **Revisar logs regularmente**:
+
    ```bash
    # Ver intentos de pago fallidos
    grep "Wompi subscription creation failed" logs/*.log
-   
+
    # Ver webhooks inválidos
    grep "Invalid webhook signature" logs/*.log
    ```
@@ -317,6 +321,7 @@ Monitorea en el Dashboard de Wompi:
 **Causa**: El secreto del webhook no coincide.
 
 **Solución**:
+
 1. Verifica `WOMPI_EVENTS_SECRET` en tu `.env`
 2. Compara con el secreto configurado en el Dashboard de Wompi
 3. Regenera el secreto si es necesario
@@ -326,6 +331,7 @@ Monitorea en el Dashboard de Wompi:
 **Causa**: Error al crear la suscripción en Wompi.
 
 **Solución**:
+
 1. Verifica que las claves de API sean correctas
 2. Revisa que la tarjeta sea válida
 3. Verifica que tengas fondos suficientes (en sandbox no aplica)
@@ -336,6 +342,7 @@ Monitorea en el Dashboard de Wompi:
 **Causa**: El usuario alcanzó el límite de su plan.
 
 **Solución**:
+
 1. Verifica el plan del usuario en la base de datos
 2. Verifica la suscripción en Wompi
 3. Si el pago falló, el usuario se degrada a FREE automáticamente
@@ -346,6 +353,7 @@ Monitorea en el Dashboard de Wompi:
 **Causa**: La URL del webhook no está configurada correctamente.
 
 **Solución**:
+
 1. Verifica la URL en el Dashboard de Wompi: `https://tu-dominio.com/api/webhooks/wompi`
 2. Verifica que el endpoint esté accesible: `curl https://tu-dominio.com/api/webhooks/wompi`
 3. Revisa los logs del servidor para ver si llegan requests
@@ -391,13 +399,13 @@ Antes de ir a producción, verifica:
 
 ## 🎉 ¡Listo!
 
-Tu aplicación ahora está lista para aceptar pagos reales. 
+Tu aplicación ahora está lista para aceptar pagos reales.
 
 **Recuerda**:
+
 - Monitorear los logs regularmente
 - Revisar el Dashboard de Wompi diariamente
 - Responder rápidamente a pagos fallidos
 - Mantener las claves de API seguras
 
 ¡Buena suerte con el lanzamiento! 🚀
-
