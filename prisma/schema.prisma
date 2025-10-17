@@ -286,6 +286,7 @@ model Subscription {
   amountInCents         Int
   currency              String             @default("COP")
   reference             String             @unique
+  paymentMethodToken    String?            // Token de Wompi para el método de pago
   nextPaymentDate       DateTime?
   lastPaymentDate       DateTime?
   createdAt             DateTime           @default(now())

@@ -122,16 +122,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // For testing, create a mock subscription
+    // Prepare subscription data
     const amountInCents = getPlanPriceInCents(plan);
     const reference = createSubscriptionReference(session.user.id, plan);
 
-    // Mock subscription for testing
-    const wompiSubscription = {
-      id: `sub_test_${Date.now()}`,
-      status: 'ACTIVE',
-      next_payment_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
-    };
+    // Create subscription in Wompi
+    let wompiSubscription;
+    try {
+      wompiSubscription = await wompiClient.createSubscription({
+        customer_email: user.email,
+        amount_in_cents: amountInCents,
+        currency: 'COP',
+        reference,
+        payment_method: {
+          type: 'CARD',
+          token: paymentMethodToken
+        },
+        recurring_period: {
+          interval: 'MONTHLY',
+          interval_count: 1
+        }
+      });
+
+      console.log('✅ Wompi subscription created:', wompiSubscription.id);
+    } catch (wompiError: any) {
+      console.error('❌ Wompi subscription creation failed:', wompiError);
+      return NextResponse.json(
+        { 
+          error: 'No se pudo crear la suscripción en el procesador de pagos.',
+          details: wompiError.message 
+        },
+        { status: 400 }
+      );
+    }
 
     // Save subscription to database
     const subscription = await db.subscription.create({
@@ -142,6 +165,7 @@ export async function POST(request: NextRequest) {
         amountInCents,
         currency: 'COP',
         reference,
+        paymentMethodToken, // Guardar el token para futuros pagos
         nextPaymentDate: new Date(wompiSubscription.next_payment_date),
         status: wompiSubscription.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE'
       }

@@ -1,14 +1,18 @@
 import { UserPlan, PLAN_PRICES } from './plans';
 
 // Wompi API Configuration
+// Para usar producción, asegúrate de tener WOMPI_ENV=production en tu .env
+const isProduction = process.env.WOMPI_ENV === 'production' || process.env.NODE_ENV === 'production';
+
 export const WOMPI_CONFIG = {
-  baseUrl: process.env.NODE_ENV === 'production' 
+  baseUrl: isProduction
     ? 'https://production.wompi.co/v1' 
     : 'https://sandbox.wompi.co/v1',
   publicKey: process.env.WOMPI_PUBLIC_KEY!,
   privateKey: process.env.WOMPI_PRIVATE_KEY!,
   webhookSecret: process.env.WOMPI_EVENTS_SECRET!,
   acceptanceToken: process.env.WOMPI_ACCEPTANCE_TOKEN!,
+  environment: isProduction ? 'production' : 'sandbox',
 };
 
 // Wompi API Types

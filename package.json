@@ -17,10 +17,13 @@
     "type-check": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
+    "db:migrate": "prisma migrate deploy",
     "worker": "node scripts/start-worker.js",
     "dev:worker": "nodemon scripts/start-worker.js",
     "start:production": "USE_AI_QUEUE=true USE_AI_CACHE=true USE_REDIS_RATE_LIMIT=true next start",
-    "start:worker": "USE_AI_WORKER=true node scripts/start-worker.js"
+    "start:worker": "USE_AI_WORKER=true node scripts/start-worker.js",
+    "verify:config": "node scripts/verify-production-config.js",
+    "verify:config:template": "node scripts/verify-production-config.js --generate-template"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

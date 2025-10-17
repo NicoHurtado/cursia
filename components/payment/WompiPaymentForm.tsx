@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { UserPlan, PLAN_NAMES, PLAN_PRICES } from '@/lib/plans';
-import { CreditCard, Lock, CheckCircle } from 'lucide-react';
+import { CreditCard, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import Script from 'next/script';
 
 interface WompiPaymentFormProps {
   plan: UserPlan;
@@ -15,8 +16,15 @@ interface WompiPaymentFormProps {
   onCancel: () => void;
 }
 
+declare global {
+  interface Window {
+    WidgetCheckout: any;
+  }
+}
+
 export default function WompiPaymentForm({ plan, onSuccess, onCancel }: WompiPaymentFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [wompiLoaded, setWompiLoaded] = useState(false);
   const [cardData, setCardData] = useState({
     number: '',
     expiry: '',
@@ -28,6 +36,13 @@ export default function WompiPaymentForm({ plan, onSuccess, onCancel }: WompiPay
 
   const planName = PLAN_NAMES[plan];
   const planPrice = PLAN_PRICES[plan];
+
+  useEffect(() => {
+    // Check if Wompi SDK is already loaded
+    if (typeof window !== 'undefined' && window.WidgetCheckout) {
+      setWompiLoaded(true);
+    }
+  }, []);
 
   const handleCardInputChange = (field: string, value: string) => {
     setCardData(prev => ({
@@ -45,24 +60,73 @@ export default function WompiPaymentForm({ plan, onSuccess, onCancel }: WompiPay
   };
 
   const createWompiToken = async () => {
+    if (!wompiLoaded) {
+      toast({
+        title: 'Error',
+        description: 'El sistema de pagos aún está cargando. Por favor, espera un momento.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
 
-      // For testing, we'll create a mock token
-      // In production, you should use Wompi's SDK
-      const mockToken = `tok_test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      setWompiToken(mockToken);
+      // Validar datos de tarjeta
+      if (!cardData.number || !cardData.expiry || !cardData.cvc || !cardData.name) {
+        throw new Error('Por favor, completa todos los campos de la tarjeta.');
+      }
+
+      // Separar mes y año de la fecha de vencimiento
+      const [expMonth, expYear] = cardData.expiry.split('/');
       
-      toast({
-        title: 'Método de pago configurado',
-        description: 'Tu tarjeta ha sido verificada correctamente.',
+      if (!expMonth || !expYear || expMonth.length !== 2 || expYear.length !== 2) {
+        throw new Error('Fecha de vencimiento inválida. Usa el formato MM/AA.');
+      }
+
+      // Obtener la clave pública de Wompi desde el servidor
+      const configResponse = await fetch('/api/payment/config');
+      const { publicKey } = await configResponse.json();
+
+      // Crear token usando Wompi SDK
+      const tokenResponse = await fetch('https://production.wompi.co/v1/tokens/cards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${publicKey}`
+        },
+        body: JSON.stringify({
+          number: cardData.number.replace(/\s/g, ''), // Remover espacios
+          cvc: cardData.cvc,
+          exp_month: expMonth,
+          exp_year: `20${expYear}`, // Convertir YY a YYYY
+          card_holder: cardData.name
+        })
       });
 
-    } catch (error) {
+      if (!tokenResponse.ok) {
+        const errorData = await tokenResponse.json();
+        throw new Error(errorData.error?.message || 'No se pudo procesar la tarjeta.');
+      }
+
+      const tokenData = await tokenResponse.json();
+      
+      if (tokenData.status === 'CREATED' && tokenData.data?.id) {
+        setWompiToken(tokenData.data.id);
+        
+        toast({
+          title: 'Método de pago configurado',
+          description: 'Tu tarjeta ha sido verificada correctamente.',
+        });
+      } else {
+        throw new Error('No se pudo crear el token de pago.');
+      }
+
+    } catch (error: any) {
       console.error('Error creating payment token:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo verificar tu tarjeta. Por favor, verifica los datos.',
+        description: error.message || 'No se pudo verificar tu tarjeta. Por favor, verifica los datos.',
         variant: 'destructive',
       });
     } finally {
@@ -121,8 +185,20 @@ export default function WompiPaymentForm({ plan, onSuccess, onCancel }: WompiPay
   };
 
   return (
-    <div className="max-w-md mx-auto">
-      <Card>
+    <>
+      <Script
+        src="https://checkout.wompi.co/widget.js"
+        onLoad={() => setWompiLoaded(true)}
+        strategy="lazyOnload"
+      />
+      <div className="max-w-md mx-auto">
+        {!wompiLoaded && (
+          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-blue-600" />
+            <span className="text-sm text-blue-800">Cargando sistema de pagos...</span>
+          </div>
+        )}
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
@@ -240,6 +316,7 @@ export default function WompiPaymentForm({ plan, onSuccess, onCancel }: WompiPay
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }
