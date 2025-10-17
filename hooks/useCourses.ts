@@ -147,12 +147,20 @@ export function useCreateCourse() {
       level: string;
       interests: string[];
     }) => {
+      // Transform data to match API schema
+      const apiData = {
+        prompt: courseData.description, // Use description as prompt
+        level: courseData.level,
+      };
+      
+      console.log('📝 Sending course creation request:', apiData);
+      
       const response = await fetch('/api/courses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(courseData),
+        body: JSON.stringify(apiData),
       });
 
       if (!response.ok) {

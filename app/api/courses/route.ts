@@ -719,24 +719,39 @@ Responde SOLO con el JSON solicitado.`;
 }
 
 export async function POST(request: NextRequest) {
+  console.log('🚀 POST /api/courses - Starting course creation');
   try {
     const session = await getServerSession(authOptions);
+    console.log('👤 Session check:', { 
+      hasSession: !!session, 
+      userId: session?.user?.id,
+      userEmail: session?.user?.email 
+    });
 
     if (!session?.user?.id) {
+      console.log('❌ Unauthorized - No session or user ID');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get user plan and interests, check course creation limits
+    console.log('🔍 Fetching user data from database...');
     const user = await db.user.findUnique({
       where: { id: session.user.id },
       select: { plan: true, interests: true },
     });
+    console.log('👤 User data:', { 
+      found: !!user, 
+      plan: user?.plan, 
+      interests: user?.interests 
+    });
 
     if (!user) {
+      console.log('❌ User not found in database');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Count courses started this month (courses with UserProgress created this month)
+    console.log('📊 Checking course creation limits...');
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
@@ -749,9 +764,15 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+    console.log('📈 Course limits:', { 
+      plan: user.plan, 
+      coursesStarted: coursesStartedThisMonth,
+      canCreate: canCreateCourse(user.plan as UserPlan, coursesStartedThisMonth)
+    });
 
     // Check if user can create more courses based on their plan
     if (!canCreateCourse(user.plan as UserPlan, coursesStartedThisMonth)) {
+      console.log('❌ Course limit reached for plan:', user.plan);
       return NextResponse.json(
         {
           error: 'Límite de cursos alcanzado para tu plan actual.',
@@ -765,10 +786,18 @@ export async function POST(request: NextRequest) {
 
     // Skip legacy rate limit for now (optional re-implement if needed)
 
+    console.log('📥 Parsing request body...');
     const body = await request.json();
+    console.log('📝 Course creation request body:', JSON.stringify(body, null, 2));
+    
+    console.log('🔍 Validating request data with schema...');
     const validatedData = CourseCreateRequestSchema.safeParse(body);
 
     if (!validatedData.success) {
+      console.log('❌ Schema validation failed:');
+      console.log('   Raw errors:', validatedData.error);
+      console.log('   Field errors:', validatedData.error.flatten().fieldErrors);
+      console.log('   Form errors:', validatedData.error.flatten().formErrors);
       return NextResponse.json(
         {
           error: 'Invalid input data',
@@ -777,8 +806,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    console.log('✅ Schema validation passed');
 
     const { prompt, level } = validatedData.data;
+    console.log('📋 Validated data:', { prompt: prompt.substring(0, 100) + '...', level });
 
     // Validate content for sensitive topics with fallback
     console.log('🔍 Validating content for sensitive topics...');
@@ -831,6 +862,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Create course in database
+    console.log('💾 Creating course in database...');
     const course = await db.course.create({
       data: {
         courseId,
@@ -841,6 +873,7 @@ export async function POST(request: NextRequest) {
         status: 'GENERATING_METADATA',
       },
     });
+    console.log('✅ Course created in database:', { courseId: course.courseId, id: course.id });
 
     // Log generation start
     await db.generationLog.create({
@@ -3699,6 +3732,7 @@ print(usuario)`
       };
 
       console.log('🎉 Course creation completed successfully!');
+      console.log('📤 Sending success response:', response);
       return NextResponse.json(response);
     } catch (error) {
       console.error('💥 Course generation failed:', error);
@@ -3739,7 +3773,12 @@ print(usuario)`
       );
     }
   } catch (error) {
-    console.error('Course creation error:', error);
+    console.error('💥 Course creation error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : 'Unknown'
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
