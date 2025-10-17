@@ -25,6 +25,7 @@ const registerSchema = z.object({
 
 export const authOptions: NextAuthOptions = {
   // Remove adapter for JWT strategy
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -85,6 +86,17 @@ export const authOptions: NextAuthOptions = {
   },
   jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
