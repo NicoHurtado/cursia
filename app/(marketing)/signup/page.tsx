@@ -97,31 +97,14 @@ export default function SignupPage() {
         return;
       }
 
-      // Auto sign in after successful registration
-      console.log('Attempting auto sign in with:', { email: data.email });
-      const signInResult = await signIn('credentials', {
-        email: data.email,
-        password: data.password,
-        redirect: false,
+      // Show success message and redirect to login
+      toast({
+        title: 'Success',
+        description: 'Account created successfully! Please sign in.',
       });
-
-      console.log('Sign in result:', signInResult);
-
-      if (signInResult?.error) {
-        console.error('Sign in error:', signInResult.error);
-        toast({
-          title: 'Success',
-          description: 'Account created successfully! Please sign in.',
-        });
-        router.push('/login');
-      } else {
-        console.log('Sign in successful, redirecting to dashboard');
-        toast({
-          title: 'Success',
-          description: 'Account created and signed in successfully!',
-        });
-        router.push('/dashboard');
-      }
+      
+      // Redirect to login page with a success parameter
+      router.push('/login?registered=true');
     } catch {
       toast({
         title: 'Error',
