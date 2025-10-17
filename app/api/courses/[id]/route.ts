@@ -169,3 +169,60 @@ export async function GET(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    console.log('🗑️ DELETE /api/courses/[id] - Starting course deletion');
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      console.log('❌ Unauthorized - No session or user ID');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id: courseId } = await params;
+    console.log('🔍 Deleting course:', courseId);
+
+    // Verify the course belongs to the user
+    const course = await db.course.findFirst({
+      where: {
+        id: courseId,
+        userId: session.user.id,
+      },
+    });
+
+    if (!course) {
+      console.log('❌ Course not found or not owned by user');
+      return NextResponse.json({ error: 'Course not found' }, { status: 404 });
+    }
+
+    console.log('✅ Course found, proceeding with soft delete');
+
+    // Soft delete: set deletedAt timestamp
+    const deletedCourse = await db.course.update({
+      where: {
+        id: courseId,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+
+    console.log('✅ Course soft deleted successfully');
+
+    return NextResponse.json({
+      success: true,
+      message: 'Course moved to trash',
+      course: deletedCourse,
+    });
+  } catch (error) {
+    console.error('💥 Error deleting course:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

@@ -1,11 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 
 import { askClaude, generateCourseMetadata } from '@/lib/ai/anthropic';
 import { ContractPromptBuilder } from '@/lib/ai/content-contract-prompts';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { YouTubeService } from '@/lib/youtube';
+
+// Función para reparar JSON malformado
+function repairMalformedJson(jsonString: string): string | null {
+  try {
+    // Intentar parsear directamente
+    JSON.parse(jsonString);
+    return jsonString;
+  } catch {
+    try {
+      // Intentar extraer el JSON del texto
+      const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const extracted = jsonMatch[0];
+        JSON.parse(extracted);
+        return extracted;
+      }
+    } catch {
+      // Si todo falla, devolver null
+      return null;
+    }
+  }
+  return null;
+}
 
 // Función para generar títulos específicos de lecciones para cada módulo
 async function generateSpecificLessonTitles(
@@ -324,7 +347,7 @@ Revisa el JSON ANTES de responder. Debe ser 100% válido.`;
           // Crear una consulta de búsqueda específica del módulo
           const moduleSpecificQuery = `${moduleTitle} ${lessonTitle}`;
 
-          // Usar Promise.race para timeout de 10 segundos
+          // Usar Promise.race para timeout de 8 segundos (balance entre velocidad y éxito)
           const videoPromise = YouTubeService.findVideoForChunk(
             moduleSpecificQuery,
             lessonContent,
@@ -333,13 +356,20 @@ Revisa el JSON ANTES de responder. Debe ser 100% válido.`;
           );
 
           const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Video search timeout')), 10000)
+            setTimeout(() => reject(new Error('Video search timeout')), 8000)
           );
 
-          const video = (await Promise.race([
-            videoPromise,
-            timeoutPromise,
-          ])) as any;
+          let video;
+          try {
+            video = (await Promise.race([
+              videoPromise,
+              timeoutPromise,
+            ])) as any;
+          } catch (error) {
+            console.log('⚠️ Video search failed, continuing without video:', error instanceof Error ? error.message : String(error));
+            video = null;
+          }
+          
           if (video && video.title) {
             videoData = JSON.stringify(video);
             console.log(`✅ Video found: ${video.title}`);
@@ -719,15 +749,16 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    if (!(session as any)?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id: courseId } = await params;
+    const userId = (session as any).user.id;
 
     // Get user info to check plan
     const user = await db.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       select: { plan: true },
     });
 
@@ -740,7 +771,7 @@ export async function POST(
     const course = await db.course.findFirst({
       where: {
         id: courseId,
-        userId: session.user.id, // User must own the course (own or cloned)
+        userId: userId, // User must own the course (own or cloned)
         deletedAt: null, // Not deleted
       },
     });
@@ -812,7 +843,7 @@ export async function POST(
     // Check if this is the first time starting this course
     const hasStartedBefore = await db.userProgress.findFirst({
       where: {
-        userId: session.user.id,
+        userId: userId,
         courseId: courseId,
       },
     });
@@ -822,13 +853,13 @@ export async function POST(
       // Create UserProgress record to track that this course has been started
       await db.userProgress.create({
         data: {
-          userId: session.user.id,
+          userId: userId,
           courseId: courseId,
         },
       });
 
       console.log(
-        `✅ Course ${courseId} started and counted for user ${session.user.id}`
+        `✅ Course ${courseId} started and counted for user ${userId}`
       );
       console.log(
         `📊 UserProgress record created at: ${new Date().toISOString()}`
@@ -869,14 +900,20 @@ async function generateModulesInBackground(
     const { simpleAI } = await import('@/lib/ai/simple');
     const { YouTubeService } = await import('@/lib/youtube');
 
-    for (const module of modulesToGenerate) {
-      const moduleTitle = moduleList[module.moduleOrder - 1];
+    // Procesar módulos en lotes para mejor rendimiento
+    const batchSize = 2; // Procesar 2 módulos a la vez
+    for (let i = 0; i < modulesToGenerate.length; i += batchSize) {
+      const batch = modulesToGenerate.slice(i, i + batchSize);
+      
+      // Procesar el lote en paralelo
+      await Promise.all(batch.map(async (module) => {
+        const moduleTitle = moduleList[module.moduleOrder - 1];
 
-      if (moduleTitle) {
-        try {
-          console.log(
-            `📝 [BACKGROUND] Generating module ${module.moduleOrder}: ${moduleTitle}`
-          );
+        if (moduleTitle) {
+          try {
+            console.log(
+              `📝 [BACKGROUND] Generating module ${module.moduleOrder}: ${moduleTitle}`
+            );
 
           // Build context for previous modules
           const previousModules = modulesToGenerate
@@ -985,6 +1022,12 @@ async function generateModulesInBackground(
             error
           );
         }
+      }
+      }));
+      
+      // Pequeña pausa entre lotes para no sobrecargar
+      if (i + batchSize < modulesToGenerate.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 
